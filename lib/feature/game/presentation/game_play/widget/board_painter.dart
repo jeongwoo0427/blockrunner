@@ -9,28 +9,49 @@ import 'package:flutter/material.dart';
 ///
 /// 움직이는 블록은 이 위에 위젯으로 얹는다. 그래야 `06-animation` 에서
 /// 슬라이드와 낙하 연출을 위젯 애니메이션으로 처리할 수 있다.
+///
+/// **좌표를 스스로 계산하지 않는다.** [cell] 과 [origin] 을 `BoardView` 에서
+/// 받아 쓴다 — 페인터와 블록 위젯이 각자 계산하면 언젠가 어긋난다.
 class BoardPainter extends CustomPainter {
-  const BoardPainter({required this.board, required this.colors});
+  const BoardPainter({
+    required this.board,
+    required this.colors,
+    required this.cell,
+    required this.origin,
+  });
 
   final BoardState board;
 
   /// 색은 전부 여기서 꺼낸다. 페인터 안에 `Color(0xFF...)` 를 박지 않는다.
   final BoardColors colors;
 
+  /// 칸 한 변의 길이.
+  final double cell;
+
+  /// 격자의 좌상단. 외곽 프레임이 들어갈 여백만큼 안쪽이다.
+  final Offset origin;
+
+  double get _wallWidth => cell * Spacing.wallWidthRatio;
+
+  Rect get _gridRect => Rect.fromLTWH(
+    origin.dx,
+    origin.dy,
+    cell * board.colCount,
+    cell * board.rowCount,
+  );
+
   @override
   void paint(Canvas canvas, Size size) {
-    final cell = size.width / board.colCount;
-
     canvas.drawRect(Offset.zero & size, Paint()..color = colors.background);
 
-    _paintFloors(canvas, cell);
-    _paintGridLines(canvas, size, cell);
-    _paintCellWalls(canvas, cell);
-    _paintEdgeWalls(canvas, cell);
-    _paintOuterFrame(canvas, size, cell);
+    _paintFloors(canvas);
+    _paintGridLines(canvas);
+    _paintCellWalls(canvas);
+    _paintEdgeWalls(canvas);
+    _paintOuterFrame(canvas);
   }
 
-  void _paintFloors(Canvas canvas, double cell) {
+  void _paintFloors(Canvas canvas) {
     final goalPaint = Paint()..color = colors.goal;
     final holePaint = Paint()..color = colors.hole;
 
@@ -39,7 +60,7 @@ class BoardPainter extends CustomPainter {
         final floor = board.floors[row][col];
         if (floor != FloorType.goal && floor != FloorType.hole) continue;
 
-        final rect = _cellRect(row, col, cell);
+        final rect = _cellRect(row, col);
         if (floor == FloorType.goal) {
           // 목표는 통과 가능한 바닥이므로 칸을 꽉 채우지 않고 테두리 링으로 둔다.
           // 블록이 그 위에 서도 목표였다는 사실이 보여야 한다.
@@ -57,39 +78,40 @@ class BoardPainter extends CustomPainter {
     }
   }
 
-  void _paintGridLines(Canvas canvas, Size size, double cell) {
+  void _paintGridLines(Canvas canvas) {
     final paint = Paint()
       ..color = colors.gridLine
       ..strokeWidth = Spacing.gridLineWidth;
+    final grid = _gridRect;
 
     for (var col = 1; col < board.colCount; col++) {
-      final x = col * cell;
-      canvas.drawLine(Offset(x, 0), Offset(x, size.height), paint);
+      final x = grid.left + col * cell;
+      canvas.drawLine(Offset(x, grid.top), Offset(x, grid.bottom), paint);
     }
     for (var row = 1; row < board.rowCount; row++) {
-      final y = row * cell;
-      canvas.drawLine(Offset(0, y), Offset(size.width, y), paint);
+      final y = grid.top + row * cell;
+      canvas.drawLine(Offset(grid.left, y), Offset(grid.right, y), paint);
     }
   }
 
   /// 칸 벽 — 칸을 통째로 채운다. 여기엔 아무것도 설 수 없다.
-  void _paintCellWalls(Canvas canvas, double cell) {
+  void _paintCellWalls(Canvas canvas) {
     final paint = Paint()..color = colors.wall;
 
     for (var row = 0; row < board.rowCount; row++) {
       for (var col = 0; col < board.colCount; col++) {
         if (board.floors[row][col] != FloorType.wall) continue;
-        canvas.drawRect(_cellRect(row, col, cell), paint);
+        canvas.drawRect(_cellRect(row, col), paint);
       }
     }
   }
 
   /// 경계 벽 — 칸 사이에 굵은 선. 양쪽 칸은 살아 있다.
-  void _paintEdgeWalls(Canvas canvas, double cell) {
-    final paint = _wallStroke(cell);
+  void _paintEdgeWalls(Canvas canvas) {
+    final paint = _wallStroke();
 
     for (final wall in board.walls) {
-      final rect = _cellRect(wall.position.row, wall.position.col, cell);
+      final rect = _cellRect(wall.position.row, wall.position.col);
       final (from, to) = switch (wall.direction) {
         Direction.right => (rect.topRight, rect.bottomRight),
         Direction.down => (rect.bottomLeft, rect.bottomRight),
@@ -102,25 +124,33 @@ class BoardPainter extends CustomPainter {
 
   /// 맵 경계도 벽이다(기획서 §2.2). 경계 벽과 같은 두께·색으로 그려야
   /// "판이 벽으로 둘러싸여 있다"가 화면에서도 읽힌다.
-  void _paintOuterFrame(Canvas canvas, Size size, double cell) {
-    final stroke = _wallStroke(cell);
-    final inset = stroke.strokeWidth / 2;
-
+  ///
+  /// **격자 바깥 여백에 그린다.** 칸 안쪽으로 파고들면 가장자리 칸만 여백이
+  /// 비대칭이 되어 블록이 중앙에서 밀려 보인다.
+  void _paintOuterFrame(Canvas canvas) {
     canvas.drawRect(
-      Rect.fromLTWH(0, 0, size.width, size.height).deflate(inset),
-      stroke..style = PaintingStyle.stroke,
+      _gridRect.inflate(_wallWidth / 2),
+      _wallStroke()..style = PaintingStyle.stroke,
     );
   }
 
-  Paint _wallStroke(double cell) => Paint()
+  Paint _wallStroke() => Paint()
     ..color = colors.wall
-    ..strokeWidth = cell * Spacing.wallWidthRatio
-    ..strokeCap = StrokeCap.square;
+    ..strokeWidth = _wallWidth
+    // square/round 캡은 선 양끝을 두께의 절반씩 늘려 칸 하나보다 길어진다.
+    ..strokeCap = StrokeCap.butt;
 
-  Rect _cellRect(int row, int col, double cell) =>
-      Rect.fromLTWH(col * cell, row * cell, cell, cell);
+  Rect _cellRect(int row, int col) => Rect.fromLTWH(
+    origin.dx + col * cell,
+    origin.dy + row * cell,
+    cell,
+    cell,
+  );
 
   @override
   bool shouldRepaint(BoardPainter oldDelegate) =>
-      oldDelegate.board != board || oldDelegate.colors != colors;
+      oldDelegate.board != board ||
+      oldDelegate.colors != colors ||
+      oldDelegate.cell != cell ||
+      oldDelegate.origin != origin;
 }

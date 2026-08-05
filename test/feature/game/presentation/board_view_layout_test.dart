@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/theme/data/light_theme.dart';
+import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
@@ -82,6 +83,15 @@ void main() {
 
     final rendered = await pumpBoard(tester, wide, const Size(600, 600));
 
-    expect(rendered.width / rendered.height, closeTo(3, 0.01));
+    // 그려진 박스에는 외곽 프레임 여백이 양쪽으로 한 겹씩 들어 있다.
+    // 셀이 정사각인지 보려면 격자 부분만 떼어내야 한다.
+    final cell = rendered.width / (6 + 2 * Spacing.wallWidthRatio);
+    final margin = cell * Spacing.wallWidthRatio;
+    final grid = Size(
+      rendered.width - 2 * margin,
+      rendered.height - 2 * margin,
+    );
+
+    expect(grid.width / grid.height, closeTo(3, 0.01));
   });
 }
