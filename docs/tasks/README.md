@@ -15,7 +15,7 @@
 | 03 | [03-level-data.md](completed/03-level-data.md) | 레벨 상수 데이터 · 파서 · repository | ✅ 완료 | 01 |
 | 04 | [04-game-screen.md](completed/04-game-screen.md) | 보드 렌더링 · 플레이 화면 | ✅ 완료 | 02, 03 |
 | 05 | [05-input.md](completed/05-input.md) | 크로스플랫폼 입력 | ✅ 완료 | 04 |
-| 06 | [06-animation.md](06-animation.md) | 이동 애니메이션 | 대기 | 04 |
+| 06 | [06-animation.md](completed/06-animation.md) | 이동 애니메이션 | ✅ 완료 | 04 |
 | 07 | [07-undo-reset.md](07-undo-reset.md) | 되돌리기 · 다시하기 · 클리어 처리 | 대기 | 04 |
 | 08 | [08-level-select.md](08-level-select.md) | 레벨 선택 화면 | 대기 | 03, 09 |
 | 09 | [09-progress.md](09-progress.md) | 진행도 저장 | 대기 | 00 |
@@ -28,6 +28,8 @@
 **02(이동 엔진)를 04(화면)보다 먼저 한다.** 이 게임의 난이도는 전부 이동 규칙에 있고, 규칙은 Flutter 없이 단위 테스트로 완전히 검증할 수 있다. UI를 먼저 만들면 규칙 버그를 눈으로 디버깅하게 되므로 순서를 뒤집지 않는다.
 
 04까지 끝나면 05·06·07·10은 서로 독립적이라 순서를 바꿔도 된다.
+
+**07은 06 이후에 하는 편이 낫다.** 되돌리기·다시하기가 연출과 어떻게 맞물릴지가 06에서 정해지기 때문이다 — 둘 다 즉시 반영이고, `isAnimating` 을 세우지 않는 것으로 그렇게 된다.
 
 ## 참고 문서
 

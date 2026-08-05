@@ -1,6 +1,9 @@
+import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/core/error/failure_code.dart';
 import 'package:blockrunner/core/theme/data/light_theme.dart';
+import 'package:blockrunner/feature/game/domain/entity/block.dart';
+import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
@@ -41,6 +44,8 @@ void main() {
     bool isPlayerLost = false,
     bool hasNextLevel = true,
     bool showsTutorial = false,
+    bool isAnimating = false,
+    List<Block> fallingBlocks = const [],
     int moveCount = 0,
     Level? level,
   }) => GamePlayScreenState(
@@ -49,6 +54,8 @@ void main() {
     map: map1,
     board: map1.initialBoard,
     moveCount: moveCount,
+    isAnimating: isAnimating,
+    fallingBlocks: fallingBlocks,
     isCleared: isCleared,
     isPlayerLost: isPlayerLost,
     hasNextLevel: hasNextLevel,
@@ -150,6 +157,94 @@ void main() {
       await pumpScreen(tester, stateOf(level: plain, showsTutorial: true));
 
       expect(find.byType(TutorialOverlay), findsNothing);
+    });
+  });
+
+  group('연출 (기획서 §7)', () {
+    /// 같은 `events` 로 여러 번 다시 그린다 — `didUpdateWidget` 을 태워야 한다.
+    Future<void> Function(GamePlayScreenState) rebuilder(
+      WidgetTester tester,
+      List<GamePlayScreenEvent> events,
+    ) =>
+        (state) => tester.pumpWidget(
+          MaterialApp(
+            theme: lightTheme,
+            home: GamePlayScreen(state: state, onEvent: events.add),
+          ),
+        );
+
+    testWidgets('연출이 끝나면 AnimationCompleted 를 올려보낸다', (tester) async {
+      final events = <GamePlayScreenEvent>[];
+      final pump = rebuilder(tester, events);
+
+      await pump(stateOf());
+      await pump(stateOf(isAnimating: true));
+      expect(events, isEmpty, reason: '아직 재생 중이다');
+
+      await tester.pump(AppConstants.moveAnimationDuration);
+      expect(events.single, isA<AnimationCompleted>());
+    });
+
+    testWidgets('낙하가 있으면 그것까지 끝난 뒤에 통지한다', (tester) async {
+      final events = <GamePlayScreenEvent>[];
+      final pump = rebuilder(tester, events);
+
+      await pump(stateOf());
+      await pump(
+        stateOf(
+          isAnimating: true,
+          // 빠진 블록은 판에서 지워지므로 판에 없는 id 여야 한다.
+          fallingBlocks: const [
+            Block(id: 99, type: BlockType.player, position: Position(0, 3)),
+          ],
+        ),
+      );
+
+      await tester.pump(AppConstants.moveAnimationDuration);
+      expect(events, isEmpty, reason: '슬라이드만 끝났고 낙하가 남아 있다');
+
+      await tester.pump(AppConstants.fallAnimationDuration);
+      expect(events.single, isA<AnimationCompleted>());
+    });
+
+    testWidgets('연출이 끊기면 완료 통지가 나가지 않는다', (tester) async {
+      final events = <GamePlayScreenEvent>[];
+      final pump = rebuilder(tester, events);
+
+      await pump(stateOf());
+      await pump(stateOf(isAnimating: true));
+      // 재생 도중 다시하기 — Notifier 가 isAnimating 을 내린다.
+      await pump(stateOf());
+
+      await tester.pump(AppConstants.moveWithFallDuration);
+      expect(events, isEmpty, reason: '이미 끝난 판에 완료 통지가 날아가면 안 된다');
+    });
+
+    testWidgets('결과 오버레이는 연출이 끝난 뒤에 뜬다', (tester) async {
+      final events = <GamePlayScreenEvent>[];
+      final pump = rebuilder(tester, events);
+
+      await pump(stateOf());
+      await pump(stateOf(isCleared: true, isAnimating: true));
+
+      expect(
+        find.text('클리어!'),
+        findsNothing,
+        reason: '목표 칸으로 미끄러지는 장면을 오버레이가 덮으면 안 된다',
+      );
+
+      await tester.pump(AppConstants.moveAnimationDuration);
+      await pump(stateOf(isCleared: true));
+      expect(find.text('클리어!'), findsOneWidget);
+    });
+
+    testWidgets('연출 중 마운트돼도 완료 통지가 나간다', (tester) async {
+      // 핫 리로드처럼 처음부터 isAnimating 인 채로 붙는 경우.
+      // 통지가 안 나가면 입력이 영영 죽는다.
+      final events = await pumpScreen(tester, stateOf(isAnimating: true));
+
+      await tester.pump(AppConstants.moveAnimationDuration);
+      expect(events.single, isA<AnimationCompleted>());
     });
   });
 

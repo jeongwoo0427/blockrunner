@@ -137,10 +137,17 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` through `05-input` are done — **the game is playable on all three platforms.** The
+`00-foundation` through `06-animation` are done — **the game is playable on all three platforms.** The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
+
+**There is no on-screen d-pad on any platform** (`docs/game-design.md` §6) — a test asserts its
+absence, so don't reintroduce one for discoverability. Discoverability is handled by **per-level
+tutorial text** (`Level.tutorial`, §6.1): levels that introduce a new rule carry a Korean blurb, and
+it is shown once as an overlay on first arrival. "Seen" is persisted by `TutorialRepository` in the
+`level` feature — that feature therefore owns a little `SharedPreferences` state, not just constants.
+Clear/star/best-move storage still belongs to `09-progress`.
 
 **There are two kinds of wall and they are not interchangeable.** `#` is a *cell wall* that occupies
 a whole square; `|` and `-` are *edge walls* that sit between two squares and block passage without
@@ -148,15 +155,22 @@ consuming either one. Maps are written as an interleaved `2N+1` grid so edges ar
 — see `docs/game-design.md` §9.1. Never "simplify" a map back to one line per row; that silently
 drops every edge wall.
 
-Still missing: **animation** (moves apply instantly), **undo**, and **progress saving**. The level
-select screen is still a placeholder.
+Still missing: **undo** and **progress saving**. The level select screen is still a placeholder.
 
 Rendering is a **hybrid**, decided in `04`: `BoardPainter` draws floors/grid/walls, and blocks are
-`Positioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in exactly one
-place — `BoardView`. Don't scatter that calculation.
+`AnimatedPositioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in
+exactly one place — `BoardView`. Don't scatter that calculation.
 
-Next up is `06-animation`. Work through `docs/tasks/` in order, one task per request. Don't start the
-next task unless asked.
+**Animation is implicit — there is no `AnimationController`.** `AnimatedPositioned` slides the
+blocks; the Screen holds only a `Timer` that reports `AnimationCompleted` back to the Notifier.
+`state.isAnimating` doubles as "should this change be shown": when it is false the durations
+collapse to zero, which is exactly why reset (and, in `07`, undo) applies instantly without
+replaying a rewind. Falling blocks are removed from `board` but kept in `state.fallingBlocks` so
+they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
+second timer.
+
+Next up is `07-undo-reset`. Work through `docs/tasks/` in order, one task per request. Don't start
+the next task unless asked.
 
 ### Architecture in brief
 

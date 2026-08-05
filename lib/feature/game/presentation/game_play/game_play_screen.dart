@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
@@ -27,22 +30,69 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   /// 스와이프 시작부터 누적한 이동량. `onPanEnd` 는 총 이동량을 주지 않는다.
   Offset _panDelta = Offset.zero;
 
+  /// 연출이 끝나는 시점을 재는 타이머.
+  ///
+  /// 슬라이드는 `AnimatedPositioned` 가 알아서 하므로 `AnimationController` 가
+  /// 필요 없지만, **언제 끝났는지 Notifier 에 알려줄 무언가**는 필요하다.
+  Timer? _animationTimer;
+
   @override
   void dispose() {
+    _animationTimer?.cancel();
     _focusNode.dispose();
     super.dispose();
+  }
+
+  /// 이미 연출 중인 상태로 마운트되는 경우(핫 리로드 등)를 받는다.
+  ///
+  /// [didUpdateWidget] 만 보면 이때 타이머가 안 걸리고, 완료 통지가 영영 가지
+  /// 않아 `isAnimating` 이 남은 채 입력이 죽는다. 되돌릴 방법도 없는 상태다.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.state.isAnimating && _animationTimer == null) {
+      _startAnimationTimer();
+    }
   }
 
   @override
   void didUpdateWidget(GamePlayScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    if (!oldWidget.state.isAnimating && widget.state.isAnimating) {
+      _startAnimationTimer();
+    } else if (oldWidget.state.isAnimating && !widget.state.isAnimating) {
+      // 다시하기 등으로 연출이 중간에 끊겼다. 늦게 울리면 이미 끝난 판에
+      // 완료 통지가 날아간다.
+      _animationTimer?.cancel();
+      _animationTimer = null;
+    }
+
     // 결과 오버레이가 닫히면 키보드 포커스를 되찾는다. 오버레이 버튼이
     // 포커스를 가져간 채로 두면 방향키가 먹지 않는다.
-    final wasBlocked =
-        oldWidget.state.isCleared || oldWidget.state.isPlayerLost;
-    final isBlocked = widget.state.isCleared || widget.state.isPlayerLost;
-    if (wasBlocked && !isBlocked) _focusNode.requestFocus();
+    if (_showsResult(oldWidget.state) && !_showsResult(widget.state)) {
+      _focusNode.requestFocus();
+    }
+  }
+
+  /// 판정은 이동 직후 확정되지만 **보여주는 것은 연출이 끝난 뒤다**(기획서 §7).
+  /// 미끄러지는 도중에 띄우면 무엇 때문에 끝났는지 가려진다.
+  bool _showsResult(GamePlayScreenState state) =>
+      (state.isCleared || state.isPlayerLost) && !state.isAnimating;
+
+  void _startAnimationTimer() {
+    _animationTimer?.cancel();
+
+    final duration = MediaQuery.disableAnimationsOf(context)
+        ? Duration.zero
+        : (widget.state.fallingBlocks.isEmpty
+              ? AppConstants.moveAnimationDuration
+              : AppConstants.moveWithFallDuration);
+
+    _animationTimer = Timer(duration, () {
+      _animationTimer = null;
+      if (mounted) widget.onEvent(AnimationCompleted());
+    });
   }
 
   /// 모든 입력 경로가 지나는 한 곳.
@@ -149,7 +199,11 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                         behavior: HitTestBehavior.opaque,
                         child: Padding(
                           padding: const EdgeInsets.all(Spacing.md),
-                          child: BoardView(board: board),
+                          child: BoardView(
+                            board: board,
+                            fallingBlocks: state.fallingBlocks,
+                            isAnimating: state.isAnimating,
+                          ),
                         ),
                       ),
                     ),
@@ -170,7 +224,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                       onDismiss: () => _sendAndRefocus(TutorialDismissed()),
                     ),
                   ),
-                if (state.isCleared || state.isPlayerLost)
+                if (_showsResult(state))
                   Positioned.fill(
                     child: ResultOverlay(
                       isCleared: state.isCleared,

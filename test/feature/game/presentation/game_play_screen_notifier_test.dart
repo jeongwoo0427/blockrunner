@@ -1,4 +1,5 @@
 import 'package:blockrunner/core/error/failure_code.dart';
+import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/game_di.dart';
@@ -94,6 +95,10 @@ void main() {
 
   test('클리어한 뒤에는 이동 입력을 받지 않는다', () async {
     await send(1, MoveRequested(Direction.right));
+    // 연출을 끝내둔다. 그러지 않으면 isAnimating 때문에 막혀서
+    // "클리어라서 막힌다" 를 검사하지 못한다.
+    await send(1, AnimationCompleted());
+
     await send(1, MoveRequested(Direction.left));
 
     expect(read(1).moveCount, 1, reason: '클리어 후 입력은 무시되어야 한다');
@@ -102,6 +107,7 @@ void main() {
   test('구멍에 빠지면 소실 상태가 되고 이후 입력이 막힌다', () async {
     // 레벨 5 는 목표를 향해 곧장 밀면 구멍에 빠지도록 만들어져 있다.
     await send(5, MoveRequested(Direction.right));
+    await send(5, AnimationCompleted());
     final lost = read(5);
 
     expect(lost.isPlayerLost, isTrue);
@@ -123,6 +129,77 @@ void main() {
     expect(state.moveCount, 0);
     expect(state.isPlayerLost, isFalse);
     expect(state.isCleared, isFalse);
+  });
+
+  group('연출 상태 (기획서 §7)', () {
+    test('이동하면 연출 상태가 되고 그동안 입력이 막힌다', () async {
+      await send(2, MoveRequested(Direction.down));
+      final state = read(2);
+
+      expect(state.isAnimating, isTrue);
+      expect(state.canMove, isFalse, reason: '연출 중 입력은 큐잉하지 않고 버린다');
+    });
+
+    test('완료 통지를 받아야 다시 움직일 수 있다', () async {
+      await send(2, MoveRequested(Direction.down));
+      await send(2, AnimationCompleted());
+
+      expect(read(2).isAnimating, isFalse);
+      expect(read(2).canMove, isTrue);
+
+      await send(2, MoveRequested(Direction.right));
+      expect(read(2).moveCount, 2);
+    });
+
+    test('무효 입력은 연출을 시작하지 않는다', () async {
+      // 플레이어가 이미 왼쪽 끝에 있어 아무것도 움직이지 않는다.
+      await send(2, MoveRequested(Direction.left));
+
+      expect(read(2).isAnimating, isFalse, reason: '판이 안 바뀌면 보여줄 것도 없다');
+    });
+
+    test('구멍에 빠진 블록은 빠진 칸에 놓인 채 남는다', () async {
+      await send(5, MoveRequested(Direction.right));
+      final state = read(5);
+
+      // 판에서는 지워졌지만 연출용으로는 살아 있어야 한다. 그러지 않으면
+      // 구멍까지 미끄러지는 장면 없이 제자리에서 사라진다.
+      expect(state.board?.hasPlayer, isFalse);
+      expect(state.fallingBlocks, hasLength(1));
+
+      final fallen = state.fallingBlocks.single;
+      expect(fallen.isPlayer, isTrue);
+      expect(
+        state.board?.floorAt(fallen.position),
+        FloorType.hole,
+        reason: '연출 위치는 출발 칸이 아니라 빠진 구멍이어야 한다',
+      );
+
+      await send(5, AnimationCompleted());
+      expect(read(5).fallingBlocks, isEmpty);
+    });
+
+    test('다시하기는 재생 중인 연출을 끊는다', () async {
+      await send(5, MoveRequested(Direction.right));
+      expect(read(5).isAnimating, isTrue);
+
+      await send(5, ResetRequested());
+      final state = read(5);
+
+      expect(state.isAnimating, isFalse, reason: '다시하기는 즉시 반영이다');
+      expect(state.fallingBlocks, isEmpty);
+    });
+
+    test('끊긴 뒤 늦게 도착한 완료 통지는 무시된다', () async {
+      await send(5, MoveRequested(Direction.right));
+      await send(5, ResetRequested());
+      // 다시하기 직전에 걸려 있던 타이머가 뒤늦게 울린 상황.
+      await send(5, AnimationCompleted());
+
+      final state = read(5);
+      expect(state.board, state.map?.initialBoard);
+      expect(state.moveCount, 0);
+    });
   });
 
   group('튜토리얼 (기획서 §6.1)', () {

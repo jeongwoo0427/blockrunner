@@ -1,4 +1,5 @@
 import 'package:blockrunner/core/error/failure.dart';
+import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/game_map.dart';
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
@@ -12,6 +13,7 @@ class GamePlayScreenState {
     this.board,
     this.moveCount = 0,
     this.isAnimating = false,
+    this.fallingBlocks = const [],
     this.isCleared = false,
     this.isPlayerLost = false,
     this.hasNextLevel = false,
@@ -30,8 +32,15 @@ class GamePlayScreenState {
 
   final int moveCount;
 
-  /// 슬라이드 연출 재생 중. `06-animation` 이 세운다.
+  /// 슬라이드 연출 재생 중. 이동을 적용할 때 세우고, 화면이 연출을 다 재생한 뒤
+  /// [AnimationCompleted] 를 올려보내면 내린다.
   final bool isAnimating;
+
+  /// 이번 이동에서 구멍에 빠진 블록들. 위치는 **빠진 구멍 칸**이다.
+  ///
+  /// [board] 에는 이미 없다. 그래도 들고 있는 이유는 낙하 연출 때문이다 —
+  /// 판에서 지워버리면 미끄러지다 말고 순간 소멸한다. 연출이 끝나면 비운다.
+  final List<Block> fallingBlocks;
 
   final bool isCleared;
 
@@ -66,6 +75,7 @@ class GamePlayScreenState {
     BoardState? Function()? board,
     int? moveCount,
     bool? isAnimating,
+    List<Block>? fallingBlocks,
     bool? isCleared,
     bool? isPlayerLost,
     bool? hasNextLevel,
@@ -78,6 +88,7 @@ class GamePlayScreenState {
       board: board != null ? board() : this.board,
       moveCount: moveCount ?? this.moveCount,
       isAnimating: isAnimating ?? this.isAnimating,
+      fallingBlocks: fallingBlocks ?? this.fallingBlocks,
       isCleared: isCleared ?? this.isCleared,
       isPlayerLost: isPlayerLost ?? this.isPlayerLost,
       hasNextLevel: hasNextLevel ?? this.hasNextLevel,

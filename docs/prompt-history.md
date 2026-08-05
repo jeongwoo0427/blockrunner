@@ -937,3 +937,79 @@
 
 **결정 / 메모**
 - 규칙(§6.1) · 레벨 데이터 · 저장소 · 상태 · 위젯이 한 변경의 부분들이라 쪼개지 않았다. 중간 상태에서는 테스트가 통과하지 않는다
+
+---
+
+## 2026-08-05 #36 — 새 세션 컨텍스트 파악
+
+**요청**
+> @CLAUDE.md 읽어보고 프로젝트 구조와 의도 파악 그리고 다음 할일 파악해줘
+
+**한 일**
+- `CLAUDE.md` → `docs/game-design.md` → `docs/architecture.md` → `docs/tasks/README.md` → `docs/prompt-history.md`(#31~#35) 순으로 읽고, `git log`/`git status` 확인
+- 다음 작업이 `06-animation` 임을 확인하고 그 문서를 읽어 착수 지점을 파악
+
+**변경 파일**
+- 없음 (파악만. 코드·문서 변경 없음)
+
+**결정 / 메모**
+- **착수하지 않았다.** `CLAUDE.md` 의 "요청당 한 작업 · 시키지 않으면 다음 작업을 시작하지 않는다" 규칙에 따라 파악까지만 하고 멈췄다
+- `CLAUDE.md` 의 **Current state 절이 `#31`~`#34` 를 반영하지 못한 상태**다 — D-pad 제거와 튜토리얼(레벨 데이터 + 진입 오버레이 + `TutorialRepository`) 이 빠져 있고, `level` feature 가 이제 메타데이터 외에 튜토리얼 저장까지 갖는다는 사실도 없다. `06` 착수 시 같이 손보는 편이 낫다고 판단해 사용자에게 알렸다
+
+---
+
+## 2026-08-05 #37 — 06-animation: 이동 애니메이션
+
+**요청**
+> 06 진행해줘
+
+**한 일**
+- 착수 전 **작업 문서에 파킹돼 있던 열린 질문 2개**(벽 충돌 바운스 · 무효 입력 셰이크)와 결과 오버레이 시점을 `AskUserQuestion` 으로 확인 → 바운스·셰이크 **둘 다 제외**, 오버레이는 **연출이 끝난 뒤**
+- `docs/game-design.md` §7 **먼저** 개정 — 오버레이 시점 · 되돌리기/다시하기 즉시 반영 · 접근성 · 제외한 두 항목과 그 이유
+- `AppConstants` — `moveWithFallDuration`, `fallStartFraction` 추가 (ms 상수에서 파생)
+- `BoardView` — `Positioned` → `AnimatedPositioned`, `fallingBlocks` · `isAnimating` 인자 추가, 축소·페이드를 `Interval` 로 슬라이드 뒤에 배치
+- `GamePlayScreenState.fallingBlocks`, `AnimationCompleted` 이벤트, Notifier 배선(`_fallenBlocks`)
+- `GamePlayScreen` — 연출 종료 `Timer`, 결과 오버레이를 `_showsResult` 로 게이트
+- 테스트 17건 추가 (161 → 178). 렌더링 6건은 신규 파일
+
+**변경 파일**
+- `docs/game-design.md` §7 (규칙, 코드보다 먼저)
+- `lib/core/config/app_constants.dart`
+- `lib/feature/game/presentation/game_play/` — `widget/board_view.dart`, `game_play_screen.dart`, `game_play_screen_state.dart` · `_event.dart` · `_notifier.dart`
+- `test/feature/game/presentation/board_animation_test.dart` (신규), `game_play_screen_test.dart`, `game_play_screen_notifier_test.dart`
+- `docs/tasks/completed/06-animation.md` (완료 처리 · 실제 결과), `docs/tasks/README.md`, `README.md`, `CLAUDE.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 178/178 통과
+- **교란 테스트로 새 테스트가 실패할 수 있는지 확인**했다 — `Interval` 을 빼면 "슬라이드 뒤 낙하" 가, 슬라이드 지속시간을 0 으로 만들면 "순간이동하지 않는다" 가 각각 걸린다
+- `fvm flutter run -d chrome` 으로 띄워 육안 확인은 사용자 몫
+
+**결정 / 메모**
+- **`AnimationController` 를 두지 않았다.** 작업 문서 §2 는 Screen 에 컨트롤러를 두고 진행률로 좌표를 보간하라고 했지만, §1 의 `AnimatedPositioned` 를 쓰면 그 일이 위젯 쪽으로 사라진다. 화면에 남는 것은 "언제 끝났는지" 를 재는 `Timer` 하나뿐이고, `from`/`to` 를 `BoardView` 까지 내려보내지 않아도 되어 **좌표 계산이 여전히 `BoardView` 한 곳에만** 있다. 문서와 다른 길이라 `실제 결과` 에 이유를 적었다
+- **`isAnimating` 이 "이번 변화를 보여줄지" 를 겸한다.** 암시적 애니메이션은 값이 바뀌면 무조건 재생하므로 **다시하기가 되감기 연출로 재생되는 문제**가 생긴다. 이 플래그가 `false` 면 지속 시간을 0 으로 주는 것으로 막았다. 다시하기는 플래그를 세우지 않으니 즉시 반영(기획서 §7)이 따로 코드 없이 지켜지고, `07` 의 되돌리기도 같은 경로를 탄다
+- **낙하 순서를 타이머가 아니라 `Interval` 로 만들었다.** 암시적 애니메이션에 시작 지연이 없어서 슬라이드→낙하를 이으려면 보통 타이머가 하나 더 필요한데, 전체 구간을 하나로 잡고 앞부분을 비우면 선언적으로 끝난다. 두 개의 시간 소스가 어긋날 여지가 없다
+- **축소·페이드 위젯을 빠지지 않는 블록에도 항상 감싸뒀다.** 빠지는 순간에만 감싸면 위젯이 새로 생겨 시작값(scale 0)부터 그려지고, 결국 애니메이션 없이 사라진다. 감싼 채 목표값만 바꿔야 재생된다
+- **빠진 블록을 상태가 따로 든다.** `MoveResult` 가 `from`/`to`/`fellIntoHole` 을 이미 주고 있었지만(01·02 에서 "애니메이션이 필요로 하는 정보" 로 넣어둔 것이 여기서 값을 했다) `result.board` 에서는 지워져 있어서, 그대로 그리면 구멍까지 미끄러지지 않고 제자리에서 사라진다
+- **판정은 Notifier 가, 보여줄 시점은 화면이 정한다.** `isCleared` 를 연출 종료까지 늦추는 방법도 있었지만 그러면 상태가 실제 판과 어긋나는 시간이 생긴다. 언제 그릴지는 표현의 문제다. 덕분에 Notifier 테스트도 거의 그대로 살았다
+- **연출 중 마운트되는 경우를 `didChangeDependencies` 에서 받는다.** `didUpdateWidget` 만 보면 핫 리로드처럼 처음부터 `isAnimating` 인 채 붙었을 때 타이머가 안 걸리고, **완료 통지가 영영 가지 않아 입력이 죽는다.** 되돌릴 방법이 없는 상태라 방어를 넣었다
+- **기존 테스트 2건이 "이유가 바뀐 채" 통과하고 있었다.** "클리어 후 입력 차단" 이 이제 `isAnimating` 때문에 막혀서, 정작 검사하려던 조건을 못 보게 됐다. 사이에 `AnimationCompleted` 를 넣어 원래 의도대로 되돌렸다 — 통과하는 테스트라도 이유가 바뀌면 고쳐야 한다
+- **새 테스트를 일부러 깨뜨려봤다.** 연출 테스트는 "끝난 뒤" 를 보면 어차피 도착 좌표가 같아 항상 통과한다. 중간 프레임을 재도록 짜고, `Interval` 제거·슬라이드 제거 두 가지 교란으로 실제로 실패하는지 확인했다
+- 클리어 시 **목표 칸 강조**(§7)는 넣지 않았다. 결과 오버레이가 바로 뜨는 지금은 보일 자리가 없다. `07` 에서 오버레이를 손볼 때 같이 본다
+
+---
+
+## 2026-08-05 #38 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- `#37`(06-animation)을 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 규칙(§7) · 상수 · 상태 · 이벤트 · Notifier · 위젯 · 테스트가 한 변경의 부분들이라 쪼개지 않았다. 중간 상태에서는 테스트가 통과하지 않는다
+- 육안 확인은 아직 닫히지 않았다. `fvm flutter run -d chrome` 이 빌드 중이고, **지속 시간 150ms 와 낙하 타이밍이 적당한지**는 손으로 밀어봐야 안다. 조정이 필요하면 `AppConstants` 의 `_moveMs` · `_fallMs` 만 고치면 된다 — 나머지는 전부 여기서 파생된다
