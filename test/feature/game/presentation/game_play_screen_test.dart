@@ -5,6 +5,7 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/control_hint.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
@@ -97,12 +98,37 @@ void main() {
     expect(events.single, isA<ResetRequested>());
   });
 
-  testWidgets('화면 방향 버튼은 두지 않는다 — 조작은 판 위에서 한다 (기획서 §6)', (tester) async {
+  testWidgets('화면 방향 버튼은 어느 플랫폼에도 두지 않는다 (기획서 §6)', (tester) async {
     await pumpScreen(tester, stateOf());
 
     for (final label in ['위', '아래', '왼쪽', '오른쪽']) {
       expect(find.byTooltip(label), findsNothing);
     }
+    expect(find.byType(ControlHint), findsOneWidget, reason: '대신 조작 안내가 뜬다');
+  });
+
+  group('조작 안내 (기획서 §6.1)', () {
+    testWidgets('레벨 1 을 아직 한 수도 두지 않았으면 뜬다', (tester) async {
+      await pumpScreen(tester, stateOf());
+
+      expect(find.byType(ControlHint), findsOneWidget);
+    });
+
+    testWidgets('첫 이동을 하면 사라진다 — 닫기 버튼이 없다', (tester) async {
+      await pumpScreen(tester, stateOf(moveCount: 1));
+
+      expect(find.byType(ControlHint), findsNothing);
+    });
+
+    testWidgets('첫 레벨이 아니면 뜨지 않는다', (tester) async {
+      final later = kLevels.firstWhere((level) => level.number == 3);
+      await pumpScreen(
+        tester,
+        GamePlayScreenState(level: later, map: map1, board: map1.initialBoard),
+      );
+
+      expect(find.byType(ControlHint), findsNothing);
+    });
   });
 
   testWidgets('레벨도 실패도 없으면 로딩을 보여준다', (tester) async {

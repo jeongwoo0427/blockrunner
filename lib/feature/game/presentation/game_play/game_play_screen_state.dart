@@ -48,6 +48,12 @@ class GamePlayScreenState {
   bool get canMove =>
       board != null && !isAnimating && !isCleared && !isPlayerLost;
 
+  /// 조작 안내를 띄울 때인가 (기획서 §6.1).
+  ///
+  /// 저장하지 않는다 — `첫 레벨 && 아직 한 수도 두지 않음` 에서 그때그때
+  /// 파생될 뿐이라 별도 상태도 저장소도 필요 없고, 첫 이동에 저절로 사라진다.
+  bool get showsControlHint => level?.number == 1 && moveCount == 0;
+
   GamePlayScreenState copyWith({
     Level? Function()? level,
     GameMap? Function()? map,

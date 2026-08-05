@@ -824,3 +824,35 @@
 - **HUD 를 세로 스택에서 한 줄 `Row` 로 바꿨다.** 남은 요소가 둘뿐이라 세로로 쌓을 이유가 없고, 보드에 돌아가는 세로 공간이 늘어난다
 - `10-responsive` 의 "방향 버튼 배치" 절을 "HUD 배치" 로 바꿨다. 그러지 않으면 `10` 착수 시 없는 버튼의 배치를 고민하게 된다
 - `04` 의 완료 기준 "임시 방향 버튼으로 이동하면 보드가 갱신된다" 는 그대로 뒀다. **당시에는 참이었던 기준이고, 남은 사항에 제거 사실을 적어 이어지게 했다**
+
+---
+
+## 2026-08-05 #32 — 조작 안내(튜토리얼) 추가
+
+**요청**
+> UI로 표시되는 방향키버튼은 걍 모든 플랫폼 없애. 튜토리얼로 처음에만 안내하면 되니깐.
+
+**한 일**
+- 방향 버튼은 직전 커밋(`6e8cc65`)에서 **이미 모든 플랫폼에서 제거**돼 있음을 확인하고 알림. 이번 작업의 실체는 안내 구현
+- `docs/game-design.md` §6.1 **먼저** 신설 — 언제 뜨고 언제 사라지는지, 왜 닫기 버튼을 두지 않는지
+- `ControlHint` 위젯 신설. 플랫폼별 문구(터치 → 스와이프 / 그 외 → 방향키 · WASD)
+- `GamePlayScreenState.showsControlHint` 파생 게터 추가
+- 테스트 3건 추가 + 기존 "방향 버튼 없음" 테스트에 안내 존재 확인 추가
+
+**변경 파일**
+- `docs/game-design.md` (규칙, 코드보다 먼저)
+- `lib/feature/game/presentation/game_play/widget/control_hint.dart` (신규)
+- `lib/feature/game/presentation/game_play/game_play_screen_state.dart` · `game_play_screen.dart`
+- `test/feature/game/presentation/game_play_screen_test.dart`
+- `docs/tasks/completed/05-input.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 154/154 통과 (기존 151 + 신규 3)
+
+**결정 / 메모**
+- **상태를 저장하지 않는다.** `레벨 1 && 이동 0회` 라는 조건에서 파생되는 값이라 새 필드도, `SharedPreferences` 키도 필요 없다. "한 번 봤는지" 를 영구 저장하려면 저장소 계층이 필요한데 그건 `09-progress` 의 몫이고, 지금 끌어오면 그 task 의 구조를 미리 먹는다
+- **닫기 버튼을 두지 않고 첫 이동으로 사라지게 했다.** "조작할 줄 안다" 는 것은 실제로 조작했을 때만 확인된다. 눌러서 닫는 안내는 읽지 않고 닫히기 쉽다
+- **다시하기로 조건이 되살아나면 다시 뜬다.** 버그가 아니라 의도다 — 판을 처음으로 되돌린 사람에게 다시 보여주는 편이 맞다. 기획서에 명시했다
+- **플랫폼 분기는 `defaultTargetPlatform` 으로 한다.** `dart:io` 는 웹에서 못 쓴다(`10-responsive` 의 완료 기준이기도 하다). 웹 브라우저에서도 OS 를 돌려주므로 모바일 브라우저에는 스와이프 안내가 나간다
+- **안내를 보드 위 오버레이가 아니라 HUD 위 한 줄로 뒀다.** 판을 가리지 않아야 무엇을 하라는 건지 보인다

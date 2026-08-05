@@ -4,6 +4,7 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/swipe_direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/control_hint.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:flutter/material.dart';
@@ -11,11 +12,7 @@ import 'package:flutter/services.dart';
 
 /// 그리기만 한다. **Riverpod 을 모른다** (docs/architecture.md §5).
 class GamePlayScreen extends StatefulWidget {
-  const GamePlayScreen({
-    super.key,
-    required this.state,
-    required this.onEvent,
-  });
+  const GamePlayScreen({super.key, required this.state, required this.onEvent});
 
   final GamePlayScreenState state;
   final ValueChanged<GamePlayScreenEvent> onEvent;
@@ -42,7 +39,8 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
 
     // 결과 오버레이가 닫히면 키보드 포커스를 되찾는다. 오버레이 버튼이
     // 포커스를 가져간 채로 두면 방향키가 먹지 않는다.
-    final wasBlocked = oldWidget.state.isCleared || oldWidget.state.isPlayerLost;
+    final wasBlocked =
+        oldWidget.state.isCleared || oldWidget.state.isPlayerLost;
     final isBlocked = widget.state.isCleared || widget.state.isPlayerLost;
     if (wasBlocked && !isBlocked) _focusNode.requestFocus();
   }
@@ -155,6 +153,10 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                         ),
                       ),
                     ),
+                    if (state.showsControlHint) ...[
+                      const ControlHint(),
+                      const SizedBox(height: Spacing.sm),
+                    ],
                     GameHud(
                       moveCount: state.moveCount,
                       minMoves: level.minMoves,
