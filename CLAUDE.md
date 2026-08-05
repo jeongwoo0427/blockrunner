@@ -137,12 +137,13 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` is done — packages, routing, theme, DI skeleton, and two placeholder screens.
+`00-foundation` and `01-domain-model` are done — packages, routing, theme, DI skeleton, two
+placeholder screens, and the pure-Dart domain entities in `lib/feature/game/domain/entity/`.
 **No game logic exists yet**: no board rendering, no move engine, no level data.
 
-Work through `docs/tasks/` in order, one task per request. `02-move-engine` (pure Dart, fully
-unit-tested) comes before any UI — the rules get fixed by tests, not by eyeballing the screen.
-Don't start the next task unless asked.
+Next up is `02-move-engine`. Work through `docs/tasks/` in order, one task per request.
+`02-move-engine` (pure Dart, fully unit-tested) comes before any UI — the rules get fixed by tests,
+not by eyeballing the screen. Don't start the next task unless asked.
 
 ### Architecture in brief
 

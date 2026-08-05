@@ -260,3 +260,96 @@
 - `git add -p` 같은 대화형 스테이징은 이 환경에서 쓸 수 없어 파일 재구성 방식을 택했다
 - 교훈: 성격이 다른 작업을 연달아 하면 공용 문서에서 커밋이 얽힌다. 커밋을 나눌 가능성이 있으면 작업 단위로 먼저 커밋해두는 편이 낫다
 
+
+## 2026-08-05 #12 — 웹으로 실행 확인
+
+**요청**
+> 한번 실행해볼까? 잘 켜지는지. 웹으로 실행 해줘
+
+**한 일**
+- `fvm flutter devices` 로 Chrome(web-javascript) 사용 가능 확인
+- `fvm flutter run -d chrome` 백그라운드 기동 → 디버그 서비스 연결 성공, dev server 포트 `56139`
+
+**변경 파일**
+- 없음 (실행 확인만)
+
+**결정 / 메모**
+- 실행 로그상 `Launching lib/main.dart on Chrome in debug mode...` → 디버그 서비스 연결까지 정상. 컴파일 에러 없이 기동됐다
+- 화면 렌더링의 시각적 확인은 하지 않았다. 진입 화면(`/level-select`)과 라우팅은 `test/widget_test.dart` 3건으로 이미 검증돼 있어 중복이라 판단
+- 이 프로세스는 세션 동안 살아있다. 필요 없으면 종료해도 무방하다
+
+---
+
+## 2026-08-05 #13 — 프로젝트 맥락 파악 (신규 세션)
+
+**요청**
+> CLAUDE.md 읽고 이 프로젝트의 의도와 구조 그리고 다음 할일 파악해줘
+
+**한 일**
+- `CLAUDE.md` · `README.md` · `docs/tasks/README.md` · `completed/00-foundation.md` · `docs/prompt-history.md` 최근 항목 · `docs/tasks/01-domain-model.md` 통독
+- `git log` / `git status` 확인 — 커밋 7개, 워킹트리 클린
+- 현재 상태와 다음 task(`01-domain-model`)를 사용자에게 정리해 보고
+
+**변경 파일**
+- `docs/prompt-history.md` (#12 누락분 + 이 항목)
+
+**결정 / 메모**
+- #12(웹 실행 확인)가 기록되지 않은 채 세션이 끊겨 이번에 함께 채웠다. 기록은 작업 종료 시점이 아니라 **보고 직전**에 쓴다는 규칙을 지키지 못하면 이렇게 유실된다
+- 코드는 작성하지 않았다. "다음 할 일 파악"까지가 요청 범위이고, `01` 착수는 별도 요청 사항
+
+---
+
+## 2026-08-05 #14 — 01-domain-model 구현
+
+**요청**
+> 01 진행해줘
+
+**한 일**
+- `lib/feature/game/domain/entity/` 에 순수 Dart 엔티티 7종 작성
+  - `direction.dart` — `Direction` (rowDelta / colDelta)
+  - `position.dart` — `Position(row, col)` + `translate`
+  - `cell.dart` — `FloorType { empty, wall, goal, hole }`
+  - `block.dart` — `BlockType` + `Block(id, type, position)` + `moveTo`
+  - `board_state.dart` — `BoardState` + `contains` · `floorAt` · `blockAt` · `player` · `hasPlayer` · `isCleared` · `withBlocks`
+  - `level.dart` — `Level(number, name?, initialBoard, minMoves)`
+  - `move_result.dart` — `MoveResult(board, moved, from, to, fellIntoHole)`
+- `test/feature/game/domain/entity/entity_test.dart` 10건 작성
+- task 문서에 "실제 결과" 추가 후 `completed/` 로 이동, 링크·현황표·`README.md`·`CLAUDE.md` 상태 갱신
+
+**변경 파일**
+- `lib/feature/game/domain/entity/*.dart` (신규 7)
+- `test/feature/game/domain/entity/entity_test.dart` (신규)
+- `docs/tasks/completed/01-domain-model.md` (이동 + 결과 기록)
+- `docs/tasks/README.md` · `02-move-engine.md` · `03-level-data.md` — 링크·상태
+- `README.md` · `CLAUDE.md` — 현재 상태
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 13/13 통과 (기존 3 + 신규 10)
+- `grep -rn "package:flutter" lib/feature/game/domain/` → 0건
+
+**결정 / 메모**
+- **`Position`만 positional 파라미터.** 아키텍처 §7은 named 생성자를 요구하지만, 기획서 트레이스가 전부 `(행, 열)` 표기이고 테스트에 좌표가 수십 번 나온다. `Position(row: 4, col: 1)` 은 같은 정보를 두 배 길이로 쓰게 만든다. 순서 혼동은 doc 주석으로 막았다. 나머지는 규약대로 named
+- **`copyWith` 를 만들지 않았다.** 실제 필요한 변형은 "블록이 옮겨간다" · "판의 블록만 교체된다" 둘뿐이라 도메인 언어 그대로 `Block.moveTo` · `BoardState.withBlocks` 로 뒀다. 쓰이지 않을 범용 `copyWith` 를 미리 만들지 않는다 (task 문서의 nullable `copyWith` 체크 항목은 "해당 없음" 처리)
+- **`Block? get player` 로 nullable 화.** task 초안은 non-null 게터 + `hasPlayer` 였으나, 플레이어는 구멍에 빠져 실제로 사라진다(기획서 §3.5). 예외를 던지는 게터는 호출부를 불편하게 만든다
+- **`floorAt` 은 맵 밖에 `FloorType.wall` 을 돌려준다.** 기획서 §2.2 "맵 경계는 벽과 동일" 을 엔티티 수준에서 구현한 것. 이동 엔진이 "맵 밖" 과 "벽" 분기를 따로 쓸 필요가 없어진다
+- **`BoardState` 동등성은 블록 순서에 둔감하게.** 이동 엔진은 블록을 처리 순서대로 정렬해 내놓으므로 같은 판이 다른 순서로 표현된다. 순서에 민감하면 `02` 의 테스트가 규칙과 무관한 이유로 깨진다. `Object.hashAllUnordered` + 집합 비교
+- **`MoveResult.to` 는 구멍에 빠진 블록의 "사라진 칸" 을 담는다.** 낙하 연출(`06`)이 어디서 사라졌는지 알아야 한다
+- 방향별 블록 처리 순서(기획서 §3.2 정렬 규칙)는 `Direction` 에 넣지 않고 `02` 로 미뤘다. 이동 엔진의 관심사다
+- `Level` 을 `game/domain/entity/` 에 뒀다. 규칙 엔진이 `Level` 을 필요로 하므로 game 이 소유자로 맞다고 봤으나, `level` feature 도 참조하게 되므로 `03` 에서 재검토 여지 있음
+
+---
+
+## 2026-08-05 #15 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- #14(01-domain-model 구현)를 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- #11 의 교훈대로 이번엔 작업 단위가 하나(`01`)뿐이라 분리 없이 한 커밋으로 처리했다

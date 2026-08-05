@@ -9,7 +9,7 @@
 
 ## 선행 조건
 
-- [01-domain-model.md](01-domain-model.md)
+- [01-domain-model.md](completed/01-domain-model.md)
 - 규칙 원문: [../game-design.md](../game-design.md) §3, 검증용 트레이스: §4
 
 ## 작업

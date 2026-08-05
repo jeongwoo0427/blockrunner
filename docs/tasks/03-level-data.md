@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [01-domain-model.md](01-domain-model.md)
+- [01-domain-model.md](completed/01-domain-model.md)
 - 표기법: [../game-design.md](../game-design.md) §9
 
 ## 작업
