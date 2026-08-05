@@ -43,7 +43,7 @@
 
 ### 6. 레이아웃
 
-`GridView` + `SliverGridDelegateWithMaxCrossAxisExtent`로 화면 폭에 따라 열 수가 자동 조정되게 한다 — 모바일 3열, 데스크탑/웹 6열 이상. 자세한 것은 [10-responsive.md](10-responsive.md).
+`GridView` + `SliverGridDelegateWithMaxCrossAxisExtent`로 화면 폭에 따라 열 수가 자동 조정되게 한다 — 모바일 3열, 데스크탑/웹 6열 이상. 자세한 것은 [10-responsive.md](10-responsive.md) — 완료됐고 `maxCrossAxisExtent: 160` 은 그대로 남았다.
 
 ## 완료 기준
 

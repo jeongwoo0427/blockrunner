@@ -32,9 +32,17 @@ class GameHud extends StatelessWidget {
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Spacing.md),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        crossAxisAlignment: CrossAxisAlignment.center,
+      // **`Row` 가 아니라 `Wrap` 이다.** 한 줄에 안 들어가면 두 줄로 접힌다.
+      //
+      // 넘치는 경우가 실제로 있다 — 프랑스어 `Recommencer` 는 한국어 `다시하기`
+      // 의 세 배 폭이고, 접근성 글꼴을 키우면 어느 언어든 넘친다. 말줄임으로
+      // 처리하지 않는 이유는 **글자가 잘리면 안 되기 때문이다**(10-responsive
+      // 완료 기준). 접히면 읽을 수는 있다.
+      child: Wrap(
+        alignment: WrapAlignment.spaceBetween,
+        crossAxisAlignment: WrapCrossAlignment.center,
+        spacing: Spacing.sm,
+        runSpacing: Spacing.xs,
         children: [
           Row(
             mainAxisSize: MainAxisSize.min,

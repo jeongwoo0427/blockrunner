@@ -78,12 +78,12 @@ class StringsFr extends AppStrings {
   @override
   Map<int, String> get levelNames => const {
     1: 'Glisser',
-    2: 'Contre le mur',
-    3: 'De bloc en bloc',
+    2: 'Le mur',
+    3: 'Bloc-frein',
     4: 'Trop loin',
-    5: 'Évite le trou',
-    6: "L'ordre compte",
-    7: 'Le rebord invisible',
+    5: 'Le trou',
+    6: "Dans l'ordre",
+    7: 'Rebord caché',
   };
 
   @override

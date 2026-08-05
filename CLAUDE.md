@@ -140,7 +140,8 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00` through `09` and `11-i18n` are done — only `10-responsive` is left. **The game is playable end to end on all
+**Every task doc is done — `docs/tasks/` holds only `README.md` and `completed/`.** The next request
+is not a task from the list; ask what it should be. **The game is playable end to end on all
 three platforms:** level select → play → clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
@@ -213,8 +214,16 @@ their keys to `kLevels`.
 player. `no_hardcoded_korean_test` encodes that boundary by scanning only `presentation/` and
 `level_data.dart`.
 
-Only `10-responsive` is left in `docs/tasks/`. Work through it one task per request, and don't
-start it unless asked.
+**Layout is verified, not assumed** (`docs/tasks/completed/10-responsive.md`). `test/responsive_test.dart`
+renders both screens across five languages, three window sizes, a width sweep and text scale ×2, and
+fails on any overflow. Two of that doc's completion criteria turned out to be *false* when finally
+measured — the French HUD overflowed a 320px phone at default text size, and every language
+overflowed at ×2 — so treat "we never checked" as "probably broken" for anything visual.
+
+**Nothing is fixed by ellipsis.** The criterion is that text is not cut, so `GameHud` is a `Wrap`
+that folds to two lines, level cards grow taller as the font scales, and **over-long translations
+get shortened rather than the card widened** — card labels have a length budget, and a test fails if
+a translated level name is truncated.
 
 ### Architecture in brief
 
