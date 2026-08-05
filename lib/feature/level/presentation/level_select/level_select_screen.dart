@@ -41,11 +41,11 @@ class LevelSelectScreen extends StatelessWidget {
                 padding: const EdgeInsets.all(Spacing.md),
                 // 열 수를 박지 않고 **카드 최대 폭**을 정한다. 모바일에서는
                 // 3열 안팎, 넓은 화면에서는 그만큼 더 들어간다 (10-responsive).
-                gridDelegate: const SliverGridDelegateWithMaxCrossAxisExtent(
+                gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
                   maxCrossAxisExtent: 160,
                   mainAxisSpacing: Spacing.sm,
                   crossAxisSpacing: Spacing.sm,
-                  childAspectRatio: 0.85,
+                  childAspectRatio: _cardAspectRatio(context),
                 ),
                 itemCount: state.levels.length,
                 itemBuilder: (context, index) {
@@ -67,6 +67,22 @@ class LevelSelectScreen extends StatelessWidget {
       ),
     );
   }
+}
+
+/// 카드의 가로:세로 비. **글꼴이 커지면 카드도 세로로 길어진다.**
+///
+/// 비를 상수로 박아 두면 카드 높이가 고정되는데 안의 글자는 커지므로,
+/// 접근성 글꼴을 켠 사용자에게는 그냥 넘친다 (실제로 그랬다).
+///
+/// 아이콘(자물쇠·별)은 배율을 따르지 않으므로 글자 배율만큼 늘릴 필요는 없다.
+/// 그래서 배율을 그대로 나누지 않고 절반만 반영하며, 지나치게 길쭉해지지
+/// 않도록 상한을 둔다.
+double _cardAspectRatio(BuildContext context) {
+  const base = 0.85;
+  final scale = MediaQuery.textScalerOf(context).scale(100) / 100;
+  final growth = (1 + (scale - 1) * 0.5).clamp(1.0, 2.0);
+
+  return base / growth;
 }
 
 class _ErrorBody extends StatelessWidget {

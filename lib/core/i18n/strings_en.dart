@@ -75,15 +75,18 @@ class StringsEn extends AppStrings {
   @override
   String get keyboardHint => 'Arrow keys or WASD to push the blocks';
 
+  /// **카드 라벨에는 길이 예산이 있다** (10-responsive). 좁은 폰에서 카드
+  /// 폭이 120px 안팎까지 줄어드는데, 거기서 두 줄에 들어가야 한다.
+  /// 테스트가 잘림을 검사하므로 길게 쓰면 바로 실패한다.
   @override
   Map<int, String> get levelNames => const {
     1: 'Sliding',
-    2: 'Against the Wall',
-    3: 'Block by Block',
+    2: 'The Wall',
+    3: 'Block Brake',
     4: 'Overshoot',
-    5: 'Mind the Hole',
-    6: 'Order Matters',
-    7: 'The Invisible Ledge',
+    5: 'The Hole',
+    6: 'In Order',
+    7: 'Hidden Ledge',
   };
 
   @override

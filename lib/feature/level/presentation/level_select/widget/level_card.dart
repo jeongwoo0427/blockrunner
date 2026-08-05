@@ -57,10 +57,14 @@ class LevelCard extends StatelessWidget {
                   ),
                 const SizedBox(height: Spacing.xs),
                 // 잠긴 레벨은 이름도 가린다 — 앞으로 무엇이 나오는지가 스포일러다.
+                // **두 줄까지 준다.** 한 줄로 묶으면 영어 `The Invisible Ledge`,
+                // 프랑스어 `Le rebord invisible` 이 카드 폭에서 잘린다. 한국어와
+                // CJK 는 짧아 한 줄로 끝나므로 평소 모습은 달라지지 않는다.
                 Text(
                   isUnlocked ? strings.levelName(level.number) : strings.locked,
                   style: theme.textTheme.labelMedium,
-                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
                 if (isUnlocked) ...[
