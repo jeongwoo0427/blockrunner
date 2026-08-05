@@ -137,14 +137,14 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation`, `01-domain-model`, and `02-move-engine` are done. The rules engine
-(`ApplyMoveUsecase`) is complete and locked down by 31 unit tests, including all three
-hand-verified traces from `docs/game-design.md` §4.
+`00-foundation` through `03-level-data` are done. The rules engine (`ApplyMoveUsecase`) is locked
+down by 31 unit tests including all three hand-verified traces from `docs/game-design.md` §4, and
+six 6×6 levels are defined as ASCII constants whose `minMoves` a BFS solver in `test/` verifies.
 
-**There is still no UI and no level data**: no board rendering, no input, no `Level` constants —
-the two screens are still placeholders.
+**There is still no UI.** Both screens are placeholders — no board rendering, no input, no
+animation. Nothing in `lib/feature/game/presentation/` beyond the placeholder.
 
-Next up is `03-level-data`. Work through `docs/tasks/` in order, one task per request. Don't start
+Next up is `04-game-screen`. Work through `docs/tasks/` in order, one task per request. Don't start
 the next task unless asked.
 
 ### Architecture in brief

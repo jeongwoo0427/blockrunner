@@ -405,3 +405,56 @@
 
 **결정 / 메모**
 - 작업 단위가 하나(`02`)뿐이라 #15 와 같이 분리 없이 한 커밋으로 처리했다
+
+---
+
+## 2026-08-05 #18 — 03-level-data 구현
+
+**요청**
+> 03 진행해줘
+
+**한 일**
+- `lib/feature/level/` 전체 구축 — `LevelBlueprint` 상수 6개, ASCII 파서 + 유효성 검증, `LevelRepository`/`Impl`, `GetAllLevelsUsecase`·`GetLevelUsecase` + 컨테이너, `level_di.dart`
+- `test/feature/level/level_solver.dart` — BFS 완전 탐색 솔버(테스트 전용). `02` 에서 미뤄둔 항목
+- 테스트 30건 — 파서 유효성 11, 레벨 세트 14(레벨당 2건 자동 생성), repository 5
+- `docs/architecture.md` §6 에 생성자 규약 갱신
+- task 문서에 "실제 결과" 추가 후 `completed/` 로 이동, 링크·현황표·`README.md`·`CLAUDE.md` 갱신
+
+**변경 파일**
+- `lib/feature/level/**` (신규 7)
+- `test/feature/level/**` (신규 4)
+- `docs/architecture.md` — §6 생성자 규약
+- `docs/tasks/completed/03-level-data.md` (이동 + 결과 기록)
+- `docs/tasks/README.md` · `04-game-screen.md` · `08-level-select.md` · `completed/02-move-engine.md` — 링크·상태
+- `README.md` · `CLAUDE.md` — 현재 상태
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 74/74 통과 (기존 44 + 신규 30)
+- 6개 레벨 전부 BFS 완전 탐색으로 `minMoves` 일치 확인
+
+**결정 / 메모**
+- **`minMoves` 를 손으로 세지 않고 BFS 로 검증하게 만든 것이 이 작업의 핵심이다.** 손으로 센 값이 틀리면 별점 기준이 조용히 어긋나고, 최악의 경우 클리어 불가능한 레벨이 배포된다. `kLevelBlueprints` 를 순회하는 테스트가 레벨을 추가할 때마다 자동으로 따라붙는다
+- **솔버는 플레이어가 구멍에 빠진 판을 막다른 길로 친다.** 되돌리기 외에 길이 없으므로 탐색을 이어갈 이유가 없다. 상태 키는 블록 배치만으로 만든다 — 바닥은 레벨 내내 고정이다
+- **"목표에 정지 요소가 있는가" 검사는 벽과 맵 경계만 센다.** 일반 블록은 함께 미끄러지므로 정적인 브레이크가 아니다. 이건 값싼 그물이고 진짜 풀이 가능 여부는 BFS 가 본다
+- **레벨 4·5는 "먼저 떠오르는 수가 실패하는" 구조로 설계했다.** 4는 목표를 향해 곧장 밀면 지나쳐버리고, 5는 곧장 밀면 구멍에 빠진다. 튜토리얼이 설명 없이 개념을 가르치려면 실패가 즉시 눈에 보여야 한다
+- **열린 질문 2 해소 — 레벨 이름을 붙였다.** 각 레벨이 무슨 개념을 가르치는지가 이름에 드러나야 레벨 목록(`08`)이 읽힌다. `Level.name` 은 nullable 로 남겨 이름 없는 레벨도 허용
+- **열린 질문 3 해소 — 초기 세트는 전부 6×6.** 엔진·파서는 이미 `N×M` 을 지원하고 파서 테스트가 2행 판·비정사각 판을 다룬다. 큰 판은 개념이 다 나온 뒤(7번 이후)에 도입
+- **파싱은 첫 접근에 한 번만 하고 캐시한다.** 잘못된 레벨이 앱 시작이 아니라 첫 접근에서 터지지만, 테스트가 전 레벨을 파싱하므로 배포 전에 잡힌다
+- **생성자를 Dart 3 의 private named parameter(`{required this._repository}`)로 썼다.** quizlab 의 `{required X x}) : _x = x` 형태는 `prefer_initializing_formals` 린트에 걸린다. 호출부 이름은 `repository:` 그대로다. quizlab 과 갈리는 지점이라 `docs/architecture.md` §6 에 명문화했다
+
+---
+
+## 2026-08-05 #19 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- #18(03-level-data 구현)을 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 작업 단위가 하나(`03`)뿐이라 분리 없이 한 커밋으로 처리했다

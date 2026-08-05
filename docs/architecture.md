@@ -290,6 +290,8 @@ Notifier → UsecaseContainer → Usecase → Repository(추상) → RepositoryI
 
 - Repository 인터페이스는 `domain/repository/`, 구현은 `data/repository/`.
 - `RepositoryImpl`은 생성자 named 파라미터로 의존성을 받아 private 필드에 대입한다.
+  Dart 3의 **private named parameter**(`{required this._repository}`)를 쓴다 — 호출부에서는 `repository:`로 그대로 넘긴다.
+  quizlab의 `{required X x}) : _x = x` 형태는 `prefer_initializing_formals` 린트에 걸린다.
 - Usecase는 `call()`을 정의해 함수처럼 호출한다 → `_usecases.getLevel(3)`.
 - 컨테이너는 public final 필드를 `Usecase` 접미사 **없이** 이름 짓고, `factory X.fromRepositories({...})`로 조립한다.
 

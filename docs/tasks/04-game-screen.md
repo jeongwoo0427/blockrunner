@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [02-move-engine.md](completed/02-move-engine.md), [03-level-data.md](03-level-data.md)
+- [02-move-engine.md](completed/02-move-engine.md), [03-level-data.md](completed/03-level-data.md)
 - 구조 규약: [../architecture.md](../architecture.md) §5
 
 ## 작업

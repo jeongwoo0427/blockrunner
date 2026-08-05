@@ -75,7 +75,7 @@ expectMove(
 
 레벨 데이터의 `minMoves`가 진짜 최소인지 확인하는 BFS 솔버를 **테스트 전용 유틸**로 두면 유용하다. 상태 공간이 작아(블록 배치의 경우의 수) 완전 탐색이 가능하다.
 
-`lib/`에는 넣지 않는다. `test/` 아래 헬퍼로만 둔다. → [03-level-data.md](../03-level-data.md)에서 활용.
+`lib/`에는 넣지 않는다. `test/` 아래 헬퍼로만 둔다. → [03-level-data.md](03-level-data.md)에서 활용.
 
 ## 완료 기준
 
