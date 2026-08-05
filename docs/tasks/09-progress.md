@@ -7,6 +7,13 @@
 ## 선행 조건
 
 - [00-foundation.md](completed/00-foundation.md) (`sharedPreferencesProvider`)
+- [07-undo-reset.md](completed/07-undo-reset.md)
+
+> **별점 계산은 이미 있다.** `Level.starsFor(moveCount)` 가 기획서 §5.2 표를
+> 구현하고 경계값 테스트(`test/feature/level/level_stars_test.dart`)까지 붙어 있다.
+> 결과 오버레이도 그 값을 이미 그린다. **이 작업이 할 일은 저장과 갱신 규칙**
+> — 최고 기록만 남기기, 해금 판정, `SaveClearResultUsecase` 의 스트림 방출이다.
+> 별점 공식을 다시 만들지 말 것.
 
 > **먼저 읽을 것:** 저장소를 쓰는 코드가 이미 하나 있다. `level` feature 의
 > `TutorialRepository` 가 "어느 레벨의 튜토리얼을 봤는지" 를 `SharedPreferences` 에

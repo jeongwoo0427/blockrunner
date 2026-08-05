@@ -137,7 +137,7 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` through `06-animation` are done — **the game is playable on all three platforms.** The
+`00-foundation` through `07-undo-reset` are done — **the game is playable on all three platforms.** The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
@@ -155,7 +155,18 @@ consuming either one. Maps are written as an interleaved `2N+1` grid so edges ar
 — see `docs/game-design.md` §9.1. Never "simplify" a map back to one line per row; that silently
 drops every edge wall.
 
-Still missing: **undo** and **progress saving**. The level select screen is still a placeholder.
+**Undo is a limited resource, not a convenience — 3 per level** (`docs/game-design.md` §5.1), and
+reset refills it. That refill is what keeps "no fail state" true: run out of undos in a hole and
+reset is the only way out, which is the whole point — it makes holes a real threat. Don't quietly
+restore unlimited undo; a test fails if the cap stops being enforced.
+
+Stars come from `Level.starsFor(moveCount)` (§5.2): ★★★ within 20% over `minMoves`, ★★☆ within 40%
+— but the allowance is `max(percentage, a flat 1/2 moves)`, because every current level has
+`minMoves` of 1–3 where 20% floors to zero and one wasted move would drop you straight to one star.
+Don't "simplify" that back to a pure ratio. Stars are shown in the result overlay but **nothing is
+persisted yet** — best score, clear flags, and unlocking are `09-progress`.
+
+Still missing: **progress saving**. The level select screen is still a placeholder.
 
 Rendering is a **hybrid**, decided in `04`: `BoardPainter` draws floors/grid/walls, and blocks are
 `AnimatedPositioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in
@@ -169,8 +180,8 @@ replaying a rewind. Falling blocks are removed from `board` but kept in `state.f
 they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
 second timer.
 
-Next up is `07-undo-reset`. Work through `docs/tasks/` in order, one task per request. Don't start
-the next task unless asked.
+Next up is `08-level-select`, which needs `09-progress` first (it draws stars and locks). Work
+through `docs/tasks/` in order, one task per request. Don't start the next task unless asked.
 
 ### Architecture in brief
 

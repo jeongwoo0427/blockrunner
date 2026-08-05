@@ -2,7 +2,6 @@ import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 
 /// 플레이 화면이 Root 로 올려보내는 요청.
 ///
-/// 되돌리기는 `07-undo-reset` 에서 추가한다.
 /// 레벨 로드는 Notifier 의 `build()` 가 하므로 이벤트로 두지 않는다.
 sealed class GamePlayScreenEvent {}
 
@@ -16,6 +15,9 @@ class MoveRequested extends GamePlayScreenEvent {
 /// OS 의 "동작 줄이기" 설정으로 연출을 건너뛰었는지도 화면 쪽 정보다.
 /// Notifier 는 타이머를 갖지 않고 이 통지를 기다린다.
 class AnimationCompleted extends GamePlayScreenEvent {}
+
+/// 한 수 무르기. 횟수가 남아 있을 때만 받는다 (기획서 §5.1).
+class UndoRequested extends GamePlayScreenEvent {}
 
 class ResetRequested extends GamePlayScreenEvent {}
 

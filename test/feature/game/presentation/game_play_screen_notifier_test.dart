@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure_code.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
@@ -199,6 +200,129 @@ void main() {
       final state = read(5);
       expect(state.board, state.map?.initialBoard);
       expect(state.moveCount, 0);
+    });
+  });
+
+  group('되돌리기 (기획서 §5.1)', () {
+    /// 이동 하나를 연출까지 끝낸다. 연출 중에는 다음 입력도 되돌리기도 막히므로
+    /// 되돌리기를 검사하려면 매번 이걸 거쳐야 한다.
+    Future<void> move(int levelNumber, Direction direction) async {
+      await send(levelNumber, MoveRequested(direction));
+      await send(levelNumber, AnimationCompleted());
+    }
+
+    test('연속 되돌리기로 초기 상태까지 정확히 되돌아간다', () async {
+      final initial = read(2).board;
+
+      // 레벨 2 에서 클리어하지 않고 지나가는 3수.
+      await move(2, Direction.right);
+      await move(2, Direction.down);
+      await move(2, Direction.left);
+      expect(read(2).moveCount, 3, reason: '세 수 모두 실제로 움직여야 하는 판이다');
+
+      for (var i = 0; i < 3; i++) {
+        await send(2, UndoRequested());
+      }
+
+      final state = read(2);
+      expect(state.board, initial);
+      expect(state.moveCount, 0);
+      expect(state.history, isEmpty);
+    });
+
+    test('한 수 무르면 이동 횟수도 하나 줄어든다', () async {
+      await move(2, Direction.right);
+      final afterMove = read(2).board;
+
+      await send(2, UndoRequested());
+
+      expect(read(2).moveCount, 0);
+      expect(read(2).board, isNot(afterMove));
+      expect(read(2).undosLeft, AppConstants.undoLimit - 1);
+    });
+
+    test('3회를 다 쓰면 더 무를 수 없다', () async {
+      for (var i = 0; i < 4; i++) {
+        await move(2, Direction.right);
+        await move(2, Direction.down);
+        await move(2, Direction.left);
+        await move(2, Direction.up);
+      }
+
+      for (var i = 0; i < AppConstants.undoLimit; i++) {
+        await send(2, UndoRequested());
+      }
+      final exhausted = read(2);
+
+      expect(exhausted.undosLeft, 0);
+      expect(exhausted.canUndo, isFalse, reason: '되돌릴 판은 남았지만 횟수가 없다');
+      expect(exhausted.history, isNotEmpty);
+
+      await send(2, UndoRequested());
+      expect(read(2).board, exhausted.board, reason: '무시돼야 한다');
+      expect(read(2).moveCount, exhausted.moveCount);
+    });
+
+    test('무효 입력은 되돌리기 스택에 쌓이지 않는다', () async {
+      // 플레이어가 이미 왼쪽 끝이라 아무것도 움직이지 않는다.
+      await send(2, MoveRequested(Direction.left));
+
+      expect(read(2).history, isEmpty);
+      expect(read(2).canUndo, isFalse);
+    });
+
+    test('구멍에 빠져도 되돌리기로 복구된다', () async {
+      await move(5, Direction.right);
+      expect(read(5).isPlayerLost, isTrue);
+
+      await send(5, UndoRequested());
+      final state = read(5);
+
+      expect(state.board?.hasPlayer, isTrue);
+      expect(state.isPlayerLost, isFalse, reason: '되돌린 판에서 판정을 다시 내야 한다');
+      expect(state.canMove, isTrue);
+    });
+
+    test('클리어를 무르면 클리어도 풀린다', () async {
+      await move(1, Direction.right);
+      expect(read(1).isCleared, isTrue);
+
+      await send(1, UndoRequested());
+
+      expect(read(1).isCleared, isFalse);
+      expect(read(1).canMove, isTrue);
+    });
+
+    test('다시하기가 되돌리기 횟수를 되살린다', () async {
+      await move(2, Direction.right);
+      await send(2, UndoRequested());
+      expect(read(2).undosLeft, AppConstants.undoLimit - 1);
+
+      await send(2, ResetRequested());
+      final state = read(2);
+
+      expect(
+        state.undosLeft,
+        AppConstants.undoLimit,
+        reason: '판을 처음으로 돌렸으면 자원도 처음으로 (기획서 §5.1)',
+      );
+      expect(state.history, isEmpty);
+    });
+
+    test('연출 중에는 무를 수 없다', () async {
+      await send(2, MoveRequested(Direction.right));
+
+      expect(read(2).isAnimating, isTrue);
+      expect(read(2).canUndo, isFalse);
+    });
+
+    test('되돌린 판은 연출 없이 즉시 반영된다', () async {
+      await move(2, Direction.right);
+
+      await send(2, UndoRequested());
+
+      expect(read(2).isAnimating, isFalse, reason: '되감기 연출은 재생하지 않는다 (기획서 §7)');
+      expect(read(2).fallingBlocks, isEmpty);
     });
   });
 

@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
@@ -12,6 +13,8 @@ class GamePlayScreenState {
     this.map,
     this.board,
     this.moveCount = 0,
+    this.history = const [],
+    this.undosLeft = AppConstants.undoLimit,
     this.isAnimating = false,
     this.fallingBlocks = const [],
     this.isCleared = false,
@@ -31,6 +34,18 @@ class GamePlayScreenState {
   final BoardState? board;
 
   final int moveCount;
+
+  /// 되돌리기 스택 — **이동 직전의 판들**. 마지막 원소가 한 수 전이다.
+  ///
+  /// [BoardState] 가 불변이라 그냥 쌓아두면 된다. 갈아끼울 때는 **새 리스트를
+  /// 만든다** — 기존 리스트를 변형하면 불변 규약이 깨져 되돌리기가 조용히 망가진다.
+  final List<BoardState> history;
+
+  /// 남은 되돌리기 횟수 (기획서 §5.1). 다시하기가 이 값을 되살린다.
+  final int undosLeft;
+
+  /// 되돌릴 수 있는가 — 되돌릴 판이 있고, 횟수가 남았고, 연출 중이 아니어야 한다.
+  bool get canUndo => history.isNotEmpty && undosLeft > 0 && !isAnimating;
 
   /// 슬라이드 연출 재생 중. 이동을 적용할 때 세우고, 화면이 연출을 다 재생한 뒤
   /// [AnimationCompleted] 를 올려보내면 내린다.
@@ -74,6 +89,8 @@ class GamePlayScreenState {
     GameMap? Function()? map,
     BoardState? Function()? board,
     int? moveCount,
+    List<BoardState>? history,
+    int? undosLeft,
     bool? isAnimating,
     List<Block>? fallingBlocks,
     bool? isCleared,
@@ -87,6 +104,8 @@ class GamePlayScreenState {
       map: map != null ? map() : this.map,
       board: board != null ? board() : this.board,
       moveCount: moveCount ?? this.moveCount,
+      history: history ?? this.history,
+      undosLeft: undosLeft ?? this.undosLeft,
       isAnimating: isAnimating ?? this.isAnimating,
       fallingBlocks: fallingBlocks ?? this.fallingBlocks,
       isCleared: isCleared ?? this.isCleared,

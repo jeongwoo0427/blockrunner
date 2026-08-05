@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
@@ -48,6 +49,8 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
         // 다시하기로 연출이 이미 끊겼다면 늦게 도착한 통지다. 무시한다.
         if (!state.isAnimating) return;
         state = state.copyWith(isAnimating: false, fallingBlocks: const []);
+      case UndoRequested():
+        _undo();
       case ResetRequested():
         _reset();
       case TutorialDismissed():
@@ -71,11 +74,33 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
     // 화면이 정한다 — 미끄러지는 중에 덮어버리면 안 되기 때문이다(기획서 §7).
     state = state.copyWith(
       board: () => result.board,
+      // 새 리스트를 만든다. 기존 리스트를 add 로 변형하면 불변 규약이 깨진다.
+      history: [...state.history, before],
       moveCount: state.moveCount + 1,
       isCleared: result.board.isCleared,
       isPlayerLost: !result.board.hasPlayer,
       isAnimating: true,
       fallingBlocks: _fallenBlocks(before, result),
+    );
+  }
+
+  /// 한 수 무른다. 되돌린 판은 **즉시 반영**한다 (기획서 §7).
+  void _undo() {
+    if (!state.canUndo) return;
+
+    final restored = state.history.last;
+
+    // 클리어·소실 판정을 되돌린 판에서 다시 낸다. 그냥 false 로 두면 목표 칸
+    // 위에서 무른 경우처럼 되돌린 판이 이미 클리어인 상황을 놓친다.
+    state = state.copyWith(
+      board: () => restored,
+      history: state.history.sublist(0, state.history.length - 1),
+      undosLeft: state.undosLeft - 1,
+      moveCount: state.moveCount - 1,
+      isAnimating: false,
+      fallingBlocks: const [],
+      isCleared: restored.isCleared,
+      isPlayerLost: !restored.hasPlayer,
     );
   }
 
@@ -95,8 +120,13 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
     if (map == null) return;
 
     // 다시하기는 즉시 반영이다(기획서 §7). 재생 중이던 연출도 같이 끊는다.
+    //
+    // 되돌리기 횟수도 되살린다(기획서 §5.1). 판을 처음으로 돌렸으면 자원도
+    // 처음으로 — 이것이 있어야 막혀도 빠져나갈 길이 항상 남는다.
     state = state.copyWith(
       board: () => map.initialBoard,
+      history: const [],
+      undosLeft: AppConstants.undoLimit,
       moveCount: 0,
       isAnimating: false,
       fallingBlocks: const [],

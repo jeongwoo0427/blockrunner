@@ -26,6 +26,13 @@ abstract class AppConstants {
   /// 두 단계를 순서대로 재생한다. 타이머를 하나 더 두지 않아도 된다.
   static const double fallStartFraction = _moveMs / (_moveMs + _fallMs);
 
+  /// 레벨당 되돌리기 횟수 (기획서 §5.1).
+  ///
+  /// 무제한이면 아무 방향이나 눌러보고 무르는 것이 최적 전략이 되어 퍼즐이
+  /// 성립하지 않는다. 실수를 만회할 만큼은 되지만 전수 탐색에는 모자란 값이다.
+  /// 다시하기가 이 횟수를 되살리므로 막히는 일은 없다.
+  static const int undoLimit = 3;
+
   /// 보드가 아무리 커도 이 크기를 넘지 않는다.
   /// 대형 모니터에서 보드가 화면을 다 먹으면 시선 이동이 커져 오히려 불편하다.
   static const double maxBoardExtent = 640;

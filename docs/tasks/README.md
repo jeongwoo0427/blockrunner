@@ -16,9 +16,9 @@
 | 04 | [04-game-screen.md](completed/04-game-screen.md) | 보드 렌더링 · 플레이 화면 | ✅ 완료 | 02, 03 |
 | 05 | [05-input.md](completed/05-input.md) | 크로스플랫폼 입력 | ✅ 완료 | 04 |
 | 06 | [06-animation.md](completed/06-animation.md) | 이동 애니메이션 | ✅ 완료 | 04 |
-| 07 | [07-undo-reset.md](07-undo-reset.md) | 되돌리기 · 다시하기 · 클리어 처리 | 대기 | 04 |
+| 07 | [07-undo-reset.md](completed/07-undo-reset.md) | 되돌리기 · 다시하기 · 클리어 처리 | ✅ 완료 | 04 |
 | 08 | [08-level-select.md](08-level-select.md) | 레벨 선택 화면 | 대기 | 03, 09 |
-| 09 | [09-progress.md](09-progress.md) | 진행도 저장 | 대기 | 00 |
+| 09 | [09-progress.md](09-progress.md) | 진행도 저장 | 대기 | 00, 07 |
 | 10 | [10-responsive.md](10-responsive.md) | 반응형 레이아웃 | 대기 | 04 |
 
 상태값: `대기` / `진행중` / `완료` / `보류`
