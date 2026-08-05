@@ -6,7 +6,8 @@
 > **현재 상태: 플레이 가능.** 7개 튜토리얼 레벨을 스와이프 · 방향키 · WASD · 마우스 드래그로 풀 수 있다.
 > 이동 규칙 엔진은 단위 테스트로 고정되어 있고, 각 레벨의 최소 이동 횟수는 완전 탐색 솔버가 검증한다.
 > 레벨 선택 → 플레이 → 클리어 → 다음 레벨까지 이어진다. 별점과 최고 기록은 기기에 저장되고
-> 레벨은 순차 해금된다. 남은 것은 반응형 레이아웃 다듬기와 레벨 추가다.
+> 레벨은 순차 해금된다. **한국어 · 영어 · 일본어 · 중국어 · 프랑스어**를 지원한다.
+> 남은 것은 반응형 레이아웃 다듬기와 레벨 추가다.
 > 진행 상황은 [`docs/tasks/README.md`](docs/tasks/README.md) 참고.
 
 ---
@@ -64,6 +65,7 @@
 | 상태관리 · DI | `flutter_riverpod` 3.0.3 |
 | 라우팅 | `go_router` ^14.6.1 |
 | 로컬 저장 | `shared_preferences` ^2.5.3 |
+| 다국어 | **직접 구현** — `intl` · `flutter_localizations` 등 미사용 |
 | 렌더링 | **`CustomPainter` + `AnimationController`** |
 | 코드 생성 | 없음 — freezed / json_serializable / build_runner 미사용 |
 
@@ -79,17 +81,20 @@ lib/
 ├── core/            DI · 라우팅 · 테마 · 에러 · 공용 위젯
 └── feature/
     ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
-    ├── level/       레벨 메타데이터(번호 · 이름 · 최소 이동 횟수) · 레벨 선택
-    └── progress/    클리어 · 별점 · 최고 기록 저장
+    ├── level/       레벨 메타데이터(번호 · 최소 이동 횟수) · 레벨 선택
+    ├── progress/    클리어 · 별점 · 최고 기록 저장
+    └── settings/    언어 선택과 저장
 ```
 
 **feature 의존은 되돌아오는 간선 없이 한 방향으로만 흐른다.**
 
 ```
-game → level        레벨 이름 · 최소 이동 횟수
+game → level        최소 이동 횟수 · 안내 유무
 game → progress     클리어 기록 저장
 level → progress    레벨 선택 화면의 별점 · 해금
+level → settings    레벨 선택 화면에서 언어를 고름
 progress → (없음)
+settings → (없음)
 ```
 
 `level`은 판을 모르고 `progress`는 아무것도 모른다. 맵을 `Level`에 품게 하거나 진행도 저장에
@@ -109,6 +114,24 @@ widget/                         화면 전용 위젯
 호출 사슬은 `Notifier → Usecase → Repository(추상) → RepositoryImpl` 이다.
 
 **서버 API가 없으므로 datasource 계층을 두지 않는다.** 맵 데이터는 전부 상수이고, `RepositoryImpl`이 이를 직접 보유한다.
+
+### 다국어
+
+**한국어 · 영어 · 일본어 · 중국어 간체 · 프랑스어.** 다국어 라이브러리를 쓰지 않는다 — 문자열은 손으로 쓴 Dart 상수이고 코드 생성도 `.arb`도 없다.
+
+```
+lib/core/i18n/
+├── app_locale.dart       지원 언어 + 기기 로케일 해석
+├── app_strings.dart      추상 클래스 — 문구 목록
+├── strings_ko.dart       언어별 구현 5벌
+└── app_strings_scope.dart   InheritedWidget → context.strings
+```
+
+문구를 **추상 멤버**로 선언하는 것이 요점이다. 키를 빠뜨리면 컴파일이 깨진다 — `Map`이면 오타가 런타임 빈 문자열이 되고, 그건 그 언어를 읽는 사람만 볼 수 있다.
+값이 끼어드는 문구는 값이 아니라 **함수**라서, 영어의 `1 move` / `2 moves` 같은 복수형 분기를 각 언어가 자기 파일 안에서 처리한다.
+
+언어는 **기기 설정을 따르되 앱 안에서 바꿀 수 있고**, 고른 것은 기기에 저장된다.
+**파서 오류·`assert`·`debugMessage`는 번역하지 않는다** — 그것을 읽는 사람은 플레이어가 아니라 레벨을 만드는 사람이다.
 
 폴더 구조 · 네이밍 · DI 규약 전문은 [`docs/architecture.md`](docs/architecture.md)에 있다.
 

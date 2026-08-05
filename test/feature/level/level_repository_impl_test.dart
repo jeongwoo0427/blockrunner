@@ -19,7 +19,7 @@ void main() {
     final level = LevelRepositoryImpl().getLevel(3);
 
     expect(level.number, 3);
-    expect(level.name, '블록을 밟고');
+    expect(level.hasTutorial, isTrue);
     expect(level.minMoves, 2);
   });
 

@@ -1,6 +1,6 @@
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/core/error/failure_code.dart';
-import 'package:blockrunner/core/theme/data/light_theme.dart';
+import 'package:blockrunner/core/i18n/strings_ko.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen_event.dart';
@@ -9,6 +9,8 @@ import 'package:blockrunner/feature/level/presentation/level_select/widget/level
 import 'package:blockrunner/feature/progress/domain/entity/level_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../support/strings_harness.dart';
 
 /// **ProviderScope 로 감싸지 않는다.** Screen 이 Riverpod 을 건드리면 여기서
 /// 바로 터진다 — "Screen 은 dumb" 규약의 실질적 가드다.
@@ -19,16 +21,15 @@ Future<List<LevelSelectScreenEvent>> pumpScreen(
   final events = <LevelSelectScreenEvent>[];
 
   await tester.pumpWidget(
-    MaterialApp(
-      theme: lightTheme,
-      home: LevelSelectScreen(state: state, onEvent: events.add),
-    ),
+    withStrings(LevelSelectScreen(state: state, onEvent: events.add)),
   );
 
   return events;
 }
 
 void main() {
+  const ko = StringsKo();
+
   LevelSelectScreenState stateOf({
     int highestUnlockedLevel = 1,
     Map<int, LevelProgress> progress = const {},
@@ -49,9 +50,9 @@ void main() {
 
     // 1번만 열려 있다.
     expect(find.byIcon(Icons.lock_rounded), findsNWidgets(kLevels.length - 1));
-    expect(find.text(kLevels.first.name!), findsOneWidget);
+    expect(find.text(ko.levelName(1)), findsOneWidget);
     // 앞으로 무엇이 나오는지는 스포일러다.
-    expect(find.text(kLevels[1].name!), findsNothing);
+    expect(find.text(ko.levelName(2)), findsNothing);
   });
 
   testWidgets('해금된 레벨은 자물쇠가 없다', (tester) async {
@@ -63,7 +64,7 @@ void main() {
   testWidgets('미클리어 레벨은 빈 별과 최소 수를 보여준다', (tester) async {
     await pumpScreen(tester, stateOf());
 
-    expect(find.text('최소 ${kLevels.first.minMoves}수'), findsOneWidget);
+    expect(find.text(ko.minMovesLabel(kLevels.first.minMoves)), findsOneWidget);
     expect(find.byIcon(Icons.star_rounded), findsNothing);
   });
 
@@ -79,9 +80,9 @@ void main() {
     );
 
     expect(find.byIcon(Icons.star_rounded), findsNWidgets(2));
-    expect(find.text('3수'), findsOneWidget);
+    expect(find.text(ko.movesLabel(3)), findsOneWidget);
     // 클리어했으면 목표가 아니라 자기 기록이 보여야 한다.
-    expect(find.text('최소 ${kLevels.first.minMoves}수'), findsNothing);
+    expect(find.text(ko.minMovesLabel(kLevels.first.minMoves)), findsNothing);
   });
 
   testWidgets('열린 레벨을 누르면 LevelSelected 를 올려보낸다', (tester) async {

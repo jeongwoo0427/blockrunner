@@ -1,8 +1,10 @@
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/di/core_providers.dart';
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/router/router.dart';
 import 'package:blockrunner/core/theme/data/dark_theme.dart';
 import 'package:blockrunner/core/theme/data/light_theme.dart';
+import 'package:blockrunner/feature/settings/settings_di.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,17 +33,22 @@ Future<void> main() async {
   );
 }
 
-class BlockRunnerApp extends StatelessWidget {
+class BlockRunnerApp extends ConsumerWidget {
   const BlockRunnerApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: AppConstants.appName,
-      debugShowCheckedModeBanner: false,
-      theme: lightTheme,
-      darkTheme: darkTheme,
-      routerConfig: router,
+  Widget build(BuildContext context, WidgetRef ref) {
+    // 언어가 바뀌면 Scope 의 값이 바뀌고 그 아래가 전부 다시 그려진다.
+    // 이것이 "다국어 상태를 선언해두고 쓴다" 의 실체다 (11-i18n §4).
+    return AppStringsScope(
+      strings: ref.watch(appStringsProvider),
+      child: MaterialApp.router(
+        title: AppConstants.appName,
+        debugShowCheckedModeBanner: false,
+        theme: lightTheme,
+        darkTheme: darkTheme,
+        routerConfig: router,
+      ),
     );
   }
 }

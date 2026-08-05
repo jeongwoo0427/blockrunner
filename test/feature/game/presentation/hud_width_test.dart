@@ -1,4 +1,3 @@
-import 'package:blockrunner/core/theme/data/light_theme.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen.dart';
@@ -9,6 +8,8 @@ import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.
 import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/strings_harness.dart';
 
 /// HUD 는 화면 폭이 아니라 **보드 폭**에 맞는다 (기획서 §6.2).
 ///
@@ -34,12 +35,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: lightTheme,
-        home: GamePlayScreen(
-          state: state,
-          onEvent: (GamePlayScreenEvent _) {},
-        ),
+      withStrings(
+        GamePlayScreen(state: state, onEvent: (GamePlayScreenEvent _) {}),
       ),
     );
 

@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:flutter/material.dart';
 
@@ -36,6 +37,7 @@ class ResultOverlay extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final strings = context.strings;
 
     return ColoredBox(
       color: theme.colorScheme.surface.withValues(alpha: 0.82),
@@ -46,7 +48,7 @@ class ResultOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isCleared ? '클리어!' : '구멍에 빠졌다',
+                isCleared ? strings.cleared : strings.fellIntoHole,
                 style: theme.textTheme.headlineSmall,
               ),
               if (isCleared) ...[
@@ -56,7 +58,9 @@ class ResultOverlay extends StatelessWidget {
               const SizedBox(height: Spacing.sm),
               Text(
                 // 되돌리기가 없으므로 구멍에 빠지면 처음부터다 (기획서 §3.5).
-                isCleared ? '$moveCount수 / 최소 $minMoves수' : '처음부터 다시 해보자',
+                isCleared
+                    ? strings.clearedSummary(moveCount, minMoves)
+                    : strings.retryHint,
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: Spacing.lg),
@@ -66,13 +70,13 @@ class ResultOverlay extends StatelessWidget {
                 children: [
                   OutlinedButton(
                     onPressed: onBackToLevelSelect,
-                    child: const Text('목록으로'),
+                    child: Text(strings.backToList),
                   ),
-                  OutlinedButton(onPressed: onReset, child: const Text('다시하기')),
+                  OutlinedButton(onPressed: onReset, child: Text(strings.reset)),
                   if (isCleared && hasNextLevel)
                     FilledButton(
                       onPressed: onNextLevel,
-                      child: const Text('다음 레벨'),
+                      child: Text(strings.nextLevel),
                     ),
                 ],
               ),

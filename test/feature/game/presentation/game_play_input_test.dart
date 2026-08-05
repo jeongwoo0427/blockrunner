@@ -1,4 +1,3 @@
-import 'package:blockrunner/core/theme/data/light_theme.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
@@ -7,9 +6,10 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
-import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+
+import '../../../support/strings_harness.dart';
 
 /// 세 입력 경로(키보드 · 스와이프 · 화면 버튼)가 전부 `MoveRequested` 하나로
 /// 수렴하는지, 그리고 판이 끝난 상태에서 막히는지 본다.
@@ -25,9 +25,8 @@ void main() {
     final events = <GamePlayScreenEvent>[];
 
     await tester.pumpWidget(
-      MaterialApp(
-        theme: lightTheme,
-        home: GamePlayScreen(
+      withStrings(
+        GamePlayScreen(
           state: GamePlayScreenState(
             level: level1,
             map: map1,

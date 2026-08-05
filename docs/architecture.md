@@ -48,10 +48,12 @@ lib/
 ### feature 의존 방향 — **순환 금지**
 
 ```
-game → level          레벨 이름 · 최소 이동 횟수를 표시하려고
+game → level          최소 이동 횟수 · 안내 유무를 표시하려고
 game → progress       클리어 기록을 저장하려고
 level → progress      레벨 선택 화면이 별점 · 해금을 그리려고
+level → settings      레벨 선택 화면에서 언어를 고르므로
 progress → (없음)     progress 는 어느 feature 도 모른다
+settings → (없음)     settings 도 어느 feature 도 모른다
 ```
 
 **`progress` 가 아무것도 모르는 것이 이 배치의 핵심이다.** 한때 `SaveClearResultUsecase` 가
@@ -135,6 +137,7 @@ class MapRepositoryImpl implements MapRepository {
 - 부팅 시점에만 알 수 있는 값(`SharedPreferences` 등)은 `throw UnimplementedError()`로 선언해두고 `main.dart`의 `ProviderScope(overrides: [...])`에서 주입한다.
 - **항상 `Provider<추상타입>(...)`** 으로 등록한다. 구현체 타입이 주입 타입이 되면 안 된다.
 - provider 본문에서는 **항상 `ref.read`**, `ref.watch`를 쓰지 않는다.
+  - **예외는 파생 상태 provider 하나뿐이다** — `appStringsProvider`(§13). 배선이 아니라 값이 값을 낳는 자리라, `ref.read` 로 두면 처음 언어에 영영 고정된다. 예외를 늘리기 전에 "이것이 DI 배선인가 파생 상태인가" 를 먼저 답한다.
 - 파일 안은 `Data → Domain → Presentation` 순서로 배너 주석을 달아 구분한다.
 
 ```dart
@@ -444,7 +447,9 @@ top-level `final`, camelCase, `<대상>Provider` 접미사. `...RepositoryProvid
 |---|---|---|
 | `flutter_riverpod` | `3.0.3` (정확히 고정) | 상태관리 겸 DI |
 | `go_router` | `^14.6.1` | 라우팅 |
-| `shared_preferences` | `^2.5.3` | 진행도 저장 |
+| `shared_preferences` | `^2.5.3` | 진행도 · 설정 저장 |
+
+**다국어 패키지를 추가하지 않는다.** `intl` · `flutter_localizations` · `easy_localization` · `slang` 모두 쓰지 않는다 (§13).
 
 **게임 엔진(Flame 등)을 추가하지 않는다.** 렌더링은 `CustomPainter`, 게임 루프/연출은 `AnimationController`, 입력은 `GestureDetector` / `Focus` + `KeyboardListener`로 해결한다.
 
@@ -459,3 +464,28 @@ Flutter 버전은 FVM으로 고정되어 있다 (`.fvmrc` → 3.44.8). 모든 �
 - 플랫폼 분기 코드를 최소화한다. 입력 방식만 분기하고 게임 로직은 완전히 공통이다.
 - `dart:io`를 도메인/데이터 계층에서 쓰지 않는다 (웹에서 깨진다).
 - 보드는 화면 비율과 무관하게 **정사각을 유지**하고, 남는 공간에 HUD를 배치한다.
+
+---
+
+## 13. 다국어
+
+문자열은 **손으로 쓴 Dart 상수**다. 라이브러리도 코드 생성도 `.arb` 도 없다 (11-i18n).
+
+```
+lib/core/i18n/
+├── app_locale.dart          지원 언어 enum + 기기 로케일 해석
+├── app_strings.dart         추상 클래스 — 문구 목록
+├── strings_ko.dart          언어별 구현 (ko · en · ja · zh · fr)
+├── strings_catalog.dart     AppLocale → AppStrings
+└── app_strings_scope.dart   InheritedWidget + context.strings
+```
+
+**규칙**
+
+- **문구는 추상 멤버로 선언한다.** `Map<String, String>` 을 쓰지 않는다 — 키를 빠뜨리면 컴파일이 깨져야 한다. Map 이면 오타가 런타임 빈 문자열이 되고, 그건 그 언어를 읽는 사람만 볼 수 있다.
+- **값이 끼어드는 문구는 함수다.** 그래야 영어의 `1 move` / `2 moves` 같은 복수형 분기를 각 언어가 자기 파일 안에서 처리한다.
+- **레벨 이름·안내만 `Map<int, String>` 이다.** 레벨은 계속 늘어나므로 멤버로 두면 레벨 하나에 5파일 × 2줄이 붙는다. 잃은 컴파일 검사는 **키 패리티 테스트**가 대신한다.
+- **화면은 `context.strings` 로 읽는다.** Riverpod 이 아니라 `InheritedWidget` 인 것은 "Screen 은 Riverpod 을 모른다"(§5)를 지키기 위해서다. 문자열 수십 개를 `State` 에 실어 하위 위젯까지 생성자로 관통시키면 규약을 지키느라 화면이 무너진다.
+- **개발자용 문구는 번역하지 않는다.** 파서 오류 · `assert` · `debugMessage` 는 레벨을 만드는 사람이 읽는 것이라 한국어로 남긴다. 이 경계는 `no_hardcoded_korean_test` 가 검사 범위(`presentation/` 와 `level_data.dart`)로 못박고 있다.
+- **언어 상태는 `settings` feature 가 소유한다.** `AppLocale` 만 `core/i18n/` 에 있다 — 문자열 파일이 그 enum 으로 키잉되는데 `core` 는 feature 를 import 할 수 없기 때문이다.
+- **화면에 붙지 않는 Notifier 가 하나 있다** — `LocaleNotifier`. 이름이 `*ScreenNotifier` 가 아닌 유일한 경우이며(§5의 예외), 언어를 들고 있는 곳이 앱에 하나뿐이어야 하므로 그렇다. 그래서 `SaveLocaleUsecase` 는 **스트림을 흘리지 않는다** — 모든 화면이 이 하나에서 파생되므로 같은 사실에 이르는 길을 둘로 만들 이유가 없다.

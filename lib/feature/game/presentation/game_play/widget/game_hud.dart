@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/core/theme/data/text_styles.dart';
 import 'package:flutter/material.dart';
@@ -27,6 +28,8 @@ class GameHud extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final strings = context.strings;
+
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: Spacing.md),
       child: Row(
@@ -40,13 +43,16 @@ class GameHud extends StatelessWidget {
             children: [
               Text('$moveCount', style: AppTextStyles.counter),
               const SizedBox(width: Spacing.sm),
-              Text('/ 최소 $minMoves수', style: AppTextStyles.counterLabel),
+              Text(
+                strings.hudMinMovesLabel(minMoves),
+                style: AppTextStyles.counterLabel,
+              ),
             ],
           ),
           TextButton.icon(
             onPressed: onReset,
             icon: const Icon(Icons.refresh),
-            label: const Text('다시하기'),
+            label: Text(strings.reset),
           ),
         ],
       ),

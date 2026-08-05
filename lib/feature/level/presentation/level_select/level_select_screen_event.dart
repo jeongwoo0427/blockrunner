@@ -18,3 +18,6 @@ class LockedLevelSelected extends LevelSelectScreenEvent {
 
   final Level level;
 }
+
+/// 언어를 바꾸겠다. 다이얼로그를 띄우는 것은 Root 의 일이다.
+class LanguageChangeRequested extends LevelSelectScreenEvent {}

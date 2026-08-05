@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:blockrunner/core/config/app_constants.dart';
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
@@ -186,18 +187,19 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     final state = widget.state;
     final level = state.level;
     final board = state.board;
+    final strings = context.strings;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           level == null
-              ? '레벨'
-              : '레벨 ${level.number}${level.name == null ? '' : ' · ${level.name}'}',
+              ? strings.levelFallbackTitle
+              : strings.levelTitle(level.number),
         ),
         leading: IconButton(
           onPressed: () => widget.onEvent(BackToLevelSelectRequested()),
           icon: const Icon(Icons.arrow_back),
-          tooltip: '레벨 선택으로',
+          tooltip: strings.backToLevelSelect,
         ),
       ),
       body: SafeArea(
@@ -245,11 +247,11 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                     ],
                   ),
                 ),
-                if (state.showsTutorial && level.tutorial != null)
+                if (state.showsTutorial && level.hasTutorial)
                   Positioned.fill(
                     child: TutorialOverlay(
-                      title: level.name ?? '레벨 ${level.number}',
-                      body: level.tutorial!,
+                      title: strings.levelName(level.number),
+                      body: strings.levelTutorial(level.number),
                       // 조작은 첫 레벨에서만 알려준다.
                       showsControls: level.number == 1,
                       onDismiss: () => _sendAndRefocus(TutorialDismissed()),
@@ -290,7 +292,7 @@ class _ErrorBody extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(Spacing.lg),
         child: Text(
-          '레벨을 불러오지 못했다.\n${message ?? ''}',
+          '${context.strings.levelLoadFailed}\n${message ?? ''}',
           textAlign: TextAlign.center,
         ),
       ),

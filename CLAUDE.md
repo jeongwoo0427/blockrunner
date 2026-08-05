@@ -108,7 +108,10 @@ The user drives this project one request at a time and expects the same rhythm e
 
 ### Language
 
-The user writes in Korean; reply in Korean. Docs, `///` comments, and UI strings are Korean.
+The user writes in Korean; reply in Korean. Docs and `///` comments are Korean.
+**UI strings are no longer Korean literals** — they live in `lib/core/i18n/strings_*.dart`,
+one file per language, and screens read them through `context.strings`. A test fails if a
+Korean literal reappears under `presentation/`.
 **Commit messages are English**, and end with the `Co-Authored-By` trailer.
 
 ### Logging every request
@@ -137,7 +140,7 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00` through `09` are done — only `10-responsive` is left. **The game is playable end to end on all
+`00` through `09` and `11-i18n` are done — only `10-responsive` is left. **The game is playable end to end on all
 three platforms:** level select → play → clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
@@ -191,6 +194,24 @@ collapse to zero, which is exactly why reset (and, in `07`, undo) applies instan
 replaying a rewind. Falling blocks are removed from `board` but kept in `state.fallingBlocks` so
 they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
 second timer.
+
+**The app is multilingual** (`docs/architecture.md` §13, `docs/tasks/completed/11-i18n.md`):
+Korean, English, Japanese, Simplified Chinese, French. **No i18n package** — `intl`,
+`flutter_localizations` and friends are all absent on purpose, the same way Flame is. Strings are
+an abstract `AppStrings` with one hand-written implementation per language, so a missing key breaks
+the build instead of surfacing as an empty string to whoever reads that language. Anything with a
+value in it is a **function**, which is what lets English do `1 move` / `2 moves` inside its own
+file. Screens read `context.strings` from an `InheritedWidget`, never Riverpod.
+
+**Level names and tutorial text are not in `Level` anymore** — `Level` keeps `hasTutorial`, a bool,
+because "which level teaches something" is level design, not translation; if the two travelled
+together a missing translation would silently delete a tutorial. The text is in `AppStrings`, keyed
+by level number, and those maps are the one place with no compile-time check — a parity test pins
+their keys to `kLevels`.
+
+**Parser errors, asserts and `debugMessage` stay Korean.** A level author reads those, not a
+player. `no_hardcoded_korean_test` encodes that boundary by scanning only `presentation/` and
+`level_data.dart`.
 
 Only `10-responsive` is left in `docs/tasks/`. Work through it one task per request, and don't
 start it unless asked.

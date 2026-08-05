@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen_event.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen_state.dart';
@@ -23,7 +24,16 @@ class LevelSelectScreen extends StatelessWidget {
     final failure = state.failure;
 
     return Scaffold(
-      appBar: AppBar(title: const Text('레벨 선택')),
+      appBar: AppBar(
+        title: Text(context.strings.levelSelectTitle),
+        actions: [
+          IconButton(
+            onPressed: () => onEvent(LanguageChangeRequested()),
+            icon: const Icon(Icons.language),
+            tooltip: context.strings.language,
+          ),
+        ],
+      ),
       body: SafeArea(
         child: failure != null
             ? _ErrorBody(message: failure.debugMessage)
@@ -70,7 +80,7 @@ class _ErrorBody extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(Spacing.lg),
         child: Text(
-          '레벨 목록을 불러오지 못했다.\n${message ?? ''}',
+          '${context.strings.levelListLoadFailed}\n${message ?? ''}',
           textAlign: TextAlign.center,
         ),
       ),

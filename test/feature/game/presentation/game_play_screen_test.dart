@@ -1,7 +1,7 @@
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/core/error/failure_code.dart';
-import 'package:blockrunner/core/theme/data/light_theme.dart';
+import 'package:blockrunner/core/i18n/strings_ko.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen.dart';
@@ -18,6 +18,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+import '../../../support/strings_harness.dart';
+
 /// **ProviderScope 로 감싸지 않는다.** Screen 이 Riverpod 을 건드리면 여기서
 /// 바로 터진다 — "Screen 은 dumb" 규약의 실질적 가드다.
 Future<List<GamePlayScreenEvent>> pumpScreen(
@@ -27,16 +29,14 @@ Future<List<GamePlayScreenEvent>> pumpScreen(
   final events = <GamePlayScreenEvent>[];
 
   await tester.pumpWidget(
-    MaterialApp(
-      theme: lightTheme,
-      home: GamePlayScreen(state: state, onEvent: events.add),
-    ),
+    withStrings(GamePlayScreen(state: state, onEvent: events.add)),
   );
 
   return events;
 }
 
 void main() {
+  const ko = StringsKo();
   final level1 = kLevels.first;
   final map1 = const MapParser().parse(kMapBlueprints.first);
 
@@ -74,7 +74,7 @@ void main() {
       find.byType(BlockTile),
       findsNWidgets(map1.initialBoard.blocks.length),
     );
-    expect(find.text('레벨 1 · ${level1.name}'), findsOneWidget);
+    expect(find.text(ko.levelTitle(1)), findsOneWidget);
   });
 
   testWidgets('평소에는 결과 오버레이가 뜨지 않는다', (tester) async {
@@ -129,7 +129,7 @@ void main() {
       await pumpScreen(tester, stateOf(showsTutorial: true));
 
       expect(find.byType(TutorialOverlay), findsOneWidget);
-      expect(find.text(level1.name!), findsOneWidget);
+      expect(find.text(ko.levelName(1)), findsOneWidget);
       expect(find.textContaining('미끄러진다'), findsOneWidget);
       expect(find.text('시작'), findsOneWidget);
     });
@@ -250,10 +250,7 @@ void main() {
       List<GamePlayScreenEvent> events,
     ) =>
         (state) => tester.pumpWidget(
-          MaterialApp(
-            theme: lightTheme,
-            home: GamePlayScreen(state: state, onEvent: events.add),
-          ),
+          withStrings(GamePlayScreen(state: state, onEvent: events.add)),
         );
 
     testWidgets('연출이 끝나면 AnimationCompleted 를 올려보낸다', (tester) async {

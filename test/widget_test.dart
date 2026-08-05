@@ -14,7 +14,9 @@ void main() {
   late SharedPreferences prefs;
 
   setUp(() async {
-    SharedPreferences.setMockInitialValues({});
+    // 언어를 못박는다. 안 그러면 기기 로케일(테스트 환경에서는 en)을 따라가
+    // 영어로 그려지고, 아래 한국어 단언이 통째로 무너진다 (11-i18n §3).
+    SharedPreferences.setMockInitialValues({'settings_v1_locale': 'ko'});
     prefs = await SharedPreferences.getInstance();
   });
 

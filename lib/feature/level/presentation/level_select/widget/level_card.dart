@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:blockrunner/feature/progress/domain/entity/level_progress.dart';
@@ -27,6 +28,7 @@ class LevelCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final strings = context.strings;
     final progress = this.progress;
 
     return Card(
@@ -56,7 +58,7 @@ class LevelCard extends StatelessWidget {
                 const SizedBox(height: Spacing.xs),
                 // 잠긴 레벨은 이름도 가린다 — 앞으로 무엇이 나오는지가 스포일러다.
                 Text(
-                  isUnlocked ? (level.name ?? '레벨 ${level.number}') : '잠김',
+                  isUnlocked ? strings.levelName(level.number) : strings.locked,
                   style: theme.textTheme.labelMedium,
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -67,8 +69,8 @@ class LevelCard extends StatelessWidget {
                   Text(
                     // 미클리어면 목표를, 클리어했으면 자기 기록을 보여준다.
                     progress == null
-                        ? '최소 ${level.minMoves}수'
-                        : '${progress.bestMoveCount}수',
+                        ? strings.minMovesLabel(level.minMoves)
+                        : strings.movesLabel(progress.bestMoveCount),
                     style: theme.textTheme.bodySmall,
                   ),
                 ],

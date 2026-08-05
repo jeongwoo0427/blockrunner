@@ -1424,3 +1424,68 @@
 **결정 / 메모**
 - **처음으로 푸시까지 했다.** 그동안은 사용자가 직접 밀었고 `CLAUDE.md` 에도 그렇게 적혀 있는데, 이번엔 명시적으로 요청받았다. 요청 없이는 계속 커밋까지만 한다
 - 확인해 보니 앞 커밋(`2bbde46`)은 이미 `origin/main` 에 올라가 있어 이번 문서 커밋만 올라간다
+
+---
+
+## 2026-08-05 #54 — 11-i18n: 다국어 마이그레이션
+
+**요청**
+> 자 이제 본격적으로 다국어 진행하자. 한국어 곳곳에 숨어있는 곳 꼼꼼하게 찾아서 마이그레이션 해주면 좋겠어.
+
+**한 일**
+- `lib/core/i18n/` 신설 — `AppLocale` · `AppStrings`(추상) · 언어별 상수 5벌 · `strings_catalog.dart` · `AppStringsScope`
+- `settings` feature 신설 — repository · usecase 2종 · `LocaleNotifier` · 언어 선택 다이얼로그 · DI
+- `game` · `level` 화면 문구를 `context.strings` 로 전량 교체
+- `Level` 에서 `name` · `tutorial` 제거, `hasTutorial`(bool) 만 남김. 문구는 `AppStrings` 로 이관
+- 레벨 선택 AppBar 에 언어 아이콘 → 다이얼로그
+- 테스트 39건 추가 (252 → 291), 기존 화면 테스트를 `withStrings` 하네스로 전환
+- `docs/game-design.md` §6.1 · `docs/architecture.md` §4·§11·§13 · `CLAUDE.md` · `README.md` 갱신
+- `docs/tasks/11-i18n.md` 에 "실제 결과" 추가 후 `completed/` 로 이동
+
+**변경 파일**
+- `lib/core/i18n/**` (신규 7파일)
+- `lib/feature/settings/**` (신규 8파일)
+- `lib/main.dart` — `AppStringsScope` 배선, `ConsumerWidget` 으로 전환
+- `lib/feature/level/domain/entity/level.dart`, `lib/feature/level/data/level_data.dart`
+- `lib/feature/game/presentation/**`, `lib/feature/level/presentation/**`
+- `test/support/strings_harness.dart` (신규), `test/core/i18n/**` (신규 2), `test/feature/settings/**` (신규 3)
+- 기존 테스트 6종 수정
+- `docs/**`, `CLAUDE.md`, `README.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 291/291 통과
+- **교란 3종 확인** — ① `appStringsProvider` 를 `ref.read` 로 되돌리면 언어 전환 테스트 2건 실패 ② 문구 하나를 하드코딩으로 되돌리면 한글 스캔 테스트 실패 ③ 레벨을 추가하고 번역을 빼면 키 패리티 테스트 5건 실패
+
+**결정 / 메모**
+- **문구를 추상 멤버로 선언한 것이 이 설계의 전부다.** 5개 파일이 전부 구현할 때까지 빌드가 통과하지 않는다. `Map` 이었다면 오타가 런타임 빈 문자열이 되고 **그건 그 언어를 읽는 사람만 볼 수 있다** — 한국어 사용자인 우리는 영영 모른다
+- **값이 끼어드는 문구는 함수로 뒀다.** 영어 `1 move` / `2 moves`, 프랑스어 `1 coup` / `2 coups` 를 각 언어가 자기 파일에서 처리한다. `intl` 의 ICU plural 이 하는 일이고, 이걸 함수로 대신할 수 있다는 것이 라이브러리를 안 써도 되는 근거였다
+- **레벨 이름·안내만 `Map<int,String>` 이다.** 레벨은 계속 느는데 멤버로 두면 레벨 하나에 5파일 × 2줄이 붙는다. 잃은 컴파일 검사는 **키 패리티 테스트**로 갚았고, 런타임 폴백은 두지 않았다 — 테스트가 통과하면 빠진 키가 있을 수 없고 없는 상황을 처리하는 코드는 죽은 코드다
+- **`Level.tutorial` → `bool hasTutorial`.** 이게 이번 작업에서 가장 중요한 판단이다. 문구와 존재 여부를 한 덩어리로 두면 **번역이 비었을 때 튜토리얼이 조용히 사라진다.** "이 레벨이 무언가를 가르친다" 는 레벨 설계의 사실이지 번역이 아니다
+- **`InheritedWidget` 으로 내려보냈다.** Screen 이 Riverpod 을 모른다는 규약(§5)을 지키면서 문자열 30여 개를 `State` 로 관통시키지 않는 유일한 길이다. 위젯 테스트는 `withStrings` 로 감싸며, **`ProviderScope` 를 안 씌우는 가드는 그대로 살아 있다**
+- **`appStringsProvider` 만 `ref.watch` 를 쓴다 — 규약 §4의 예외.** 몰래 어기지 않고 `architecture.md` 에 "배선이 아니라 파생 상태" 라는 판별 기준과 함께 적었다. `ref.read` 로 되돌리는 교란이 테스트 2건을 깨뜨리는 것으로 근거를 남겼다
+- **계획서와 달리 `SaveLocaleUsecase` 는 스트림을 흘리지 않는다.** `08` 에서 스트림이 필요했던 것은 **서로를 모르는 두 Notifier** 가 있었기 때문인데, 언어는 `LocaleNotifier` 하나가 들고 모든 화면이 거기서 파생된다. 스트림을 두면 같은 사실에 이르는 길이 둘이 되고 어느 쪽이 진짜인지 흐려진다. 계획서를 그대로 따르는 것보다 이유를 다시 확인하는 편이 맞다고 봤다
+- **기기 로케일을 함수로 주입했다.** `PlatformDispatcher` 를 repository 안에서 직접 부르면 테스트가 기기 언어를 못 바꾼다. 값이 아니라 함수인 것은 기기 설정이 앱 실행 중에도 바뀌기 때문이다
+- **`zh-Hans-CN` 을 언어 코드만 보고 판정한다.** 통째로 비교하면 어느 것도 맞지 않아 늘 `ko` 로 떨어진다 — 실제로 흔한 버그라 테스트를 따로 뒀다
+- **번역 대상을 화면 계층으로 한정했다.** 처음 스캔 테스트가 `LevelProgress.toString()` 의 `'$bestMoveCount수'` 를 잡았는데, 이건 개발자용이라 검사 범위를 `presentation/` 과 `level_data.dart` 로 좁혔다. 범위를 넓게 두면 **개발자 문구까지 번역하게 만드는 잘못된 압력**이 된다
+- **`widget_test.dart` 가 언어를 못박게 했다.** 기기 로케일을 따라가면 테스트 환경(en)에서 영어로 그려져 한국어 단언이 통째로 무너진다. 이건 마이그레이션이 실제로 동작한다는 증거이기도 하다
+- **`RadioListTile` 이 deprecated 라 `ListTile` + 체크 아이콘으로 갔다.** `RadioGroup` 을 새로 들이는 것보다 단순하고, 고르면 바로 닫히는 다이얼로그라 라디오의 "선택 후 확인" 의미가 필요 없다
+- **`ja` · `zh` · `fr` 은 초벌이다.** 각 파일 헤더에 적어 뒀다. 레벨 이름은 말맛이 있는 짧은 문구라 특히 검수가 필요하다
+- **육안 확인 필요:** CJK 글리프가 웹에서 두부(□)로 깨지지 않는지. 깨지면 폰트 번들이 필요하고 그건 앱 크기 문제라 별도 과제다
+
+---
+
+## 2026-08-05 #55 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- `#54`(11-i18n 다국어 마이그레이션)를 단일 커밋으로 커밋
+
+**변경 파일**
+- `docs/prompt-history.md` — 이 항목 (커밋에 `--amend` 로 합침)
+
+**결정 / 메모**
+- **31개 파일이 한 커밋이지만 쪼개지 않았다.** i18n 골격 · settings feature · 화면 교체 · 레벨 데이터 이관은 서로의 전제라 **중간 어느 지점에서도 테스트가 통과하지 않는다.** 골격만 넣은 커밋은 아무도 안 쓰는 코드고, 화면만 바꾼 커밋은 컴파일이 안 된다. `#46` 때와 같은 판단이다
+- 푸시는 하지 않았다 — `#53` 은 명시적으로 요청받은 경우였고 기본은 사용자가 민다

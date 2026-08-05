@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -65,7 +66,10 @@ class TutorialOverlay extends StatelessWidget {
                   _ControlLine(isTouch: _isTouch),
                 ],
                 const SizedBox(height: Spacing.lg),
-                FilledButton(onPressed: onDismiss, child: const Text('시작')),
+                FilledButton(
+                  onPressed: onDismiss,
+                  child: Text(context.strings.start),
+                ),
               ],
             ),
           ),
@@ -105,7 +109,9 @@ class _ControlLine extends StatelessWidget {
             const SizedBox(width: Spacing.sm),
             Flexible(
               child: Text(
-                isTouch ? '쓸어넘겨 블록을 민다' : '방향키나 WASD 로 블록을 민다',
+                isTouch
+                    ? context.strings.swipeHint
+                    : context.strings.keyboardHint,
                 style: theme.textTheme.bodyMedium?.copyWith(
                   color: theme.colorScheme.onSecondaryContainer,
                 ),
