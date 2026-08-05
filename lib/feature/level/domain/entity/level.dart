@@ -4,7 +4,12 @@
 /// 알아야 하고, game 과 순환 의존이 생긴다. 맵은 game feature 의
 /// `GameMap` 이 소유하며 레벨 번호로 이어진다.
 class Level {
-  const Level({required this.number, required this.minMoves, this.name});
+  const Level({
+    required this.number,
+    required this.minMoves,
+    this.name,
+    this.tutorial,
+  });
 
   /// 1부터 시작하는 레벨 번호. 순차 해금과 맵 조회의 키다.
   final int number;
@@ -18,4 +23,12 @@ class Level {
 
   /// 표시용 이름. 없으면 번호만 보여준다.
   final String? name;
+
+  /// 이 레벨에서 처음 나오는 규칙 설명 (기획서 §6.1).
+  ///
+  /// 그 레벨에 처음 도달했을 때 오버레이로 한 번 보여준다. 없으면 넘어간다.
+  /// **조작 방법은 여기 넣지 않는다** — 플랫폼마다 달라야 하는데 이건 상수다.
+  final String? tutorial;
+
+  bool get hasTutorial => tutorial != null;
 }

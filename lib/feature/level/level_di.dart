@@ -1,5 +1,8 @@
+import 'package:blockrunner/core/di/core_providers.dart';
 import 'package:blockrunner/feature/level/data/repository/level_repository_impl.dart';
+import 'package:blockrunner/feature/level/data/repository/tutorial_repository_impl.dart';
 import 'package:blockrunner/feature/level/domain/repository/level_repository.dart';
+import 'package:blockrunner/feature/level/domain/repository/tutorial_repository.dart';
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +14,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final levelRepositoryProvider = Provider<LevelRepository>(
   (ref) => LevelRepositoryImpl(),
+);
+
+/// 튜토리얼을 이미 봤는지 기억한다. 저장이 필요한 유일한 level 데이터다.
+final tutorialRepositoryProvider = Provider<TutorialRepository>(
+  (ref) =>
+      TutorialRepositoryImpl(preferences: ref.read(sharedPreferencesProvider)),
 );
 
 /// ----------------------------------------------------------------------------

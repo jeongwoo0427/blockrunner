@@ -14,6 +14,9 @@ class MoveRequested extends GamePlayScreenEvent {
 
 class ResetRequested extends GamePlayScreenEvent {}
 
+/// 튜토리얼 오버레이의 "시작" — 이 레벨은 봤다고 기록한다.
+class TutorialDismissed extends GamePlayScreenEvent {}
+
 /// 네비게이션은 Root 가 처리한다. Notifier 는 관여하지 않는다.
 class NextLevelRequested extends GamePlayScreenEvent {}
 

@@ -8,6 +8,12 @@
 
 - [00-foundation.md](completed/00-foundation.md) (`sharedPreferencesProvider`)
 
+> **먼저 읽을 것:** 저장소를 쓰는 코드가 이미 하나 있다. `level` feature 의
+> `TutorialRepository` 가 "어느 레벨의 튜토리얼을 봤는지" 를 `SharedPreferences` 에
+> 직접 담는다(기획서 §6.1). 튜토리얼 문구가 `Level` 에 붙어 있어 거기 뒀다.
+> **클리어 여부 · 별점 · 최고 기록은 이 작업이 소유한다.** 튜토리얼 플래그를 이쪽으로
+> 옮길지는 판단에 맡기되, 두 곳에서 같은 것을 저장하지는 말 것.
+
 ## 작업
 
 ### 1. 엔티티

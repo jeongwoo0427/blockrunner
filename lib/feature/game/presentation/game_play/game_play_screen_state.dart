@@ -15,6 +15,7 @@ class GamePlayScreenState {
     this.isCleared = false,
     this.isPlayerLost = false,
     this.hasNextLevel = false,
+    this.showsTutorial = false,
     this.failure,
   });
 
@@ -39,20 +40,25 @@ class GamePlayScreenState {
 
   final bool hasNextLevel;
 
+  /// 튜토리얼 오버레이를 띄우고 있는가 (기획서 §6.1).
+  ///
+  /// 파생값이 아니다 — "이미 봤는지" 는 저장소가 알고, 닫는 것은 사용자다.
+  final bool showsTutorial;
+
   final Failure? failure;
 
   /// 방향 입력을 받아도 되는 상태인가.
   ///
   /// 연출 중 입력은 큐잉하지 않고 무시하며(기획서 §6), 클리어·소실 상태에서는
   /// 판이 이미 끝났으므로 받지 않는다.
+  /// 튜토리얼이 떠 있는 동안에는 입력을 받지 않는다. 오버레이 뒤로 판이
+  /// 움직이면 안내를 읽는 동안 판이 바뀐다.
   bool get canMove =>
-      board != null && !isAnimating && !isCleared && !isPlayerLost;
-
-  /// 조작 안내를 띄울 때인가 (기획서 §6.1).
-  ///
-  /// 저장하지 않는다 — `첫 레벨 && 아직 한 수도 두지 않음` 에서 그때그때
-  /// 파생될 뿐이라 별도 상태도 저장소도 필요 없고, 첫 이동에 저절로 사라진다.
-  bool get showsControlHint => level?.number == 1 && moveCount == 0;
+      board != null &&
+      !isAnimating &&
+      !isCleared &&
+      !isPlayerLost &&
+      !showsTutorial;
 
   GamePlayScreenState copyWith({
     Level? Function()? level,
@@ -63,6 +69,7 @@ class GamePlayScreenState {
     bool? isCleared,
     bool? isPlayerLost,
     bool? hasNextLevel,
+    bool? showsTutorial,
     Failure? Function()? failure,
   }) {
     return GamePlayScreenState(
@@ -74,6 +81,7 @@ class GamePlayScreenState {
       isCleared: isCleared ?? this.isCleared,
       isPlayerLost: isPlayerLost ?? this.isPlayerLost,
       hasNextLevel: hasNextLevel ?? this.hasNextLevel,
+      showsTutorial: showsTutorial ?? this.showsTutorial,
       failure: failure != null ? failure() : this.failure,
     );
   }

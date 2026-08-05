@@ -5,10 +5,12 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
-import 'package:blockrunner/feature/game/presentation/game_play/widget/control_hint.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -38,9 +40,12 @@ void main() {
     bool isCleared = false,
     bool isPlayerLost = false,
     bool hasNextLevel = true,
+    bool showsTutorial = false,
     int moveCount = 0,
+    Level? level,
   }) => GamePlayScreenState(
-    level: level1,
+    level: level ?? level1,
+    showsTutorial: showsTutorial,
     map: map1,
     board: map1.initialBoard,
     moveCount: moveCount,
@@ -104,30 +109,47 @@ void main() {
     for (final label in ['위', '아래', '왼쪽', '오른쪽']) {
       expect(find.byTooltip(label), findsNothing);
     }
-    expect(find.byType(ControlHint), findsOneWidget, reason: '대신 조작 안내가 뜬다');
   });
 
-  group('조작 안내 (기획서 §6.1)', () {
-    testWidgets('레벨 1 을 아직 한 수도 두지 않았으면 뜬다', (tester) async {
+  group('튜토리얼 오버레이 (기획서 §6.1)', () {
+    testWidgets('showsTutorial 이면 레벨 이름과 안내가 뜬다', (tester) async {
+      await pumpScreen(tester, stateOf(showsTutorial: true));
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      expect(find.text(level1.name!), findsOneWidget);
+      expect(find.textContaining('미끄러진다'), findsOneWidget);
+      expect(find.text('시작'), findsOneWidget);
+    });
+
+    testWidgets('평소에는 뜨지 않는다', (tester) async {
       await pumpScreen(tester, stateOf());
 
-      expect(find.byType(ControlHint), findsOneWidget);
+      expect(find.byType(TutorialOverlay), findsNothing);
     });
 
-    testWidgets('첫 이동을 하면 사라진다 — 닫기 버튼이 없다', (tester) async {
-      await pumpScreen(tester, stateOf(moveCount: 1));
+    testWidgets('레이아웃을 차지하지 않는다 — 보드 크기가 그대로다', (tester) async {
+      await pumpScreen(tester, stateOf(showsTutorial: true));
+      final withOverlay = tester.getSize(find.byType(BoardView));
 
-      expect(find.byType(ControlHint), findsNothing);
+      await pumpScreen(tester, stateOf());
+      final without = tester.getSize(find.byType(BoardView));
+
+      expect(withOverlay, without, reason: '오버레이가 사라져도 판이 튀면 안 된다');
     });
 
-    testWidgets('첫 레벨이 아니면 뜨지 않는다', (tester) async {
-      final later = kLevels.firstWhere((level) => level.number == 3);
-      await pumpScreen(
-        tester,
-        GamePlayScreenState(level: later, map: map1, board: map1.initialBoard),
-      );
+    testWidgets('시작을 누르면 TutorialDismissed 를 올려보낸다', (tester) async {
+      final events = await pumpScreen(tester, stateOf(showsTutorial: true));
 
-      expect(find.byType(ControlHint), findsNothing);
+      await tester.tap(find.text('시작'));
+
+      expect(events.single, isA<TutorialDismissed>());
+    });
+
+    testWidgets('안내가 없는 레벨은 오버레이를 그리지 않는다', (tester) async {
+      final plain = kLevels.firstWhere((level) => !level.hasTutorial);
+      await pumpScreen(tester, stateOf(level: plain, showsTutorial: true));
+
+      expect(find.byType(TutorialOverlay), findsNothing);
     });
   });
 

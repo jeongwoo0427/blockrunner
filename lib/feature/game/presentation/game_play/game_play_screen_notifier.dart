@@ -28,6 +28,9 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
         hasNextLevel: _usecases.getAllLevels().any(
           (other) => other.number == levelNumber + 1,
         ),
+        // 안내가 붙어 있고 아직 안 본 레벨이면 진입 직후 띄운다 (기획서 §6.1).
+        showsTutorial:
+            level.hasTutorial && !_usecases.hasSeenTutorial(levelNumber),
       );
     } catch (error, stackTrace) {
       return GamePlayScreenState(failure: Failure.fromError(error, stackTrace));
@@ -40,6 +43,9 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
         _applyMove(event.direction);
       case ResetRequested():
         _reset();
+      case TutorialDismissed():
+        state = state.copyWith(showsTutorial: false);
+        await _usecases.markTutorialSeen(levelNumber);
       case NextLevelRequested():
       case BackToLevelSelectRequested():
         break; // 네비게이션은 Root 가 처리한다

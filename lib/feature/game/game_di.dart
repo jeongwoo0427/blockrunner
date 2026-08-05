@@ -24,6 +24,7 @@ final gameUsecasesProvider = Provider(
   (ref) => GameUsecases.fromRepositories(
     mapRepository: ref.read(mapRepositoryProvider),
     levelRepository: ref.read(levelRepositoryProvider),
+    tutorialRepository: ref.read(tutorialRepositoryProvider),
   ),
 );
 

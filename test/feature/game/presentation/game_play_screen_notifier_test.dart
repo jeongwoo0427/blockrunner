@@ -5,13 +5,33 @@ import 'package:blockrunner/feature/game/game_di.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
+import 'package:blockrunner/core/di/core_providers.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
   late ProviderContainer container;
 
-  setUp(() => container = ProviderContainer());
+  // 튜토리얼을 본 적 있는지 읽어야 하므로 Notifier 가 저장소를 필요로 한다.
+  //
+  // 기본은 **전부 본 상태**다. 튜토리얼이 떠 있으면 입력이 막히는데(기획서 §6.1),
+  // 이동을 검사하는 테스트들이 매번 그것부터 닫아야 하면 본론이 흐려진다.
+  Future<void> boot({Map<String, Object>? preferences}) async {
+    SharedPreferences.setMockInitialValues(
+      preferences ??
+          {for (final level in kLevels) 'tutorial_seen_${level.number}': true},
+    );
+    final prefs = await SharedPreferences.getInstance();
+    container = ProviderContainer(
+      overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    );
+  }
+
+  /// 튜토리얼을 아직 아무것도 보지 않은 상태로 다시 띄운다.
+  Future<void> bootFresh() => boot(preferences: const {});
+
+  setUp(() => boot());
   tearDown(() => container.dispose());
 
   GamePlayScreenState read(int levelNumber) =>
@@ -103,6 +123,61 @@ void main() {
     expect(state.moveCount, 0);
     expect(state.isPlayerLost, isFalse);
     expect(state.isCleared, isFalse);
+  });
+
+  group('튜토리얼 (기획서 §6.1)', () {
+    test('안내가 붙은 레벨을 처음 열면 오버레이가 뜨고 입력이 막힌다', () async {
+      await bootFresh();
+      final state = read(1);
+
+      expect(state.level?.hasTutorial, isTrue);
+      expect(state.showsTutorial, isTrue);
+      expect(state.canMove, isFalse, reason: '읽는 동안 판이 움직이면 안 된다');
+    });
+
+    test('안내가 없는 레벨은 조용히 넘어간다', () async {
+      await bootFresh();
+      final state = read(2);
+
+      expect(state.level?.hasTutorial, isFalse);
+      expect(state.showsTutorial, isFalse);
+      expect(state.canMove, isTrue);
+    });
+
+    test('이미 본 레벨은 다시 뜨지 않는다', () async {
+      await boot(preferences: {'tutorial_seen_1': true});
+
+      expect(read(1).showsTutorial, isFalse);
+    });
+
+    test('닫으면 사라지고 기기에 기록된다', () async {
+      await bootFresh();
+
+      await send(1, TutorialDismissed());
+      expect(read(1).showsTutorial, isFalse);
+      expect(read(1).canMove, isTrue);
+
+      // 새 컨테이너 = 앱을 다시 켠 상황. 저장돼 있으면 다시 뜨지 않는다.
+      final prefs = await SharedPreferences.getInstance();
+      final reopened = ProviderContainer(
+        overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+      );
+      addTearDown(reopened.dispose);
+
+      expect(
+        reopened.read(gamePlayScreenNotifierProvider(1)).showsTutorial,
+        isFalse,
+      );
+    });
+
+    test('튜토리얼이 떠 있는 동안의 이동 입력은 무시된다', () async {
+      await bootFresh();
+
+      await send(1, MoveRequested(Direction.right));
+
+      expect(read(1).moveCount, 0);
+      expect(read(1).isCleared, isFalse);
+    });
   });
 
   test('네비게이션 이벤트는 상태를 바꾸지 않는다', () async {

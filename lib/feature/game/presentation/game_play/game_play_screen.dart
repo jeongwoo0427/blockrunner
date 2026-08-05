@@ -4,9 +4,9 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/swipe_direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
-import 'package:blockrunner/feature/game/presentation/game_play/widget/control_hint.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -153,10 +153,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                         ),
                       ),
                     ),
-                    if (state.showsControlHint) ...[
-                      const ControlHint(),
-                      const SizedBox(height: Spacing.sm),
-                    ],
                     GameHud(
                       moveCount: state.moveCount,
                       minMoves: level.minMoves,
@@ -164,6 +160,16 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                     ),
                   ],
                 ),
+                if (state.showsTutorial && level.tutorial != null)
+                  Positioned.fill(
+                    child: TutorialOverlay(
+                      title: level.name ?? '레벨 ${level.number}',
+                      body: level.tutorial!,
+                      // 조작은 첫 레벨에서만 알려준다.
+                      showsControls: level.number == 1,
+                      onDismiss: () => _sendAndRefocus(TutorialDismissed()),
+                    ),
+                  ),
                 if (state.isCleared || state.isPlayerLost)
                   Positioned.fill(
                     child: ResultOverlay(
