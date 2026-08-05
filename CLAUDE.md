@@ -68,7 +68,38 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 ## Project: blockrunner
 
-Flutter game app (`BlockRunner`). Currently the default Flutter counter scaffold in `lib/main.dart` — no game code yet.
+A grid puzzle game. One direction input slides **every** block — player and obstacles alike — until
+each hits a wall, the map edge, or a settled block. Clear the level by making the player block come
+to rest **on** the goal tile. 2048-style movement, Sokoban-style win condition, no merging.
+Targets web, mobile, and desktop from one codebase.
+
+### Read these first
+
+| Document | What it governs |
+|---|---|
+| `docs/game-design.md` | Game rules — the single source of truth. Movement algorithm, map elements, clear/undo rules |
+| `docs/architecture.md` | Folder layout, DI/MVVM/repository conventions, naming |
+| `docs/tasks/README.md` | Feature-by-feature work breakdown and its status table |
+
+Rules changed? Edit `docs/game-design.md` before touching code. Finished a task? Update its
+checkboxes and the status table in `docs/tasks/README.md`.
+
+### Current phase: planning
+
+**The project is in the design phase. `lib/` still holds the default Flutter counter scaffold.**
+Do not start implementing features unless asked to. When implementation does begin, work through
+`docs/tasks/` in order — `02-move-engine` (pure Dart, fully unit-tested) comes before any UI.
+
+### Architecture in brief
+
+Clean Architecture, feature-first, modeled on the sibling project `../quizlab` — DI via plain
+Riverpod providers in `<feature>_di.dart`, ViewModel = `Notifier<State>` with a `sealed` Event
+class, Root (`ConsumerStatefulWidget`) / Screen (dumb `StatefulWidget`) split, Notifier → Usecase
+container → Repository. No freezed, no build_runner, no barrel files.
+
+**Deliberate departures from quizlab** (see `docs/architecture.md` §3 for the full table): there is
+no API, so there is **no datasource layer** — `RepositoryImpl` holds the constant map data (and
+`SharedPreferences`) directly — and no API models or mappers.
 
 ### Hard constraint: no game engine
 
