@@ -70,6 +70,26 @@ Strong success criteria let you loop independently. Weak criteria ("make it work
 
 Flutter game app (`BlockRunner`). Currently the default Flutter counter scaffold in `lib/main.dart` — no game code yet.
 
+### Hard constraint: no game engine
+
+**Do not add Flame or any other game engine/library.** The game is built with the stock Flutter
+framework only — `CustomPainter` / `RenderObject` for drawing, `Ticker` / `AnimationController`
+for the game loop, `GestureDetector` / `Focus` for input.
+
+If a task seems to need an engine, say so and propose a plain-Flutter approach instead of adding
+the dependency.
+
+### Always log the prompt
+
+**Every user request gets an entry appended to `docs/prompt-history.md` — no exceptions.**
+
+Write the entry as part of finishing the task, before reporting back. Follow the format documented
+at the top of that file: request (verbatim), what was done, files changed, decisions/notes.
+This applies even to small requests. If the request produced no code change, log it anyway with
+what was decided.
+
+### Commands
+
 **Flutter version is pinned via FVM** (`.fvmrc` → 3.44.8). Always prefix commands with `fvm`:
 
 ```
