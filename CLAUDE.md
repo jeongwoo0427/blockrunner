@@ -137,15 +137,21 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` through `03-level-data` are done. The rules engine (`ApplyMoveUsecase`) is locked
-down by 31 unit tests including all three hand-verified traces from `docs/game-design.md` §4, and
-six 6×6 levels are defined as ASCII constants whose `minMoves` a BFS solver in `test/` verifies.
+`00-foundation` through `04-game-screen` are done — **the game is playable.** The rules engine is
+locked down by 31 unit tests including all three hand-verified traces from `docs/game-design.md` §4,
+six 6×6 levels are ASCII constants whose `minMoves` a BFS solver in `test/` verifies, and the play
+screen renders the board and handles clear / player-lost.
 
-**There is still no UI.** Both screens are placeholders — no board rendering, no input, no
-animation. Nothing in `lib/feature/game/presentation/` beyond the placeholder.
+Still missing: **animation** (moves apply instantly), **swipe and keyboard input** (on-screen
+direction buttons only), **undo**, and **progress saving**. The level select screen is still a
+placeholder.
 
-Next up is `04-game-screen`. Work through `docs/tasks/` in order, one task per request. Don't start
-the next task unless asked.
+Rendering is a **hybrid**, decided in `04`: `BoardPainter` draws floors/grid/walls, and blocks are
+`Positioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in exactly one
+place — `BoardView`. Don't scatter that calculation.
+
+Next up is `05-input`. Work through `docs/tasks/` in order, one task per request. Don't start the
+next task unless asked.
 
 ### Architecture in brief
 

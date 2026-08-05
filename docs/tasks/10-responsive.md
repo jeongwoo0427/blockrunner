@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [04-game-screen.md](04-game-screen.md)
+- [04-game-screen.md](completed/04-game-screen.md)
 
 ## 작업
 

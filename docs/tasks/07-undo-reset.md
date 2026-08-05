@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [04-game-screen.md](04-game-screen.md)
+- [04-game-screen.md](completed/04-game-screen.md)
 - 규칙: [../game-design.md](../game-design.md) §5
 
 ## 작업

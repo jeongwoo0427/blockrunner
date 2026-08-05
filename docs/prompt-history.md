@@ -458,3 +458,58 @@
 
 **결정 / 메모**
 - 작업 단위가 하나(`03`)뿐이라 분리 없이 한 커밋으로 처리했다
+
+---
+
+## 2026-08-05 #20 — 04-game-screen 구현 (플랜모드)
+
+**요청**
+> 04 진행해줘
+
+**한 일**
+- 플랜모드로 진입, `AskUserQuestion` 으로 task 문서의 열린 질문 2개를 사용자에게 확인 후 계획 승인받아 구현
+- `lib/feature/game/` — `game_di.dart`, `GameUsecases`, 플레이 화면 일습(Root/Screen/Notifier/State/Event), 위젯 5종(`board_view`·`board_painter`·`block_tile`·`game_hud`·`result_overlay`)
+- 테스트 23건 — 화면 8, Notifier 10, 레이아웃 5
+- `test/widget_test.dart` 의 자리표시자 검사 테스트 수정
+- `docs/tasks/06-animation.md` 의 "선결 사항"·"렌더링 방식 확정" 절을 확정된 내용으로 교체
+- task 문서 마감 후 `completed/` 이동, 링크·현황표·`README.md`·`CLAUDE.md` 갱신
+
+**변경 파일**
+- `lib/feature/game/**` (신규 7, 자리표시자 1 교체)
+- `test/feature/game/presentation/**` (신규 3), `test/widget_test.dart`
+- `docs/tasks/completed/04-game-screen.md` (이동 + 결과 기록), `docs/tasks/06-animation.md`
+- `docs/tasks/README.md` · `05` · `07` · `10` — 링크·상태
+- `README.md` · `CLAUDE.md` — 현재 상태
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 97/97 통과 (기존 74 + 신규 23)
+- `fvm flutter run -d web-server --web-port 8123` → 빌드·서빙 성공(HTTP 200)
+- **육안 확인 실패** — 브라우저 확장이 연결되지 않아 화면을 캡처하지 못했다
+
+**결정 / 메모**
+- **열린 질문 1 — 블록 렌더링은 하이브리드로 확정** (사용자 결정). 바닥·격자선·벽은 `BoardPainter`, 움직이는 블록만 `Positioned` + `BlockTile`. `06` 이 `AnimatedPositioned` 로 바꾸는 것만으로 슬라이드를 얻고 구멍 낙하도 블록별로 붙일 수 있다. 대가인 "페인터와 위젯의 좌표계 이중 관리" 는 **셀 크기 계산을 `BoardView` 한 곳에만 두어** 막았다
+- **열린 질문 2 — 결과는 화면 내 오버레이 레이어로 확정** (사용자 결정). `showDialog` 는 명령형이라 중복 호출 방지가 필요하고 위젯 테스트가 번거롭다. 상태에서 파생되는 레이어는 Screen 이 dumb 하게 남고 보드가 뒤에 계속 보인다
+- **Riverpod 3 에는 `FamilyNotifier` 가 없다.** 3.0 에서 제거됐고 family 의 생성 함수가 `Notifier Function(Arg)` 이라, 레벨 번호를 **Notifier 생성자로** 받는다. `ref.$arg` 는 `@internal` 코드젠 전용이라 쓰지 않았다. 아키텍처 §4 의 provider 표기는 그대로 유효
+- **`ResetRequested` 를 04 범위에 넣었다.** 원래 `07` 이지만, 플레이어가 구멍에 빠지면 방향 입력이 막히는데 undo 도 리셋도 없으면 화면이 잠긴다. `UndoRequested` 는 히스토리 스택이 필요하므로 `07` 에 남겼다
+- **`LoadLevel` 이벤트는 만들지 않았다.** Notifier 의 `build()` 가 로드하므로 중복이다
+- **`Positioned` 에 `ValueKey(block.id)`.** 지금은 불필요하지만 `06` 에서 같은 블록으로 추적되려면 필수다. `01` 에서 `Block.id` 를 만든 이유가 여기서 쓰인다
+- **Screen 의 Riverpod 무지를 테스트가 강제한다.** 화면 테스트는 `ProviderScope` 로 감싸지 않으므로 Screen 이 Riverpod 을 건드리는 순간 터진다. 규약을 문서가 아니라 테스트가 지키게 했다
+- **"창 크기를 바꿔도 정사각" 을 육안 대신 테스트로 옮겼다.** 4개 화면 크기에서 보드가 정사각인지, `maxBoardExtent` 를 넘지 않는지, 비정사각 판(2×6)에서 셀이 정사각인지 검사한다. 오버플로는 Flutter 가 예외를 던지므로 통과 자체가 "잘리지 않음" 의 검증이다
+- **육안 확인을 못 한 것은 이번 작업의 구멍이다.** 배치·상태 전이는 테스트로 덮었지만 색 대비·여백 같은 시각적 완성도는 사람이 봐야 한다. `docs/tasks/completed/04-game-screen.md` 의 "남은 사항" 에 남겼다
+
+---
+
+## 2026-08-05 #21 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- #20(04-game-screen 구현)을 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 작업 단위가 하나(`04`)뿐이라 분리 없이 한 커밋으로 처리했다

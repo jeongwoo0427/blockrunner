@@ -2,6 +2,7 @@ import 'package:blockrunner/core/di/core_providers.dart';
 import 'package:blockrunner/core/router/route_paths.dart';
 import 'package:blockrunner/core/router/router.dart';
 import 'package:blockrunner/core/theme/board_colors.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -38,7 +39,8 @@ void main() {
     await tester.tap(find.text('레벨 1 열기'));
     await tester.pumpAndSettle();
 
-    expect(find.text('플레이 화면 (미구현) — level=1'), findsOneWidget);
+    expect(find.text('레벨 1 · 미끄러지기'), findsOneWidget);
+    expect(find.byType(BoardView), findsOneWidget);
   });
 
   testWidgets('BoardColors 가 라이트/다크 테마 양쪽에 등록되어 있다', (tester) async {

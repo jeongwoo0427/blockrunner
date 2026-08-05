@@ -6,23 +6,15 @@
 
 ## 선행 조건
 
-- [04-game-screen.md](04-game-screen.md)
+- [04-game-screen.md](completed/04-game-screen.md)
 - 요구사항: [../game-design.md](../game-design.md) §7
-- **선결 사항:** 04의 열린 질문 — 블록을 `CustomPainter`로 그릴지 위젯으로 얹을지
-
 ## 작업
 
-### 1. 렌더링 방식 확정
+### 1. 렌더링 방식 — **04에서 확정됨 (하이브리드)**
 
-두 안 중 하나를 고른다.
+바닥·격자선·벽은 `BoardPainter`, 움직이는 블록은 `BoardView` 의 `Stack` 위에 `Positioned` + `BlockTile` 로 얹혀 있다. 각 `Positioned` 에는 이미 `ValueKey(block.id)` 가 붙어 있다.
 
-| | `CustomPainter`에서 보간 | 위젯 + `AnimatedPositioned` |
-|---|---|---|
-| 장점 | 그리기 코드가 한 곳, 성능 예측 쉬움 | 애니메이션 코드가 거의 안 필요 |
-| 단점 | 보간을 직접 짜야 함 | 위젯 트리가 커지고 페인터와 좌표계를 이중 관리 |
-
-보드 크기가 최대 64칸이라 어느 쪽이든 성능 문제는 없다.
-**권장: 바닥·벽·격자는 `CustomPainter`, 움직이는 블록만 그 위에 위젯으로 얹는 하이브리드.** 블록 수가 적고, 구멍 낙하 같은 개별 연출을 붙이기 쉽다.
+따라서 이 작업은 **`Positioned` 를 `AnimatedPositioned` 로 바꾸는 것에서 시작한다.** 셀 크기는 `BoardView` 한 곳에서만 계산되므로 좌표계를 새로 맞출 필요가 없다.
 
 ### 2. 애니메이션 구동
 
