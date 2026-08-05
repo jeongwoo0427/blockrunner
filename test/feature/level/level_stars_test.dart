@@ -11,9 +11,10 @@ void main() {
 
   /// `minMoves` 별로 `[★★★ 상한, ★★☆ 상한]` — 기획서 §5.2 의 표 그대로다.
   const table = {
-    1: [2, 3],
-    2: [3, 4],
-    3: [4, 5],
+    1: [1, 3],
+    2: [2, 4],
+    3: [3, 5],
+    5: [6, 7],
     10: [12, 14],
     20: [24, 28],
   };
@@ -34,17 +35,27 @@ void main() {
     });
   });
 
-  test('짧은 레벨은 고정 여유가 지배한다', () {
-    // 비율만 썼다면 20% of 2 = 0.4 → 버림 0 이라 3수에서 곧장 ★☆☆로 떨어진다.
-    // 튜토리얼 레벨일수록 가혹해지는 뒤집힌 난이도가 된다.
-    expect(levelWith(2).starsFor(3), 3, reason: '한 수 더 써도 ★★★ 이어야 한다');
-    expect(levelWith(1).starsFor(2), 3);
+  test('짧은 레벨의 ★★★ 는 최적해를 요구한다', () {
+    // minMoves 1 에서 한 수 더 쓰는 것은 100% 초과다. 여유를 주면 후해진다.
+    expect(levelWith(1).starsFor(1), 3);
+    expect(levelWith(1).starsFor(2), 2);
+    expect(levelWith(3).starsFor(4), 2);
+  });
+
+  test('짧은 레벨에서도 ★★☆ 가 완충으로 남는다', () {
+    // 여기에 고정 여유 2수가 없으면 ★★★ 와 경계가 붙어, 한 수만 어긋나도
+    // 곧장 ★☆☆다. 튜토리얼 레벨일수록 가혹해지는 뒤집힌 난이도가 된다.
+    expect(levelWith(2).starsFor(3), 2);
+    expect(levelWith(2).starsFor(4), 2);
+    expect(levelWith(2).starsFor(5), 1);
   });
 
   test('긴 레벨은 비율이 지배한다', () {
-    // 고정 여유(1수·2수)만 썼다면 21수에서 ★★☆로 떨어졌을 것이다.
+    // 고정 여유만 썼다면 21수에서 ★★☆로 떨어졌을 것이다.
     expect(levelWith(20).starsFor(24), 3);
     expect(levelWith(20).starsFor(25), 2);
+    expect(levelWith(20).starsFor(28), 2);
+    expect(levelWith(20).starsFor(29), 1);
   });
 
   test('별점은 이동 횟수가 늘수록 단조 감소한다', () {

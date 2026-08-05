@@ -49,9 +49,12 @@ lib/
 
 ```
 game → level          레벨 이름 · 최소 이동 횟수를 표시하려고
-progress → level      별점 기준이 필요해서
-level → (없음)        level 은 판을 모른다
+game → progress       클리어 기록을 저장하려고
+progress → level      별점 기준(Level.starsFor)이 필요해서
+level → (없음)        level 은 판도 진행도도 모른다
 ```
+
+`game → progress → level` 로 흐르고 되돌아오는 간선이 없다.
 
 **`level` 이 `game` 을 모르는 것이 이 배치의 핵심이다.** 레벨 선택 화면에 필요한 것은 번호 · 이름 · 별점뿐이고 판은 전혀 필요 없다. 그래서 판(`BoardState` · `Block` · `Position` …)과 맵 데이터는 전부 `game` 이 소유하고, `level` 은 메타데이터만 갖는다.
 
@@ -344,6 +347,10 @@ abstract mixin class BaseStreamUsecase<R> {
 레벨 클리어처럼 **다른 화면의 상태에도 영향을 주는 변경**은 `BaseStreamUsecase`를 상속해 `yieldData()`를 호출한다. 관심 있는 notifier가 `build()`에서 `listenStream(...)`으로 구독한다 (`core/extension/notifier_mixin.dart`).
 
 > 예: 플레이 화면에서 레벨을 클리어하면 `SaveClearResultUsecase`가 결과를 흘리고, 레벨 선택 화면의 notifier가 이를 받아 해금/별점을 갱신한다. 화면을 나갔다 들어와야 갱신되는 문제를 없앤다.
+
+**스트림을 가진 usecase는 인스턴스가 하나여야 한다.** 두 컨테이너가 각자 `new` 하면 서로 다른 스트림을 갖게 되어, 구독자가 방출을 영원히 받지 못한다. 컴파일도 테스트도 통과하면서 조용히 어긋나는 종류다.
+
+그래서 `SaveClearResultUsecase`는 `ProgressUsecases`가 소유하고, `GameUsecases`는 **이미 만들어진 인스턴스를 주입받는다.** 컨테이너 factory가 repository만 받는다는 규칙의 유일한 예외이며, `game_di.dart`가 `ref.read(progressUsecasesProvider).saveClearResult`로 넘긴다. 두 컨테이너가 같은 인스턴스를 보는지는 테스트가 확인한다.
 
 ---
 

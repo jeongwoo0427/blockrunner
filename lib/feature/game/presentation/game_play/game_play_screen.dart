@@ -135,20 +135,12 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
       return KeyEventResult.handled;
     }
 
-    if (event.logicalKey == LogicalKeyboardKey.keyZ) {
-      // 횟수를 다 썼어도 키는 소비한다. 흘려보내면 포커스가 떠나
-      // 그 뒤로 방향키까지 먹지 않는다.
-      if (widget.state.canUndo) widget.onEvent(UndoRequested());
-      return KeyEventResult.handled;
-    }
-
+    // Z(되돌리기)는 잇지 않는다 — 되돌리기를 화면에 두지 않기로 했다(기획서 §5.1).
     return KeyEventResult.ignored;
   }
 
   bool _isHandledKey(LogicalKeyboardKey key) =>
-      _directionForKey(key) != null ||
-      key == LogicalKeyboardKey.keyR ||
-      key == LogicalKeyboardKey.keyZ;
+      _directionForKey(key) != null || key == LogicalKeyboardKey.keyR;
 
   Direction? _directionForKey(LogicalKeyboardKey key) => switch (key) {
     LogicalKeyboardKey.arrowUp || LogicalKeyboardKey.keyW => Direction.up,
@@ -219,9 +211,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                     GameHud(
                       moveCount: state.moveCount,
                       minMoves: level.minMoves,
-                      undosLeft: state.undosLeft,
-                      canUndo: state.canUndo,
-                      onUndo: () => _sendAndRefocus(UndoRequested()),
                       onReset: () => _sendAndRefocus(ResetRequested()),
                     ),
                   ],
@@ -244,8 +233,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                       minMoves: level.minMoves,
                       stars: level.starsFor(state.moveCount),
                       hasNextLevel: state.hasNextLevel,
-                      canUndo: state.canUndo,
-                      onUndo: () => _sendAndRefocus(UndoRequested()),
                       onReset: () => _sendAndRefocus(ResetRequested()),
                       onNextLevel: () => widget.onEvent(NextLevelRequested()),
                       onBackToLevelSelect: () =>

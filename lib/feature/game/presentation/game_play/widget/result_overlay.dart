@@ -13,8 +13,6 @@ class ResultOverlay extends StatelessWidget {
     required this.minMoves,
     required this.stars,
     required this.hasNextLevel,
-    required this.canUndo,
-    required this.onUndo,
     required this.onReset,
     required this.onNextLevel,
     required this.onBackToLevelSelect,
@@ -31,11 +29,6 @@ class ResultOverlay extends StatelessWidget {
 
   final bool hasNextLevel;
 
-  /// 되돌리기가 남았는가. 구멍에 빠진 뒤 여기서 바로 무를 수 있어야 한다
-  /// (기획서 §3.5). 다 썼으면 다시하기만 남는다.
-  final bool canUndo;
-
-  final VoidCallback onUndo;
   final VoidCallback onReset;
   final VoidCallback onNextLevel;
   final VoidCallback onBackToLevelSelect;
@@ -62,11 +55,8 @@ class ResultOverlay extends StatelessWidget {
               ],
               const SizedBox(height: Spacing.sm),
               Text(
-                isCleared
-                    ? '$moveCount수 / 최소 $minMoves수'
-                    : canUndo
-                    ? '한 수 무르거나 처음부터 다시'
-                    : '되돌리기를 다 썼다. 처음부터 다시',
+                // 되돌리기가 없으므로 구멍에 빠지면 처음부터다 (기획서 §3.5).
+                isCleared ? '$moveCount수 / 최소 $minMoves수' : '처음부터 다시 해보자',
                 style: theme.textTheme.bodyMedium,
               ),
               const SizedBox(height: Spacing.lg),
@@ -79,10 +69,6 @@ class ResultOverlay extends StatelessWidget {
                     child: const Text('목록으로'),
                   ),
                   OutlinedButton(onPressed: onReset, child: const Text('다시하기')),
-                  // 구멍에 빠졌을 때 여기서 바로 무를 수 있어야 한다. 클리어는
-                  // 무를 이유가 없으므로(더 줄이려면 다시하기) 내보내지 않는다.
-                  if (!isCleared && canUndo)
-                    FilledButton(onPressed: onUndo, child: const Text('되돌리기')),
                   if (isCleared && hasNextLevel)
                     FilledButton(
                       onPressed: onNextLevel,

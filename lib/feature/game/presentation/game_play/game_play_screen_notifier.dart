@@ -44,7 +44,7 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
   Future<void> onEvent(GamePlayScreenEvent event) async {
     switch (event) {
       case MoveRequested():
-        _applyMove(event.direction);
+        await _applyMove(event.direction);
       case AnimationCompleted():
         // 다시하기로 연출이 이미 끊겼다면 늦게 도착한 통지다. 무시한다.
         if (!state.isAnimating) return;
@@ -62,7 +62,7 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
     }
   }
 
-  void _applyMove(Direction direction) {
+  Future<void> _applyMove(Direction direction) async {
     if (!state.canMove) return;
 
     final before = state.board!;
@@ -82,6 +82,16 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
       isAnimating: true,
       fallingBlocks: _fallenBlocks(before, result),
     );
+
+    // 저장은 상태를 세운 **뒤**에 한다. 먼저 기다리면 저장이 끝날 때까지
+    // 연출이 시작되지 않아 입력이 멎은 것처럼 보인다.
+    //
+    // 연출이 끝나기를 기다리지도 않는다 — 기록은 이미 확정됐고, 그 사이에
+    // 앱이 닫혀도 남아야 한다.
+    final level = state.level;
+    if (result.board.isCleared && level != null) {
+      await _usecases.saveClearResult(level: level, moveCount: state.moveCount);
+    }
   }
 
   /// 한 수 무른다. 되돌린 판은 **즉시 반영**한다 (기획서 §7).

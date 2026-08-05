@@ -166,63 +166,43 @@ void main() {
     });
   });
 
-  group('되돌리기 UI (기획서 §5.1)', () {
-    testWidgets('남은 횟수가 버튼에 보인다', (tester) async {
-      await pumpScreen(tester, stateOf(hasHistory: true, undosLeft: 2));
+  group('되돌리기는 화면에 없다 (기획서 §5.1)', () {
+    // 구현(history · undosLeft · _undo)은 살아 있고 **진입점만 없다.**
+    // 편의로 되살리면 이 테스트가 먼저 걸리고, 그때 기획서 §5.1 을 보게 된다.
 
-      expect(find.text('되돌리기 2'), findsOneWidget);
+    testWidgets('되돌릴 판이 있어도 버튼이 없다', (tester) async {
+      await pumpScreen(tester, stateOf(hasHistory: true, undosLeft: 3));
+
+      expect(find.textContaining('되돌리기'), findsNothing);
+      expect(find.byIcon(Icons.undo), findsNothing);
     });
 
-    testWidgets('되돌릴 판이 없으면 눌리지 않는다', (tester) async {
-      await pumpScreen(tester, stateOf());
-
-      final button = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, '되돌리기 3'),
-      );
-      expect(button.onPressed, isNull);
-    });
-
-    testWidgets('횟수를 다 쓰면 버튼은 남고 눌리지 않는다', (tester) async {
-      await pumpScreen(tester, stateOf(hasHistory: true, undosLeft: 0));
-
-      // 감추면 왜 못 쓰는지 알 수 없어 고장으로 읽힌다.
-      final button = tester.widget<TextButton>(
-        find.widgetWithText(TextButton, '되돌리기 0'),
-      );
-      expect(button.onPressed, isNull);
-    });
-
-    testWidgets('누르면 UndoRequested 를 올려보낸다', (tester) async {
-      final events = await pumpScreen(
+    testWidgets('구멍에 빠진 오버레이에도 없다', (tester) async {
+      await pumpScreen(
         tester,
-        stateOf(hasHistory: true, undosLeft: 1),
+        stateOf(isPlayerLost: true, hasHistory: true, undosLeft: 3),
       );
 
-      await tester.tap(find.text('되돌리기 1'));
-
-      expect(events.single, isA<UndoRequested>());
+      expect(find.textContaining('되돌리기'), findsNothing);
+      expect(find.textContaining('처음부터 다시'), findsOneWidget);
     });
 
-    testWidgets('Z 키가 되돌리기다', (tester) async {
+    testWidgets('Z 키도 잇지 않는다', (tester) async {
       final events = await pumpScreen(tester, stateOf(hasHistory: true));
 
       await tester.sendKeyEvent(LogicalKeyboardKey.keyZ);
 
-      expect(events.single, isA<UndoRequested>());
+      expect(events, isEmpty);
     });
 
-    testWidgets('횟수를 다 썼으면 Z 키가 아무것도 하지 않는다', (tester) async {
-      final events = await pumpScreen(
-        tester,
-        stateOf(hasHistory: true, undosLeft: 0),
-      );
+    testWidgets('Z 를 눌러도 방향키가 죽지 않는다', (tester) async {
+      // 매핑하지 않은 키는 흘려보내는데, 그때 포커스가 떠나면
+      // 그 뒤로 방향키까지 먹지 않는다 (05 에서 겪은 함정).
+      final events = await pumpScreen(tester, stateOf());
 
       await tester.sendKeyEvent(LogicalKeyboardKey.keyZ);
-      // 키는 소비하되 이벤트는 내지 않는다. 흘려보내면 포커스가 떠나
-      // 그 뒤로 방향키까지 죽는다.
       await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
 
-      expect(events, hasLength(1));
       expect(events.single, isA<MoveRequested>());
     });
   });
@@ -254,35 +234,12 @@ void main() {
       expect(find.byIcon(Icons.star_rounded), findsNothing);
     });
 
-    testWidgets('구멍에 빠졌고 횟수가 남았으면 되돌리기를 내민다', (tester) async {
-      await pumpScreen(
-        tester,
-        stateOf(isPlayerLost: true, hasHistory: true, undosLeft: 2),
-      );
+    testWidgets('구멍에 빠지면 다시하기만 남는다 (기획서 §3.5)', (tester) async {
+      await pumpScreen(tester, stateOf(isPlayerLost: true, hasHistory: true));
 
-      expect(find.widgetWithText(FilledButton, '되돌리기'), findsOneWidget);
-      expect(find.textContaining('한 수 무르거나'), findsOneWidget);
-    });
-
-    testWidgets('횟수를 다 썼으면 다시하기만 남는다 (기획서 §3.5)', (tester) async {
-      await pumpScreen(
-        tester,
-        stateOf(isPlayerLost: true, hasHistory: true, undosLeft: 0),
-      );
-
-      expect(find.widgetWithText(FilledButton, '되돌리기'), findsNothing);
-      expect(find.textContaining('되돌리기를 다 썼다'), findsOneWidget);
       // 다시하기는 항상 열려 있어야 게임이 끝나지 않는다.
       expect(find.widgetWithText(OutlinedButton, '다시하기'), findsOneWidget);
-    });
-
-    testWidgets('클리어에는 되돌리기를 내밀지 않는다', (tester) async {
-      await pumpScreen(
-        tester,
-        stateOf(isCleared: true, hasHistory: true, undosLeft: 3),
-      );
-
-      expect(find.widgetWithText(FilledButton, '되돌리기'), findsNothing);
+      expect(find.text('다음 레벨'), findsNothing);
     });
   });
 

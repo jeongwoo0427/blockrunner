@@ -1104,3 +1104,73 @@
 **결정 / 메모**
 - **둘을 쪼개지 않았다.** `#40` 은 `#39` 가 만든 `Level.starsFor` 를 곧바로 갈아엎은 것이라, 중간 커밋은 **폐기된 별점 기준을 잠깐 존재시키는 것** 말고는 의미가 없다. 그 기준으로 짠 테스트도 함께 지워지므로 이력이 오히려 헷갈린다
 - 별점 기준이 바뀐 경위(1.5배 → 초과 비율)는 `07` 완료 문서의 정정 절과 `#40` 항목에 남아 있으므로, 커밋을 합쳐도 왜 바뀌었는지는 추적된다
+
+---
+
+## 2026-08-05 #42 — 되돌리기 UI 제거 · 별점 조정 · 09-progress
+
+**요청**
+> 되돌리기는 그냥 없애자. UI만 지워줘. 기능 자체는 남겨주고. 별점도 너가 생각하기에는 너무 후한것 같으면 조금 수정하고. 그리고 바로 09번 진행하자.
+
+**한 일**
+
+*되돌리기 UI 제거*
+- `docs/game-design.md` §5.1 재작성(제한 → 제거), §3.5 의 "되돌리기 유도" → "다시하기 유도"
+- `GameHud` 버튼 · `ResultOverlay` 버튼 · `Z` 키 제거. **구현(`history`·`undosLeft`·`_undo`)과 그 테스트는 그대로 둠**
+- 되돌리기 UI 테스트 6건 → **부재 회귀 테스트 4건**으로 교체 (D-pad 때와 같은 방식)
+
+*별점 조정*
+- ★★★ 의 고정 여유(1수)를 제거 → 짧은 레벨은 최적해를 요구, 긴 레벨만 20% 여유
+- ★★☆ 의 고정 여유 2수는 유지 (완충)
+- 기획서 §5.2 표 · `Level.starsFor` · 경계값 테스트 갱신
+
+*09-progress*
+- `progress` feature 신설 — `LevelProgress`, `ProgressRepository` + `Impl`, usecase 3종, `progress_di.dart`
+- 저장 형식: 레벨당 키 하나(`progress_v1_level_3`)에 JSON. 손상 시 버리고 미클리어 취급
+- `GameUsecases.saveClearResult` 배선, 클리어 시 Notifier 가 저장
+- `docs/architecture.md` §2(의존 그래프) · §6(스트림 usecase 단일 인스턴스) 갱신
+- 테스트 25건 추가 (207 → 232)
+
+**변경 파일**
+- `docs/game-design.md` §3.5 · §5.1 · §5.2 (규칙, 코드보다 먼저)
+- `lib/feature/progress/**` (신규 8파일)
+- `lib/feature/level/domain/entity/level.dart`, `lib/feature/game/domain/usecase/game_usecases.dart`, `lib/feature/game/game_di.dart`
+- `lib/feature/game/presentation/game_play/` — `_notifier.dart` · `_state.dart` · `game_play_screen.dart` · `widget/game_hud.dart` · `widget/result_overlay.dart`
+- `test/feature/progress/**` (신규 2파일), `test/feature/level/level_stars_test.dart`, `test/feature/game/presentation/game_play_screen_test.dart` · `game_play_screen_notifier_test.dart`
+- `docs/architecture.md`, `docs/tasks/completed/09-progress.md`, `docs/tasks/README.md`, `docs/tasks/08-level-select.md`, `README.md`, `CLAUDE.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 232/232 통과
+- `find lib -type d -name datasource` → 0개 (09 완료 기준)
+
+**결정 / 메모**
+- **"UI만 지워줘" 를 `Z` 키까지 포함으로 읽었다.** "되돌리기는 그냥 없애자" 가 앞에 있으므로, 키가 살아 있으면 플레이어에게 여전히 되돌리기가 제공되는 셈이라 요청과 어긋난다. 반면 구현은 명시적으로 남기라고 했으므로 그대로 뒀다
+- **살아 있는 죽은 코드에 표식을 남겼다.** `CLAUDE.md`, 기획서 §5.1, `game_play_screen_state.dart` 세 곳에 "쓰이지 않는다고 지우지 말 것" 을 적었다. 그러지 않으면 다음 세션이 정리 대상으로 오해한다. 되살리는 방법(버튼 + `Z`)도 함께 적었다
+- **별점은 실제로 후했다.** `minMoves` 1 에서 한 수 더 쓰는 것은 100% 초과인데 ★★★ 였다. **★★★ 에서만 고정 여유를 뺐다** — 짧은 레벨은 한 수의 상대적 무게가 크므로 최적해를 요구하고, 최소 수가 커질수록 정확히 맞히기 어려워지는 대신 비율 여유가 늘어난다. ★★☆ 의 여유 2수는 남겼다. 그게 없으면 `minMoves` 2 에서 ★★★ 와 경계가 붙어 원래 문제(한 수 어긋나면 ★☆☆)가 되살아난다
+- **`SaveClearResultUsecase` 는 인스턴스가 하나여야 한다.** 스트림을 들고 있어서 두 컨테이너가 각자 만들면 **구독자가 방출을 영원히 못 받는다.** 컴파일도 테스트도 통과하면서 조용히 어긋나는 종류라, `GameUsecases` 가 만들어진 인스턴스를 주입받게 하고 **동일성을 테스트로 박았다.** `architecture.md` §6 에 예외로 명시
+- **별점 계산을 usecase 안에 뒀다.** 호출부가 `Level` 과 이동 횟수만 넘긴다. 호출부마다 계산하면 기준이 갈리고, 별점 기준은 이미 두 번 바뀌었다
+- **갱신하지 않을 때도 방출한다.** 기록이 더 나쁘면 저장은 건너뛰지만 "방금 이 레벨을 깼다" 는 구독자에게 여전히 새 정보이고 해금이 바뀌었을 수 있다
+- **`LevelProgress` 에서 `cleared` 필드를 뺐다.** 작업 문서 초안에는 있었지만, **레코드가 있다는 것이 곧 클리어**다. `cleared: false` 를 저장하면 "없음" 과 "미클리어" 라는 같은 뜻의 두 상태가 생기고 빈 레코드가 쌓인다
+- **저장은 상태를 세운 뒤에 한다.** 먼저 `await` 하면 저장이 끝날 때까지 연출이 시작되지 않아 입력이 멎은 것처럼 보인다. 연출이 끝나기를 기다리지도 않는다 — 기록은 확정됐고 그 사이 앱이 닫혀도 남아야 한다
+- **레벨당 키 하나로 나눠 담았다.** 한 레벨의 값이 깨져도 나머지가 살아남는지 테스트로 확인했다. 키 접두사에 `v1` 을 넣어 나중에 형식이 바뀌어도 옛 키를 무시할 수 있게 했다
+- **진행도가 아닌 키를 건드리지 않는지 테스트했다.** 같은 `SharedPreferences` 에 튜토리얼 플래그가 있어서, `clearAll` 이 그것까지 지우면 안 된다
+- **육안 확인이 밀려 있다.** 웹에서 클리어 → 새로고침 → 기록 유지를 봐야 한다. `09` 완료 기준의 "웹에서 저장 동작" 은 미확인으로 남겼다
+- **해금은 저장되지만 강제되지 않는다.** 레벨 선택 화면이 없어 지금은 URL 로 아무 레벨이나 열린다. `08` 의 몫이며 `09` 문서 남은 사항에 적었다
+
+---
+
+## 2026-08-05 #43 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- `#42`(되돌리기 UI 제거 · 별점 조정 · 09-progress)를 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- **쪼개려다 접었다.** 되돌리기 제거와 `09-progress` 는 서로 의존하지 않아 두 커밋으로 나누는 편이 이력상 낫다. 다만 `CLAUDE.md` · `README.md` · 이 파일 셋이 두 변경을 함께 서술하고 있어, 나누려면 **문서를 중간 상태로 한 번 커밋했다가 다시 고쳐야** 한다. 코드가 아니라 문서가 얽혀 있는 경우라 얻는 것보다 잃는 것이 많다고 판단했다
+- 다음부터는 **성격이 다른 요청이 한 메시지에 묶여 오면 문서 갱신을 각 변경에 맞춰 따로 쓰는 편**이 쪼갤 여지를 남긴다

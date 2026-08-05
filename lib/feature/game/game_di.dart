@@ -4,6 +4,7 @@ import 'package:blockrunner/feature/game/domain/usecase/game_usecases.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_notifier.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/level/level_di.dart';
+import 'package:blockrunner/feature/progress/progress_di.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 /// game feature 의 계층별 DI Providers
@@ -25,6 +26,8 @@ final gameUsecasesProvider = Provider(
     mapRepository: ref.read(mapRepositoryProvider),
     levelRepository: ref.read(levelRepositoryProvider),
     tutorialRepository: ref.read(tutorialRepositoryProvider),
+    // 컨테이너를 거쳐 꺼낸다. 스트림을 들고 있어 인스턴스가 하나여야 한다.
+    saveClearResult: ref.read(progressUsecasesProvider).saveClearResult,
   ),
 );
 

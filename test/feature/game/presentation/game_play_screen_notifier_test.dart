@@ -5,6 +5,8 @@ import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/game_di.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
+import 'package:blockrunner/feature/progress/domain/repository/progress_repository.dart';
+import 'package:blockrunner/feature/progress/progress_di.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/core/di/core_providers.dart';
@@ -200,6 +202,54 @@ void main() {
       final state = read(5);
       expect(state.board, state.map?.initialBoard);
       expect(state.moveCount, 0);
+    });
+  });
+
+  group('진행도 저장 (09-progress)', () {
+    ProgressRepository progress() => container.read(progressRepositoryProvider);
+
+    test('클리어하면 기록이 저장된다', () async {
+      await send(1, MoveRequested(Direction.right));
+      final state = read(1);
+      expect(state.isCleared, isTrue);
+
+      final saved = progress().getProgress(1);
+      expect(saved, isNotNull);
+      expect(saved!.bestMoveCount, state.moveCount);
+      expect(saved.stars, state.level!.starsFor(state.moveCount));
+    });
+
+    test('클리어하지 않으면 아무것도 저장하지 않는다', () async {
+      await send(2, MoveRequested(Direction.down));
+
+      expect(progress().getAllProgress(), isEmpty);
+      expect(progress().highestUnlockedLevel, 1);
+    });
+
+    test('클리어하면 다음 레벨이 열린다', () async {
+      expect(progress().highestUnlockedLevel, 1);
+
+      await send(1, MoveRequested(Direction.right));
+
+      expect(progress().highestUnlockedLevel, 2);
+    });
+
+    test('구멍에 빠져도 저장하지 않는다', () async {
+      await send(5, MoveRequested(Direction.right));
+      expect(read(5).isPlayerLost, isTrue);
+
+      expect(progress().getProgress(5), isNull);
+    });
+
+    test('플레이 화면과 진행도가 같은 usecase 인스턴스를 쓴다', () async {
+      // 인스턴스가 갈리면 레벨 선택 화면이 구독해도 방출을 못 받는다.
+      // 조용히 어긋나는 종류라 여기서 못 박는다.
+      final fromGame = container.read(gameUsecasesProvider).saveClearResult;
+      final fromProgress = container
+          .read(progressUsecasesProvider)
+          .saveClearResult;
+
+      expect(identical(fromGame, fromProgress), isTrue);
     });
   });
 

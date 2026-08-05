@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [03-level-data.md](completed/03-level-data.md), [09-progress.md](09-progress.md)
+- [03-level-data.md](completed/03-level-data.md), [09-progress.md](completed/09-progress.md)
 
 ## 작업
 

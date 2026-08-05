@@ -137,7 +137,7 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` through `07-undo-reset` are done — **the game is playable on all three platforms.** The
+`00-foundation` through `07-undo-reset` plus `09-progress` are done — **the game is playable on all three platforms.** The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
@@ -147,7 +147,7 @@ absence, so don't reintroduce one for discoverability. Discoverability is handle
 tutorial text** (`Level.tutorial`, §6.1): levels that introduce a new rule carry a Korean blurb, and
 it is shown once as an overlay on first arrival. "Seen" is persisted by `TutorialRepository` in the
 `level` feature — that feature therefore owns a little `SharedPreferences` state, not just constants.
-Clear/star/best-move storage still belongs to `09-progress`.
+Clear/star/best-move storage is separate and lives in `progress`; don't merge the two.
 
 **There are two kinds of wall and they are not interchangeable.** `#` is a *cell wall* that occupies
 a whole square; `|` and `-` are *edge walls* that sit between two squares and block passage without
@@ -155,18 +155,25 @@ consuming either one. Maps are written as an interleaved `2N+1` grid so edges ar
 — see `docs/game-design.md` §9.1. Never "simplify" a map back to one line per row; that silently
 drops every edge wall.
 
-**Undo is a limited resource, not a convenience — 3 per level** (`docs/game-design.md` §5.1), and
-reset refills it. That refill is what keeps "no fail state" true: run out of undos in a hole and
-reset is the only way out, which is the whole point — it makes holes a real threat. Don't quietly
-restore unlimited undo; a test fails if the cap stops being enforced.
+**There is no undo in the game** (`docs/game-design.md` §5.1) — reset is the only way to take a move
+back, and that is what makes holes a real threat. But the *implementation* is still there and tested
+(`history`, `undosLeft`, `UndoRequested`, `_undo`); only the button and the `Z` key were removed.
+Don't delete it as dead code, and don't wire it back without reading §5.1 — a test asserts the UI
+stays absent.
 
 Stars come from `Level.starsFor(moveCount)` (§5.2): ★★★ within 20% over `minMoves`, ★★☆ within 40%
-— but the allowance is `max(percentage, a flat 1/2 moves)`, because every current level has
-`minMoves` of 1–3 where 20% floors to zero and one wasted move would drop you straight to one star.
-Don't "simplify" that back to a pure ratio. Stars are shown in the result overlay but **nothing is
-persisted yet** — best score, clear flags, and unlocking are `09-progress`.
+with a floor of 2 extra moves. **★★★ deliberately gets no flat floor** — on a `minMoves` of 1 an
+extra move is 100% over — so short levels effectively demand the optimum while long ones get real
+slack. ★★☆ needs its floor because 40% of 2 rounds down to zero. Don't collapse either into a plain
+ratio.
 
-Still missing: **progress saving**. The level select screen is still a placeholder.
+Clearing a level persists the best run through `SaveClearResultUsecase`, which also emits on a
+stream for the (not yet built) level select screen. **That usecase must stay a single instance** —
+`ProgressUsecases` owns it and `GameUsecases` is handed the same object, because two instances mean
+two streams and a subscriber that silently never fires.
+
+Still missing: **the level select screen** — unlocking is stored but nothing enforces it, so any
+level is reachable by URL.
 
 Rendering is a **hybrid**, decided in `04`: `BoardPainter` draws floors/grid/walls, and blocks are
 `AnimatedPositioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in
@@ -180,8 +187,8 @@ replaying a rewind. Falling blocks are removed from `board` but kept in `state.f
 they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
 second timer.
 
-Next up is `08-level-select`, which needs `09-progress` first (it draws stars and locks). Work
-through `docs/tasks/` in order, one task per request. Don't start the next task unless asked.
+Next up is `08-level-select` (`09-progress` is done, so its data is ready). Work through
+`docs/tasks/` in order, one task per request. Don't start the next task unless asked.
 
 ### Architecture in brief
 
