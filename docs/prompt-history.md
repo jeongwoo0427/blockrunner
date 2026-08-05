@@ -579,3 +579,56 @@
 
 **결정 / 메모**
 - 검토와 리팩터링이 한 흐름이라 분리하지 않았다. 기능 변경이 없고 101개 테스트가 그대로 통과하는 순수 구조 변경이므로 한 커밋으로 되돌리기 쉬운 편이 낫다
+
+---
+
+## 2026-08-05 #24 — 05-input 구현
+
+**요청**
+> 05 진행해줘
+
+**한 일**
+- `swipe_direction.dart` — `directionFromSwipe(Offset) → Direction?` 순수 함수 분리
+- `game_play_screen.dart` — `Focus`(autofocus, `onKeyEvent`) + `GestureDetector`(pan 누적) + `_requestMove` 입력 게이트
+- 키 매핑: `↑↓←→` · `WASD` → 이동, `R` → 다시하기
+- 테스트 24건 — 스와이프 판정 12, 화면 입력 12
+- task 문서 마감 후 `completed/` 이동, `07` 에 `Z` 인수인계 명시, 링크·현황표·`README.md`·`CLAUDE.md` 갱신
+
+**변경 파일**
+- `lib/feature/game/presentation/game_play/swipe_direction.dart` (신규)
+- `lib/feature/game/presentation/game_play/game_play_screen.dart`
+- `test/feature/game/presentation/{swipe_direction,game_play_input}_test.dart` (신규)
+- `docs/tasks/completed/05-input.md` (이동 + 결과 기록), `docs/tasks/07-undo-reset.md`, `docs/tasks/README.md`
+- `README.md` · `CLAUDE.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 123/123 통과 (기존 101 + 신규 22)
+
+**결정 / 메모**
+- **`KeyboardListener` 로 짰다가 `Focus` + `KeyEventResult.handled` 로 바꿨다.** `KeyboardListener` 는 키 이벤트를 소비하지 않고 위로 흘려보내는데, 그러면 방향키가 Flutter 기본 포커스 이동(`DirectionalFocusIntent`)까지 타서 **한 번 누르면 포커스가 AppBar 버튼으로 떠나고 그 뒤로 방향키가 죽는다.** 실기기에서 겪었으면 원인 찾기 어려웠을 버그다
+- **테스트가 이걸 잡았다.** `↑ ↓ ← →` 를 연달아 누르는 테스트에서 `↓` 만 유실됐다. 한 방향만 눌러보는 테스트였으면 통과했을 것이다 — **연속 입력을 검사한 것이 결정적이었다**
+- **매핑된 키는 `KeyDownEvent` 가 아니어도 삼킨다.** 반복·뗌 이벤트를 흘려보내면 그것들이 포커스 이동을 일으켜 같은 문제가 재발한다. 동작은 여전히 누름 1회당 1수
+- **화면 버튼 조작 후 포커스를 되돌린다.** 버튼이 포커스를 가져가면 방향키가 죽는다. `canRequestFocus: false` 로 막으면 Tab 접근성이 사라지므로, 버튼은 두고 조작 뒤 `requestFocus()` 하는 쪽을 골랐다. 결과 오버레이가 닫힐 때도 `didUpdateWidget` 에서 되찾는다
+- **임계값은 우세한 성분에만 적용한다.** 대각선 합성 거리가 임계값을 넘어도 두 성분이 모두 미달이면 무시한다 — 의도한 방향을 알 수 없는 입력을 넘겨짚지 않는다. 두 성분이 같으면 가로가 이기게 고정하고 테스트로 박았다
+- **스와이프 누적은 `onPanUpdate` 에서.** `onPanEnd` 는 속도만 주고 총 이동량을 주지 않는다
+- **입력 게이트는 `state.canMove` 재사용.** task 문서 예시는 세 플래그를 다시 나열하지만 `04` 의 게터가 같은 판정을 한다. 두 곳에 적으면 언젠가 갈린다
+- **`Z`(되돌리기)는 연결하지 않았다.** undo 스택이 `07` 의 몫이라 붙일 대상이 없다. `07-undo-reset.md` 에 "이 작업에서 붙인다" 로 명시해뒀다
+- **열린 질문 1 해소 — 마우스 드래그를 스와이프로 취급한다.** `GestureDetector` 기본 동작이고, 끄려면 오히려 코드가 필요하다. 웹에서 자연스럽고 방향 버튼과 중복돼도 해가 없다
+- 실기기·실브라우저 확인은 못 했다. 임계값 24가 손에 맞는지는 사람이 만져봐야 한다
+
+---
+
+## 2026-08-05 #25 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- #24(05-input 구현)를 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 작업 단위가 하나(`05`)뿐이라 분리 없이 한 커밋으로 처리했다

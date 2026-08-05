@@ -61,7 +61,7 @@ final List<BoardState> history;   // 이동 전 상태들
 ### 6. 버튼 UI
 
 `widget/game_hud.dart`에 `[↶ 되돌리기] [↺ 다시하기]` + 이동 횟수 표시.
-키보드 단축키 `Z` / `R` 은 [05-input.md](05-input.md)에서 연결.
+키보드 단축키 `R`(다시하기)은 [05-input.md](completed/05-input.md)에서 연결됐다. **`Z`(되돌리기)는 이 작업에서 붙인다** — `game_play_screen.dart` 의 `_directionForKey` 옆 키 처리에 추가하면 된다.
 
 ## 완료 기준
 
