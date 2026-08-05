@@ -73,19 +73,67 @@ each hits a wall, the map edge, or a settled block. Clear the level by making th
 to rest **on** the goal tile. 2048-style movement, Sokoban-style win condition, no merging.
 Targets web, mobile, and desktop from one codebase.
 
-### Read these first
+### Starting a session
 
-| Document | What it governs |
+This project is built one task at a time across many separate sessions. You have no memory of the
+previous ones — the repo is the memory. Before doing anything, read these four, in this order:
+
+| Document | What it gives you |
 |---|---|
-| `docs/game-design.md` | Game rules — the single source of truth. Movement algorithm, map elements, clear/undo rules |
-| `docs/architecture.md` | Folder layout, DI/MVVM/repository conventions, naming |
-| `docs/tasks/README.md` | Feature-by-feature work breakdown and its status table |
+| `docs/game-design.md` | Game rules — the single source of truth. Movement algorithm, map elements, clear/undo rules, and *why* each rule was chosen |
+| `docs/architecture.md` | Folder layout, DI/MVVM/repository conventions, naming. §3 lists deliberate departures from the reference project |
+| `docs/tasks/README.md` | The work breakdown and status table — tells you what's done and what's next |
+| `docs/prompt-history.md` | **Read the last 3–4 entries.** This is the running log of what was asked, what was built, and what was decided. It is how you catch up on the trajectory |
+
+Then check `git log --oneline | head -10` and `git status`.
+
+Do not infer the plan from the code alone. Decisions and their rationale live in the docs; the code
+only shows the outcome.
+
+### The working rhythm
+
+The user drives this project one request at a time and expects the same rhythm every session:
+
+1. **One task per request.** Take the next task in `docs/tasks/`, do it fully, stop. Don't roll into
+   the following task, and don't half-do the current one.
+2. **Plan first for anything structural.** Enter plan mode for new features or architectural work.
+   Small, well-specified changes don't need it.
+3. **Ask rather than guess on design decisions.** Game rules and product choices are the user's call.
+   Unresolved questions get parked in the doc's "열린 질문 / 미결정 사항" section rather than silently
+   decided. Routine engineering judgment calls you make yourself and state plainly.
+4. **Log every request** to `docs/prompt-history.md` (see below). No exceptions.
+5. **Verify before reporting.** `fvm flutter analyze && fvm flutter test` must pass. Say plainly what
+   you actually ran and what you couldn't verify.
+6. **Commit only when asked.** The user says "커밋 해줘" as a separate step and pushes themselves.
+
+### Language
+
+The user writes in Korean; reply in Korean. Docs, `///` comments, and UI strings are Korean.
+**Commit messages are English**, and end with the `Co-Authored-By` trailer.
+
+### Logging every request
+
+**Every user request gets an entry appended to `docs/prompt-history.md` — no exceptions.**
+
+Write it as part of finishing the task, before reporting back. Follow the format at the top of that
+file: numbered heading with the date, the request verbatim, what was done, files changed, and
+**decisions with their rationale**. The rationale is the point — it's what a future session can't
+reconstruct from a diff. Log requests that produced no code change too.
+
+When the user asks only to commit, add the entry for *that* request, then `git commit --amend` it
+into the same commit rather than leaving a dangling follow-up commit.
+
+### Finishing a task
+
+1. Tick the completion checkboxes in the task doc
+2. Add a "실제 결과" section to it — what got built, what was decided, what was left out
+3. `git mv` the doc into `docs/tasks/completed/`
+4. Fix every link pointing at it (`grep -rn "<task-name>" docs README.md CLAUDE.md`)
+5. Update the status table in `docs/tasks/README.md`
+6. If the change makes `README.md` or this file's **Current state** section untrue, fix them in the
+   same pass — stale status text is worse than none
 
 Rules changed? Edit `docs/game-design.md` before touching code.
-
-**Finishing a task** means: tick its completion checkboxes, record what actually got built and what
-was decided in the doc itself, `git mv` it into `docs/tasks/completed/`, fix the links pointing at
-it, and update the status table in `docs/tasks/README.md`.
 
 ### Current state
 
@@ -115,15 +163,6 @@ for the game loop, `GestureDetector` / `Focus` for input.
 
 If a task seems to need an engine, say so and propose a plain-Flutter approach instead of adding
 the dependency.
-
-### Always log the prompt
-
-**Every user request gets an entry appended to `docs/prompt-history.md` — no exceptions.**
-
-Write the entry as part of finishing the task, before reporting back. Follow the format documented
-at the top of that file: request (verbatim), what was done, files changed, decisions/notes.
-This applies even to small requests. If the request produced no code change, log it anyway with
-what was decided.
 
 ### Commands
 
