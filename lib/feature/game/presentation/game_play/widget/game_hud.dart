@@ -1,35 +1,37 @@
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/core/theme/data/text_styles.dart';
-import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:flutter/material.dart';
 
-/// 이동 횟수와 조작 버튼.
+/// 이동 횟수와 다시하기.
 ///
-/// **방향 버튼은 임시다.** 스와이프·키보드 입력은 `05-input` 에서 붙이고,
-/// 그때 이 버튼은 보조 수단으로 남긴다.
+/// **방향 버튼은 두지 않는다** (기획서 §6). 조작은 스와이프 · 방향키 · WASD ·
+/// 마우스 드래그로 판 위에서 직접 한다. 화면에 남는 조작은 실수를 되돌리는
+/// 안전장치인 다시하기 하나뿐이다.
 class GameHud extends StatelessWidget {
   const GameHud({
     super.key,
     required this.moveCount,
     required this.minMoves,
-    required this.onDirection,
     required this.onReset,
   });
 
   final int moveCount;
   final int minMoves;
-  final ValueChanged<Direction> onDirection;
   final VoidCallback onReset;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(Spacing.md),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
+      padding: const EdgeInsets.symmetric(
+        horizontal: Spacing.lg,
+        vertical: Spacing.md,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Row(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.baseline,
             textBaseline: TextBaseline.alphabetic,
             children: [
@@ -38,9 +40,6 @@ class GameHud extends StatelessWidget {
               Text('/ 최소 $minMoves수', style: AppTextStyles.counterLabel),
             ],
           ),
-          const SizedBox(height: Spacing.sm),
-          _DirectionPad(onDirection: onDirection),
-          const SizedBox(height: Spacing.sm),
           TextButton.icon(
             onPressed: onReset,
             icon: const Icon(Icons.refresh),
@@ -48,39 +47,6 @@ class GameHud extends StatelessWidget {
           ),
         ],
       ),
-    );
-  }
-}
-
-class _DirectionPad extends StatelessWidget {
-  const _DirectionPad({required this.onDirection});
-
-  final ValueChanged<Direction> onDirection;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        _button(Direction.up, Icons.keyboard_arrow_up, '위'),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            _button(Direction.left, Icons.keyboard_arrow_left, '왼쪽'),
-            const SizedBox(width: Spacing.xl),
-            _button(Direction.right, Icons.keyboard_arrow_right, '오른쪽'),
-          ],
-        ),
-        _button(Direction.down, Icons.keyboard_arrow_down, '아래'),
-      ],
-    );
-  }
-
-  Widget _button(Direction direction, IconData icon, String label) {
-    return IconButton.filledTonal(
-      onPressed: () => onDirection(direction),
-      icon: Icon(icon),
-      tooltip: label,
     );
   }
 }

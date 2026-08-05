@@ -140,7 +140,7 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 `00-foundation` through `05-input` are done — **the game is playable on all three platforms.** The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
-`test/` verifies, and the play screen takes swipe, arrow keys, WASD, `R`, and on-screen buttons.
+`test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
 **There are two kinds of wall and they are not interchangeable.** `#` is a *cell wall* that occupies
 a whole square; `|` and `-` are *edge walls* that sit between two squares and block passage without

@@ -158,10 +158,6 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                     GameHud(
                       moveCount: state.moveCount,
                       minMoves: level.minMoves,
-                      onDirection: (direction) {
-                        _requestMove(direction);
-                        _focusNode.requestFocus();
-                      },
                       onReset: () => _sendAndRefocus(ResetRequested()),
                     ),
                   ],

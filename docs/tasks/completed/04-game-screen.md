@@ -121,7 +121,7 @@ test/feature/game/presentation/
 ## 남은 사항
 
 - **육안 확인을 못 했다.** `fvm flutter run -d web-server --web-port 8123` 로 빌드·서빙까지는 성공했으나(HTTP 200), 이 환경에서 브라우저 확장이 연결되지 않아 화면을 캡처하지 못했다. 배치·레이아웃·상태 전이는 위젯 테스트로 대신 검증했지만, **색 대비나 여백 같은 시각적 완성도는 사람이 한 번 봐야 한다**
-- 방향 버튼은 임시다. 스와이프·키보드는 `05-input` 에서 붙인다
+- 방향 버튼은 임시였다. 스와이프·키보드는 `05-input` 에서 붙였고, **버튼 자체는 이후 제거됐다** (기획서 §6)
 - 클리어해도 진행도가 저장되지 않는다. `09-progress` 의 몫이다
 - `game_di.dart` 의 Data 절은 비어 있다 — game 전용 repository 가 없고 `levelRepositoryProvider` 를 재사용한다
 

@@ -89,12 +89,20 @@ void main() {
     expect(find.text('다음 레벨'), findsNothing);
   });
 
-  testWidgets('방향 버튼이 MoveRequested 를 올려보낸다', (tester) async {
+  testWidgets('다시하기 버튼이 ResetRequested 를 올려보낸다', (tester) async {
     final events = await pumpScreen(tester, stateOf());
 
-    await tester.tap(find.byTooltip('오른쪽'));
+    await tester.tap(find.text('다시하기'));
 
-    expect(events.single, isA<MoveRequested>());
+    expect(events.single, isA<ResetRequested>());
+  });
+
+  testWidgets('화면 방향 버튼은 두지 않는다 — 조작은 판 위에서 한다 (기획서 §6)', (tester) async {
+    await pumpScreen(tester, stateOf());
+
+    for (final label in ['위', '아래', '왼쪽', '오른쪽']) {
+      expect(find.byTooltip(label), findsNothing);
+    }
   });
 
   testWidgets('레벨도 실패도 없으면 로딩을 보여준다', (tester) async {
