@@ -17,4 +17,10 @@ abstract class Spacing {
 
   /// 블록 모서리 둥글기 (셀 크기 대비 비율)
   static const double blockRadiusRatio = 0.18;
+
+  /// 블록과 칸 경계 사이의 여백 (셀 크기 대비 비율, 사방).
+  ///
+  /// 블록이 칸을 꽉 채우면 격자선과 붙어 답답하고, 이웃한 블록끼리도
+  /// 한 덩어리로 보인다.
+  static const double blockInsetRatio = 0.11;
 }

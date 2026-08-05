@@ -42,7 +42,9 @@ class BoardPainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    canvas.drawRect(Offset.zero & size, Paint()..color = colors.background);
+    // 바탕은 **격자에만** 깐다. 여백까지 칠하면 프레임이 보드 안쪽에 그려진
+    // 띠처럼 보여서 판이 실제보다 좁아 보인다.
+    canvas.drawRect(_gridRect, Paint()..color = colors.background);
 
     _paintFloors(canvas);
     _paintGridLines(canvas);
