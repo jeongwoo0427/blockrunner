@@ -86,7 +86,7 @@ abstract class LevelRepository {
 | 5 | 구멍 회피 |
 | 6~ | 조합 |
 
-각 레벨의 `minMoves`는 [02-move-engine.md](02-move-engine.md)의 BFS 솔버로 검증한다.
+각 레벨의 `minMoves`는 [02-move-engine.md](completed/02-move-engine.md)의 남은 사항대로, BFS 솔버를 이 작업에서 만들어 검증한다.
 
 ## 완료 기준
 

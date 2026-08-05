@@ -11,7 +11,7 @@
 |---|---|---|:---:|---|
 | 00 | [00-foundation.md](completed/00-foundation.md) | 패키지·플랫폼·`core/` 골격 | ✅ 완료 | — |
 | 01 | [01-domain-model.md](completed/01-domain-model.md) | 도메인 엔티티 정의 | ✅ 완료 | 00 |
-| 02 | [02-move-engine.md](02-move-engine.md) | **이동 규칙 엔진 + 테스트** | 대기 | 01 |
+| 02 | [02-move-engine.md](completed/02-move-engine.md) | **이동 규칙 엔진 + 테스트** | ✅ 완료 | 01 |
 | 03 | [03-level-data.md](03-level-data.md) | 레벨 상수 데이터 · 파서 · repository | 대기 | 01 |
 | 04 | [04-game-screen.md](04-game-screen.md) | 보드 렌더링 · 플레이 화면 | 대기 | 02, 03 |
 | 05 | [05-input.md](05-input.md) | 크로스플랫폼 입력 | 대기 | 04 |

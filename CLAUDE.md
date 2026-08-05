@@ -137,13 +137,15 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` and `01-domain-model` are done — packages, routing, theme, DI skeleton, two
-placeholder screens, and the pure-Dart domain entities in `lib/feature/game/domain/entity/`.
-**No game logic exists yet**: no board rendering, no move engine, no level data.
+`00-foundation`, `01-domain-model`, and `02-move-engine` are done. The rules engine
+(`ApplyMoveUsecase`) is complete and locked down by 31 unit tests, including all three
+hand-verified traces from `docs/game-design.md` §4.
 
-Next up is `02-move-engine`. Work through `docs/tasks/` in order, one task per request.
-`02-move-engine` (pure Dart, fully unit-tested) comes before any UI — the rules get fixed by tests,
-not by eyeballing the screen. Don't start the next task unless asked.
+**There is still no UI and no level data**: no board rendering, no input, no `Level` constants —
+the two screens are still placeholders.
+
+Next up is `03-level-data`. Work through `docs/tasks/` in order, one task per request. Don't start
+the next task unless asked.
 
 ### Architecture in brief
 
