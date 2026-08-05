@@ -81,14 +81,20 @@ Targets web, mobile, and desktop from one codebase.
 | `docs/architecture.md` | Folder layout, DI/MVVM/repository conventions, naming |
 | `docs/tasks/README.md` | Feature-by-feature work breakdown and its status table |
 
-Rules changed? Edit `docs/game-design.md` before touching code. Finished a task? Update its
-checkboxes and the status table in `docs/tasks/README.md`.
+Rules changed? Edit `docs/game-design.md` before touching code.
 
-### Current phase: planning
+**Finishing a task** means: tick its completion checkboxes, record what actually got built and what
+was decided in the doc itself, `git mv` it into `docs/tasks/completed/`, fix the links pointing at
+it, and update the status table in `docs/tasks/README.md`.
 
-**The project is in the design phase. `lib/` still holds the default Flutter counter scaffold.**
-Do not start implementing features unless asked to. When implementation does begin, work through
-`docs/tasks/` in order — `02-move-engine` (pure Dart, fully unit-tested) comes before any UI.
+### Current state
+
+`00-foundation` is done — packages, routing, theme, DI skeleton, and two placeholder screens.
+**No game logic exists yet**: no board rendering, no move engine, no level data.
+
+Work through `docs/tasks/` in order, one task per request. `02-move-engine` (pure Dart, fully
+unit-tested) comes before any UI — the rules get fixed by tests, not by eyeballing the screen.
+Don't start the next task unless asked.
 
 ### Architecture in brief
 

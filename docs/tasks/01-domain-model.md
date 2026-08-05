@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [00-foundation.md](00-foundation.md)
+- [00-foundation.md](completed/00-foundation.md)
 - 규칙은 [../game-design.md](../game-design.md) §2, §3 을 따른다
 
 ## 작업

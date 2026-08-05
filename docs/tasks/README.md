@@ -3,12 +3,13 @@
 기능 단위로 나눈 작업 문서. 각 문서는 **목표 / 선행 조건 / 작업 / 완료 기준 / 열린 질문** 서식을 따른다.
 
 작업을 끝내면 이 표의 상태를 갱신하고, 해당 문서의 완료 기준 체크박스를 채운다.
+**완료된 문서는 `completed/` 로 옮긴다.**
 
 ## 진행 현황
 
 | # | 문서 | 기능 | 상태 | 선행 |
 |---|---|---|:---:|---|
-| 00 | [00-foundation.md](00-foundation.md) | 패키지·플랫폼·`core/` 골격 | 대기 | — |
+| 00 | [00-foundation.md](completed/00-foundation.md) | 패키지·플랫폼·`core/` 골격 | ✅ 완료 | — |
 | 01 | [01-domain-model.md](01-domain-model.md) | 도메인 엔티티 정의 | 대기 | 00 |
 | 02 | [02-move-engine.md](02-move-engine.md) | **이동 규칙 엔진 + 테스트** | 대기 | 01 |
 | 03 | [03-level-data.md](03-level-data.md) | 레벨 상수 데이터 · 파서 · repository | 대기 | 01 |

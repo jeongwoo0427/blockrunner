@@ -3,9 +3,9 @@
 격자 위에서 **모든 블록이 한꺼번에 미끄러지는** 퍼즐 게임.
 웹 · 모바일 · 데스크탑을 하나의 Flutter 코드베이스로 지원한다.
 
-> **현재 상태: 기획 단계.**
-> 게임 규칙과 프로젝트 구조 문서화가 끝났고, `lib/`에는 아직 Flutter 기본 스캐폴드만 있다.
-> 지금 실행하면 기본 카운터 예제가 뜬다.
+> **현재 상태: 기반 구축 완료, 게임 로직 미구현.**
+> 패키지 · 라우팅 · 테마 · DI 골격이 서 있고 두 화면이 자리표시자로 연결되어 있다.
+> 보드 렌더링과 이동 규칙은 아직 없다. 진행 상황은 [`docs/tasks/README.md`](docs/tasks/README.md) 참고.
 
 ---
 
@@ -49,9 +49,9 @@
 | | |
 |---|---|
 | 프레임워크 | Flutter **3.44.8** (FVM으로 고정) / Dart SDK `^3.12.2` |
-| 상태관리 · DI | `flutter_riverpod` (예정) |
-| 라우팅 | `go_router` (예정) |
-| 로컬 저장 | `shared_preferences` (예정) |
+| 상태관리 · DI | `flutter_riverpod` 3.0.3 |
+| 라우팅 | `go_router` ^14.6.1 |
+| 로컬 저장 | `shared_preferences` ^2.5.3 |
 | 렌더링 | **`CustomPainter` + `AnimationController`** |
 | 코드 생성 | 없음 — freezed / json_serializable / build_runner 미사용 |
 

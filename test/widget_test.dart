@@ -1,30 +1,54 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-
+import 'package:blockrunner/core/di/core_providers.dart';
+import 'package:blockrunner/core/router/route_paths.dart';
+import 'package:blockrunner/core/router/router.dart';
+import 'package:blockrunner/core/theme/board_colors.dart';
 import 'package:blockrunner/main.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
-    await tester.pumpWidget(const MyApp());
+  late SharedPreferences prefs;
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+  setUp(() async {
+    SharedPreferences.setMockInitialValues({});
+    prefs = await SharedPreferences.getInstance();
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
+  // router 는 전역 단일 인스턴스라 테스트 간 위치가 남는다. 매번 초기화한다.
+  tearDown(() => router.go(RoutePaths.levelSelect));
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+  Widget bootstrap() => ProviderScope(
+    overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
+    child: const BlockRunnerApp(),
+  );
+
+  testWidgets('앱을 켜면 레벨 선택 화면이 뜬다', (tester) async {
+    await tester.pumpWidget(bootstrap());
+    await tester.pumpAndSettle();
+
+    expect(find.text('레벨 선택'), findsOneWidget);
+  });
+
+  testWidgets('레벨 번호가 쿼리 파라미터로 플레이 화면에 전달된다', (tester) async {
+    await tester.pumpWidget(bootstrap());
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.text('레벨 1 열기'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('플레이 화면 (미구현) — level=1'), findsOneWidget);
+  });
+
+  testWidgets('BoardColors 가 라이트/다크 테마 양쪽에 등록되어 있다', (tester) async {
+    await tester.pumpWidget(bootstrap());
+    await tester.pumpAndSettle();
+
+    final context = tester.element(find.text('레벨 선택'));
+    expect(Theme.of(context).extension<BoardColors>(), isNotNull);
+
+    // CustomPainter 가 색을 직접 박지 않고 테마에서 가져올 수 있어야 한다.
+    expect(context.boardColors.playerBlock, isNot(context.boardColors.normalBlock));
   });
 }

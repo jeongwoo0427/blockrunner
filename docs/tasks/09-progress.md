@@ -6,7 +6,7 @@
 
 ## 선행 조건
 
-- [00-foundation.md](00-foundation.md) (`sharedPreferencesProvider`)
+- [00-foundation.md](completed/00-foundation.md) (`sharedPreferencesProvider`)
 
 ## 작업
 

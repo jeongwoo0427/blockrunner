@@ -35,6 +35,11 @@ dependencies:
   # Use with the CupertinoIcons class for iOS style icons.
   cupertino_icons: ^1.0.8
 
+  # 상태관리 겸 DI. 마이너 버전 차이로 API 가 흔들리는 것을 막기 위해 정확히 고정한다.
+  flutter_riverpod: 3.0.3
+  go_router: ^14.6.1
+  shared_preferences: ^2.5.3
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

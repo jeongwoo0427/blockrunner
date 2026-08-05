@@ -178,3 +178,42 @@
 **결정 / 메모**
 - #4 · #6과 동일하게 기록 항목 추가 후 amend
 
+---
+
+## 2026-08-05 #9 — 00-foundation 구현
+
+**요청**
+> 00-foundation 진행해줘. 완료되면 tasks/completed/폴더 만들어서 거기로 이동시켜주고
+
+**한 일**
+- `flutter_riverpod: 3.0.3`(고정) · `go_router: ^14.6.1` · `shared_preferences: ^2.5.3` 추가
+- `lib/core/` 골격 13개 파일 생성 (config · di · error · extension · router · theme · usecase)
+- `lib/main.dart` 를 카운터 예제에서 `ProviderScope` + `MaterialApp.router` 로 교체
+- 두 라우트에 자리표시자 화면 연결 (`/level-select`, `/game-play?level=N`)
+- `test/widget_test.dart` 를 스모크 테스트 3종으로 교체
+- `docs/tasks/completed/` 신설 후 `00-foundation.md` 를 `git mv`, 실제 결과·결정 사항 추가 기록
+- 구현이 시작되었으므로 `README.md` · `CLAUDE.md` 의 "기획 단계" 서술 갱신
+
+**변경 파일**
+- `pubspec.yaml` / `pubspec.lock` — 패키지 3종
+- `lib/` — 신규 15개 파일, `main.dart` 교체
+- `test/widget_test.dart` — 교체
+- `docs/tasks/completed/00-foundation.md` — 이동 + 완료 기록
+- `docs/tasks/README.md` — 상태 ✅, 완료 시 `completed/` 이동 규칙 명시
+- `docs/tasks/01-domain-model.md` · `09-progress.md` — 링크 경로 수정
+- `README.md` — 상태 배너, 스택 표에서 "(예정)" 제거
+- `CLAUDE.md` — "기획 단계" → 현재 상태, task 완료 절차 명시
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 3/3 통과
+- `fvm flutter build web` 성공, `fvm flutter build macos --debug` 성공 + 앱 기동 확인
+
+**결정 / 메모**
+- **보드 색만 직접 지정하고 나머지 UI 색은 파생.** 플레이어 색을 seed 로 `ColorScheme.fromSeed` 에 넘겼다. 보드가 화면의 주인공이므로 UI 색이 보드를 따라오는 방향이 맞다 (task 문서의 열린 질문 해소)
+- **`BoardColors` 를 `ThemeExtension` 으로.** `CustomPainter` 는 `BuildContext` 없이 그리므로 색을 하드코딩하기 쉽고, 그러면 다크모드에서 손댈 수 없게 된다. 위젯 테스트에 등록 검증을 넣어 회귀를 막았다
+- `AppTextStyles.counter` 에 `tabularFigures` — 이동 횟수 9→10 에서 글자 폭이 변해 HUD 가 흔들리는 것 방지
+- 라우터의 레벨 번호 파싱 실패 시 **1번 폴백**. 잘못된 URL 로 앱이 죽지 않게 한다
+- 두 화면은 자리표시자 `StatelessWidget`. Root/Screen/Notifier 일습은 `04` · `08` 에서 만든다 — 지금 만들면 다음 task 의 범위를 미리 먹는다
+- 스크린샷 캡처는 화면 기록 권한이 없어 실패. 대신 macOS 앱 기동(pid 확인) + 위젯 테스트로 화면 진입·라우팅을 검증했다
+- **task 완료 절차를 `CLAUDE.md` 에 명문화** — 체크박스 · 결과 기록 · `completed/` 이동 · 링크 수정 · 인덱스 갱신. 앞으로 매 task 마다 반복될 절차다
