@@ -1216,3 +1216,62 @@
 
 **결정 / 메모**
 - 에디터 설정이라 `chore:` 로 달았다. `lib/` · `test/` 를 건드리지 않아 검증은 문법 확인(`luajit -bl`)과 기기 이름 확인으로 끝난다 — 이번 커밋에 한해 `fvm flutter test` 는 판단 근거가 아니다
+
+---
+
+## 2026-08-05 #46 — 08-level-select: 레벨 선택 화면
+
+**요청**
+> 08 진행해줘
+
+**한 일**
+- 착수 전 **순환 의존을 발견하고 먼저 끊었다** — `SaveClearResultUsecase` 가 `Level` 대신 번호와 별점 값을 받도록 변경
+- `LevelUsecases` 에 진행도 usecase 2종 + 클리어 알림 스트림 추가 (`architecture.md` §4 예시대로)
+- 레벨 선택 화면 일습 신설 — State · Event · Notifier · Screen · Root · `widget/level_card.dart`
+- 자리표시자였던 `LevelSelectRoot` 를 교체
+- 테스트 14건 추가 (232 → 246). 기존 `widget_test.dart` 의 자리표시자 버튼 탭을 카드 탭으로 교체
+- `docs/architecture.md` 의존 그래프 갱신, `README.md` · `CLAUDE.md` 현행화
+
+**변경 파일**
+- `lib/feature/progress/domain/usecase/progress_usecases/save_clear_result_usecase.dart` (순환 제거)
+- `lib/feature/game/presentation/game_play/game_play_screen_notifier.dart` (별점을 넘기는 쪽으로)
+- `lib/feature/level/domain/usecase/level_usecases.dart`, `lib/feature/level/level_di.dart`
+- `lib/feature/level/presentation/level_select/**` (신규 5파일 + Root 교체)
+- `test/feature/level/level_select_screen_test.dart` · `level_select_screen_notifier_test.dart` (신규), `test/feature/progress/save_clear_result_usecase_test.dart`, `test/widget_test.dart`
+- `docs/architecture.md`, `docs/tasks/completed/08-level-select.md`, `docs/tasks/README.md`, `README.md`, `CLAUDE.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 246/246 통과
+- **스트림 구독을 제거하는 교란으로 "재진입 없이 갱신" 테스트가 실패하는 것을 확인**했다
+
+**결정 / 메모**
+- **착수하자마자 순환을 만났다.** 레벨 선택 화면은 `level` 에 있고 진행도가 필요하므로 `level → progress` 인데, `#42` 에서 내가 `SaveClearResultUsecase` 에 `Level` 을 넘기게 만들어 `progress → level` 이 이미 있었다. `#22`(game ⇄ level)와 **똑같은 실수를 다른 쌍에서 반복한 것**이다
+  - 끊은 방법: `progress` 가 `Level` 에서 쓰던 것은 `number` 와 `starsFor` 의 **결과**뿐이라 둘을 값으로 받게 했다. 별점 공식은 여전히 `Level.starsFor` 한 곳에만 있고 호출부가 불러 넘긴다
+  - `#42` 에서 "별점은 usecase 가 계산한다 — 호출부마다 계산하면 기준이 갈린다" 고 적었는데, **공식이 한 곳에 있으면 값을 넘겨도 갈리지 않는다.** 그때의 근거가 과했다
+  - 교훈: **저장소 계층에 도메인 엔티티를 넘기기 전에 그 엔티티가 사는 feature 가 나중에 저장소를 필요로 할지 본다.** 진행도는 거의 항상 목록 화면이 읽는다
+- **`LevelUsecases` 는 스트림만 받는다.** `SaveClearResultUsecase` 를 통째로 넘기면 레벨 선택 화면이 저장까지 할 수 있게 되는데 저장은 플레이 화면의 일이다. 인스턴스를 새로 만들지 않는 이유는 `GameUsecases` 와 같다
+- **알림이 오면 방출값을 끼워넣지 않고 저장소를 다시 읽는다.** 한 번의 클리어가 별점만이 아니라 **해금 상태까지** 바꾸고 그 계산은 저장소가 갖고 있다. 끼워넣으면 해금 규칙이 두 곳에 생긴다. 이걸 검사하는 테스트를 따로 뒀다
+- **잠긴 카드도 누를 수 있게 뒀다.** 못 누르게 하면 왜 안 되는지 알 수 없다. 눌리되 이동하지 않고 "N-1번을 클리어하면 열린다" 를 스낵바로 알린다. 스낵바는 쌓이지 않게 이전 것을 치운다
+- **잠긴 레벨은 이름도 가렸다.** 레벨 이름이 곧 그 레벨의 기믹이라(`보이지 않는 턱` 등) 스포일러가 된다
+- **Screen 을 `StatelessWidget` 으로 뒀다.** 규약(§5)의 "Screen 은 `StatefulWidget`" 은 컨트롤러·포커스를 두기 위한 것인데 이 화면엔 없다. 빈 `State` 는 잡음이라 판단했고 완료 문서에 적었다
+- **반응형 테스트를 두 번 고쳤다.** 처음엔 "넓은 화면에서 카드 폭이 더 크지 않다" 로 짰는데 실제 값이 예상과 달라 실패했다. 검증하려던 성질은 폭이 아니라 **열 수**여서, 같은 y 좌표의 카드를 세는 방식으로 바꿨다. **틀린 단언을 통과하게 고치지 않고 무엇을 재려 했는지로 되돌아간** 경우다
+- **`collection` 패키지를 쓰려다 되돌렸다.** `pubspec.yaml` 에 선언하지 않은 전이 의존이라, 인덱스 루프로 바꿔 임포트를 없앴다
+- 상단 요약(전체 별 개수·클리어율)은 **넣지 않았다.** 레벨이 7개뿐이라 카드를 훑으면 바로 보인다. 열린 질문으로 남겼다
+- **육안 확인을 못 했다.** 카드 비율(`childAspectRatio: 0.85`)과 그리드 간격은 눈으로 봐야 한다. `maxCrossAxisExtent: 160` 도 출발점이며 `10-responsive` 에서 맞춘다
+
+---
+
+## 2026-08-05 #47 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- `#46`(08-level-select)을 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 순환 제거(`SaveClearResultUsecase` 시그니처 변경)와 화면 신설을 쪼갤지 검토했으나 합쳤다. **순환을 끊는 것이 이 화면을 만들기 위한 전제**라 앞 커밋만 떼어내면 "왜 지금 이걸 바꾸나" 가 설명되지 않는다. `#43` 때와 달리 두 변경이 실제로 의존 관계다

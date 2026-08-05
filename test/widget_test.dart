@@ -3,6 +3,7 @@ import 'package:blockrunner/core/router/route_paths.dart';
 import 'package:blockrunner/core/router/router.dart';
 import 'package:blockrunner/core/theme/board_colors.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
+import 'package:blockrunner/feature/level/presentation/level_select/widget/level_card.dart';
 import 'package:blockrunner/main.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -32,11 +33,12 @@ void main() {
     expect(find.text('레벨 선택'), findsOneWidget);
   });
 
-  testWidgets('레벨 번호가 쿼리 파라미터로 플레이 화면에 전달된다', (tester) async {
+  testWidgets('레벨 카드를 누르면 쿼리 파라미터로 플레이 화면에 전달된다', (tester) async {
     await tester.pumpWidget(bootstrap());
     await tester.pumpAndSettle();
 
-    await tester.tap(find.text('레벨 1 열기'));
+    // 진행도가 비었으므로 1번만 열려 있다.
+    await tester.tap(find.byType(LevelCard).first);
     await tester.pumpAndSettle();
 
     expect(find.text('레벨 1 · 미끄러지기'), findsOneWidget);

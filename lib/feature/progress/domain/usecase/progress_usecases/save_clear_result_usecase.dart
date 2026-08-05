@@ -1,5 +1,4 @@
 import 'package:blockrunner/core/usecase/base_stream_usecase.dart';
-import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:blockrunner/feature/progress/domain/entity/level_progress.dart';
 import 'package:blockrunner/feature/progress/domain/repository/progress_repository.dart';
 
@@ -12,19 +11,25 @@ class SaveClearResultUsecase with BaseStreamUsecase<LevelProgress> {
 
   final ProgressRepository _repository;
 
-  /// **별점은 여기서 계산한다.** 호출부마다 계산하면 기준이 갈린다.
-  /// `progress → level` 은 허용된 방향이다(docs/architecture.md §2).
+  /// **[Level] 이 아니라 값을 받는다.** 별점 공식은 `Level.starsFor` 에 그대로
+  /// 있고 호출부가 그것을 불러 넘긴다.
+  ///
+  /// 여기서 `Level` 을 받으면 `progress → level` 간선이 생기는데, 레벨 선택
+  /// 화면이 진행도를 읽어야 해서 `level → progress` 도 필요하다 — 순환이 된다.
+  /// `progress` 는 어느 feature 에도 기대지 않는 것이 이 배치의 핵심이다
+  /// (docs/architecture.md §2).
   ///
   /// 기존 기록보다 나쁘면 저장하지 않고 기존 것을 그대로 돌려준다.
   Future<LevelProgress> call({
-    required Level level,
+    required int levelNumber,
     required int moveCount,
+    required int stars,
   }) async {
-    final existing = _repository.getProgress(level.number);
+    final existing = _repository.getProgress(levelNumber);
     final candidate = LevelProgress(
-      levelNumber: level.number,
+      levelNumber: levelNumber,
       bestMoveCount: moveCount,
-      stars: level.starsFor(moveCount),
+      stars: stars,
     );
 
     // 재도전이 더 나빠도 최고 기록은 유지한다. 다만 방출은 한다 —

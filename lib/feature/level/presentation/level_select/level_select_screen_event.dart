@@ -1,0 +1,20 @@
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
+
+/// 레벨 선택 화면이 Root 로 올려보내는 요청.
+///
+/// 둘 다 Notifier 의 상태를 바꾸지 않는다 — 네비게이션과 안내는 Root 의 일이다
+/// (docs/architecture.md §5).
+sealed class LevelSelectScreenEvent {}
+
+class LevelSelected extends LevelSelectScreenEvent {
+  LevelSelected(this.level);
+
+  final Level level;
+}
+
+/// 잠긴 레벨을 눌렀다. 이동하지 않고 왜 못 가는지만 알린다.
+class LockedLevelSelected extends LevelSelectScreenEvent {
+  LockedLevelSelected(this.level);
+
+  final Level level;
+}

@@ -50,13 +50,16 @@ lib/
 ```
 game → level          레벨 이름 · 최소 이동 횟수를 표시하려고
 game → progress       클리어 기록을 저장하려고
-progress → level      별점 기준(Level.starsFor)이 필요해서
-level → (없음)        level 은 판도 진행도도 모른다
+level → progress      레벨 선택 화면이 별점 · 해금을 그리려고
+progress → (없음)     progress 는 어느 feature 도 모른다
 ```
 
-`game → progress → level` 로 흐르고 되돌아오는 간선이 없다.
+**`progress` 가 아무것도 모르는 것이 이 배치의 핵심이다.** 한때 `SaveClearResultUsecase` 가
+별점 계산을 위해 `Level` 을 받아 `progress → level` 이 있었는데, 레벨 선택 화면이 생기면서
+`level → progress` 가 필요해져 순환이 됐다. usecase 가 `Level` 대신 **번호와 별점 값**을 받게
+바꿔 끊었다 — 별점 공식은 여전히 `Level.starsFor` 한 곳에만 있고 호출부가 그것을 불러 넘긴다.
 
-**`level` 이 `game` 을 모르는 것이 이 배치의 핵심이다.** 레벨 선택 화면에 필요한 것은 번호 · 이름 · 별점뿐이고 판은 전혀 필요 없다. 그래서 판(`BoardState` · `Block` · `Position` …)과 맵 데이터는 전부 `game` 이 소유하고, `level` 은 메타데이터만 갖는다.
+**`level` 도 `game` 을 모른다.** 레벨 선택 화면에 필요한 것은 번호 · 이름 · 별점뿐이고 판은 전혀 필요 없다. 그래서 판(`BoardState` · `Block` · `Position` …)과 맵 데이터는 전부 `game` 이 소유하고, `level` 은 메타데이터만 갖는다.
 
 > **한때 순환이 있었다.** `Level` 이 `initialBoard` 를 품고 있어서 `level` 이 판 모델 전체를 알아야 했고, 동시에 `game` 은 레벨 조회 때문에 `level` 을 알아야 했다. 개념을 **`Level`(메타데이터) / `GameMap`(판)** 으로 쪼개 끊었다. 두 상수 목록은 **레벨 번호로만** 이어지며, 어긋나면 테스트가 잡는다.
 

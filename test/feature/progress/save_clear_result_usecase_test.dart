@@ -23,24 +23,39 @@ void main() {
 
   tearDown(() => saveClearResult.dispose());
 
+  /// 실제 호출부(플레이 화면 Notifier)와 같은 모양으로 부른다 — 별점은
+  /// `Level` 이 계산하고 usecase 는 값만 받는다. `progress` 가 `level` 을 알면
+  /// 레벨 선택 화면의 `level → progress` 와 맞물려 순환이 된다.
+  Future<LevelProgress> save(int moveCount) => saveClearResult(
+    levelNumber: level.number,
+    moveCount: moveCount,
+    stars: level.starsFor(moveCount),
+  );
+
   test('처음 클리어하면 별점과 함께 저장된다', () async {
-    final saved = await saveClearResult(level: level, moveCount: 6);
+    final saved = await save(6);
 
     expect(saved.bestMoveCount, 6);
     expect(saved.stars, 2);
     expect(repository.getProgress(3), saved);
   });
 
-  test('별점은 usecase 가 계산한다 — 호출부가 넘기지 않는다', () async {
-    final perfect = await saveClearResult(level: level, moveCount: 4);
+  test('넘겨받은 별점을 그대로 저장한다', () async {
+    // 공식은 Level.starsFor 에만 있고(경계값은 level_stars_test 가 본다),
+    // 여기서는 받은 값을 손대지 않는지만 본다.
+    final saved = await saveClearResult(
+      levelNumber: 3,
+      moveCount: 99,
+      stars: 3,
+    );
 
-    expect(perfect.stars, 3, reason: '최소 수로 풀면 ★★★');
+    expect(saved.stars, 3);
   });
 
   test('더 나은 기록이면 갱신한다', () async {
-    await saveClearResult(level: level, moveCount: 7);
+    await save(7);
 
-    final better = await saveClearResult(level: level, moveCount: 4);
+    final better = await save(4);
 
     expect(better.bestMoveCount, 4);
     expect(better.stars, 3);
@@ -48,9 +63,9 @@ void main() {
   });
 
   test('더 나쁜 기록이면 최고 기록을 유지한다', () async {
-    await saveClearResult(level: level, moveCount: 4);
+    await save(4);
 
-    final worse = await saveClearResult(level: level, moveCount: 9);
+    final worse = await save(9);
 
     expect(worse.bestMoveCount, 4, reason: '재도전이 나빠도 기록은 남는다');
     expect(worse.stars, 3);
@@ -58,8 +73,8 @@ void main() {
   });
 
   test('같은 기록은 갱신하지 않는다', () async {
-    await saveClearResult(level: level, moveCount: 5);
-    final same = await saveClearResult(level: level, moveCount: 5);
+    await save(5);
+    final same = await save(5);
 
     expect(same.bestMoveCount, 5);
   });
@@ -70,22 +85,22 @@ void main() {
     final subscription = saveClearResult.stream.listen(emitted.add);
     addTearDown(subscription.cancel);
 
-    await saveClearResult(level: level, moveCount: 6);
-    await saveClearResult(level: level, moveCount: 4);
+    await save(6);
+    await save(4);
     await Future<void>.delayed(Duration.zero);
 
     expect(emitted.map((progress) => progress.bestMoveCount), [6, 4]);
   });
 
   test('갱신하지 않을 때도 방출한다', () async {
-    await saveClearResult(level: level, moveCount: 4);
+    await save(4);
 
     final emitted = <LevelProgress>[];
     final subscription = saveClearResult.stream.listen(emitted.add);
     addTearDown(subscription.cancel);
 
     // 기록은 안 바뀌어도 "방금 이 레벨을 깼다" 는 구독자에게 새 정보다.
-    await saveClearResult(level: level, moveCount: 9);
+    await save(9);
     await Future<void>.delayed(Duration.zero);
 
     expect(emitted, hasLength(1));

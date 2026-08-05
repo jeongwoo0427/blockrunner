@@ -90,7 +90,13 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
     // 앱이 닫혀도 남아야 한다.
     final level = state.level;
     if (result.board.isCleared && level != null) {
-      await _usecases.saveClearResult(level: level, moveCount: state.moveCount);
+      // 별점 공식은 Level 이 갖고 있고(기획서 §5.2), progress 는 값만 받는다 —
+      // 그래야 progress 가 level 을 알지 않아 순환이 생기지 않는다.
+      await _usecases.saveClearResult(
+        levelNumber: level.number,
+        moveCount: state.moveCount,
+        stars: level.starsFor(state.moveCount),
+      );
     }
   }
 

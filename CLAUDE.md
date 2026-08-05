@@ -137,7 +137,8 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 ### Current state
 
-`00-foundation` through `07-undo-reset` plus `09-progress` are done — **the game is playable on all three platforms.** The
+`00` through `09` are done — only `10-responsive` is left. **The game is playable end to end on all
+three platforms:** level select → play → clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
@@ -168,12 +169,16 @@ slack. ★★☆ needs its floor because 40% of 2 rounds down to zero. Don't col
 ratio.
 
 Clearing a level persists the best run through `SaveClearResultUsecase`, which also emits on a
-stream for the (not yet built) level select screen. **That usecase must stay a single instance** —
-`ProgressUsecases` owns it and `GameUsecases` is handed the same object, because two instances mean
-two streams and a subscriber that silently never fires.
+stream the level select screen subscribes to, so stars and unlocks update without leaving and
+re-entering the screen. **That usecase must stay a single instance** — `ProgressUsecases` owns it,
+and both `GameUsecases` and `LevelUsecases` are handed the same object (the latter gets only its
+`Stream`, since saving is the play screen's job). Two instances mean two streams and a subscriber
+that silently never fires; tests pin both the identity and the live update.
 
-Still missing: **the level select screen** — unlocking is stored but nothing enforces it, so any
-level is reachable by URL.
+**`progress` must not import another feature.** It briefly took a `Level` to compute stars, which
+became a cycle the moment level select needed progress. `SaveClearResultUsecase` now takes a level
+number and a star value instead; the formula still lives only in `Level.starsFor` and the caller
+passes the result.
 
 Rendering is a **hybrid**, decided in `04`: `BoardPainter` draws floors/grid/walls, and blocks are
 `AnimatedPositioned` widgets keyed by `block.id` on a `Stack` above it. Cell size is computed in
@@ -187,8 +192,8 @@ replaying a rewind. Falling blocks are removed from `board` but kept in `state.f
 they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
 second timer.
 
-Next up is `08-level-select` (`09-progress` is done, so its data is ready). Work through
-`docs/tasks/` in order, one task per request. Don't start the next task unless asked.
+Only `10-responsive` is left in `docs/tasks/`. Work through it one task per request, and don't
+start it unless asked.
 
 ### Architecture in brief
 
