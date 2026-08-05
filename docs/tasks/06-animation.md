@@ -16,6 +16,8 @@
 
 따라서 이 작업은 **`Positioned` 를 `AnimatedPositioned` 로 바꾸는 것에서 시작한다.** 셀 크기는 `BoardView` 한 곳에서만 계산되므로 좌표계를 새로 맞출 필요가 없다.
 
+주의: 블록 좌표는 `margin + col * cell` 이다. 격자 바깥에 외곽 프레임용 여백이 한 겹 있으므로 **`margin` 을 빼먹으면 판 전체가 어긋난다.** `BoardPainter` 도 같은 값을 `origin` 으로 받는다.
+
 ### 2. 애니메이션 구동
 
 `AnimationController`(`SingleTickerProviderStateMixin`)를 **Screen의 State**에 둔다. Notifier는 애니메이션을 모른다 — 도메인 상태만 갖는다.

@@ -124,3 +124,33 @@ test/feature/game/presentation/
 - 방향 버튼은 임시다. 스와이프·키보드는 `05-input` 에서 붙인다
 - 클리어해도 진행도가 저장되지 않는다. `09-progress` 의 몫이다
 - `game_di.dart` 의 Data 절은 비어 있다 — game 전용 repository 가 없고 `levelRepositoryProvider` 를 재사용한다
+
+---
+
+## 정정 (2026-08-05, `06` 착수 전)
+
+작업 절의 서술 중 아래가 실제와 다르다.
+
+### State — 필드 2개가 늘었다
+
+```dart
+final GameMap? map;        // #22 에서 Level 이 판을 잃으면서 추가. 다시하기의 복원 지점
+final bool hasNextLevel;   // 결과 오버레이의 "다음 레벨" 노출 여부
+```
+
+`Level` 은 이제 메타데이터(번호 · 이름 · 최소 이동 횟수)만 갖는다. 다시하기는 `state.level.initialBoard` 가 아니라 **`state.map.initialBoard`** 로 되돌린다.
+
+### 렌더링 — 좌표 계산이 `BoardView` 로 일원화됐다
+
+| 이 문서의 것 | 실제 |
+|---|---|
+| `AspectRatio(1)` | 쓰지 않는다. `SizedBox` 에 계산된 폭·높이를 직접 준다 |
+| 셀 = `min(폭,높이) / max(행,열)` | **`extent / (긴 변 + 2 × Spacing.wallWidthRatio)`** — 외곽 프레임이 들어갈 여백을 격자 **바깥에** 확보한다 |
+| 그리는 순서: … → 격자선 → 벽 | … → 격자선 → **칸 벽 → 경계 벽 → 외곽 프레임** |
+| `shouldRepaint` 는 `board` 와 색만 비교 | `cell` · `origin` 도 비교한다 |
+
+**`BoardPainter` 는 좌표를 스스로 계산하지 않는다.** `cell` 과 `origin` 을 `BoardView` 에서 받는다. 기존의 `size.width / colCount` 는 세로 셀 크기를 가로 폭에서 유도하는 것이라 **비정사각 판에서 이미 틀린 계산**이었다.
+
+블록이 칸에서 물러나는 여백은 `Spacing.blockInsetRatio` 다. 플레이어 링은 칸이 아니라 **블록 사각형**에 비례하므로, 블록 크기를 조정해도 표식 비율이 유지된다.
+
+> **이 절의 두 항목은 눈으로 보고 잡은 것이 아니라 픽셀을 재서 잡았다.** 블록 박스는 처음부터 칸 정중앙에 있었고 어긋난 것은 그 위에 칠해진 프레임이었다 — 위젯 rect 만 검사하는 테스트로는 잡히지 않는다. `test/feature/game/presentation/block_alignment_test.dart` 가 페인터를 이미지로 그려 검사한다.
