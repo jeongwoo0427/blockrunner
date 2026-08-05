@@ -1,24 +1,13 @@
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/core/error/failure_code.dart';
-import 'package:blockrunner/feature/game/domain/entity/level.dart';
-import 'package:blockrunner/feature/level/data/level_blueprints.dart';
-import 'package:blockrunner/feature/level/data/level_parser.dart';
+import 'package:blockrunner/feature/level/data/level_data.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:blockrunner/feature/level/domain/repository/level_repository.dart';
 
 class LevelRepositoryImpl implements LevelRepository {
-  LevelRepositoryImpl({
-    this._blueprints = kLevelBlueprints,
-    this._parser = const LevelParser(),
-  });
+  LevelRepositoryImpl({this._levels = kLevels});
 
-  final List<LevelBlueprint> _blueprints;
-  final LevelParser _parser;
-
-  /// 파싱은 한 번만 한다. 상수 데이터라 결과가 바뀌지 않는다.
-  List<Level>? _cache;
-
-  List<Level> get _levels =>
-      _cache ??= _blueprints.map(_parser.parse).toList(growable: false);
+  final List<Level> _levels;
 
   @override
   List<Level> getAllLevels() => _levels;

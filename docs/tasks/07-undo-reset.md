@@ -28,7 +28,7 @@ final List<BoardState> history;   // 이동 전 상태들
 
 ### 2. reset
 
-`level.initialBoard`로 되돌리고 `moveCount = 0`, `history` 비움, `isCleared`·`isPlayerLost` 해제.
+`map.initialBoard`(state.map)로 되돌리고 `moveCount = 0`, `history` 비움, `isCleared`·`isPlayerLost` 해제.
 클리어한 뒤에도 다시하기가 가능해야 한다 (더 적은 수로 재도전).
 
 ### 3. 이동 횟수

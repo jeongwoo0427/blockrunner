@@ -3,8 +3,8 @@ import 'package:blockrunner/core/theme/data/light_theme.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
-import 'package:blockrunner/feature/level/data/level_blueprints.dart';
-import 'package:blockrunner/feature/level/data/level_parser.dart';
+import 'package:blockrunner/feature/game/data/map_blueprints.dart';
+import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -12,11 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///
 /// 오버플로가 나면 Flutter 가 예외를 던져 테스트가 실패하므로, "잘리지 않는다"는
 /// 별도 단언 없이 통과 자체로 검증된다.
-Future<Size> pumpBoard(
-  WidgetTester tester,
-  BoardState board,
-  Size size,
-) async {
+Future<Size> pumpBoard(WidgetTester tester, BoardState board, Size size) async {
   tester.view
     ..physicalSize = size
     ..devicePixelRatio = 1;
@@ -30,13 +26,15 @@ Future<Size> pumpBoard(
   );
 
   return tester.getSize(
-    find.ancestor(of: find.byType(CustomPaint), matching: find.byType(SizedBox)),
+    find.ancestor(
+      of: find.byType(CustomPaint),
+      matching: find.byType(SizedBox),
+    ),
   );
 }
 
 void main() {
-  final level1 = const LevelParser().parse(kLevelBlueprints.first);
-  final board = level1.initialBoard;
+  final board = const MapParser().parse(kMapBlueprints.first).initialBoard;
 
   const sizes = <String, Size>{
     '작은 폰': Size(320, 568),
@@ -67,14 +65,8 @@ void main() {
 
   testWidgets('정사각이 아닌 판도 셀은 정사각이다', (tester) async {
     // 2행 6열. 셀이 정사각이면 그려진 영역은 가로세로 비가 3:1 이어야 한다.
-    final wide = const LevelParser()
-        .parse(
-          const LevelBlueprint(
-            number: 98,
-            minMoves: 1,
-            rows: ['@.....', '.....G'],
-          ),
-        )
+    final wide = const MapParser()
+        .parse(const MapBlueprint(levelNumber: 98, rows: ['@.....', '.....G']))
         .initialBoard;
 
     final rendered = await pumpBoard(tester, wide, const Size(600, 600));

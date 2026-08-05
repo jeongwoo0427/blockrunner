@@ -137,3 +137,19 @@ test/feature/game/domain/entity/entity_test.dart   10건
 
 - 방향별 블록 처리 순서(기획서 §3.2의 정렬 규칙)는 이동 엔진의 관심사이므로 `Direction`에 넣지 않고 `02`로 미뤘다.
 - `Level`은 `game/domain/entity/`에 뒀다. `level` feature에서도 참조하게 되는데, 규칙 엔진이 `Level`을 필요로 하므로 game 쪽이 소유자로 맞다고 봤다. `03`에서 재검토 여지 있음.
+
+---
+
+## 정정 (2026-08-05, `05` 착수 전)
+
+**이 문서의 `Level` 관련 서술은 더 이상 유효하지 않다.**
+
+당시 "`Level` 을 `game/domain/entity/` 에 뒀다 … `03` 에서 재검토 여지 있음" 이라고 남겼는데, **`03` 에서 재검토하지 않고 넘어간 것이 `game ⇄ level` 순환 의존을 만들었다.** `Level` 이 `initialBoard` 를 품고 있어 `level` feature 전체가 판 모델을 알아야 했다.
+
+바뀐 내용:
+
+- `Level` → `lib/feature/level/domain/entity/level.dart`, **필드는 `number` · `name` · `minMoves` 뿐**. `initialBoard` 제거
+- 판은 `game` 의 새 엔티티 `GameMap(levelNumber, initialBoard)` 가 소유
+- 나머지 엔티티(`Position` · `Direction` · `FloorType` · `Block` · `BoardState` · `MoveResult`)는 `game/domain/entity/` 에 그대로
+
+교훈: **"나중에 재검토" 라고 적어둔 것은 실제로 재검토해야 한다.** 그 시점이 `03` 이었고, 놓치는 바람에 화면까지 얹힌 뒤에야 고쳤다.

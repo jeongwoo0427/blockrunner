@@ -164,6 +164,13 @@ container → Repository. No freezed, no build_runner, no barrel files.
 no API, so there is **no datasource layer** — `RepositoryImpl` holds the constant map data (and
 `SharedPreferences`) directly — and no API models or mappers.
 
+**Feature dependencies must stay acyclic — `game → level`, never the reverse.** `level` owns only
+metadata (`Level`: number, name, minMoves) and knows nothing about boards; `game` owns the board
+model, the ASCII maps, and the engine (`GameMap`: levelNumber, initialBoard). The two constant lists
+are joined **by level number only**, and a test joins them so adding a level to one list but not the
+other fails loudly. This split exists because bundling the board into `Level` created a real cycle —
+don't undo it. `minMoves` lives on `Level`, not on the map, or level select would need `game` again.
+
 ### Hard constraint: no game engine
 
 **Do not add Flame or any other game engine/library.** The game is built with the stock Flutter

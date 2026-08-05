@@ -5,8 +5,9 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
-import 'package:blockrunner/feature/level/data/level_blueprints.dart';
-import 'package:blockrunner/feature/level/data/level_parser.dart';
+import 'package:blockrunner/feature/game/data/map_blueprints.dart';
+import 'package:blockrunner/feature/game/data/map_parser.dart';
+import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -29,7 +30,8 @@ Future<List<GamePlayScreenEvent>> pumpScreen(
 }
 
 void main() {
-  final level1 = const LevelParser().parse(kLevelBlueprints.first);
+  final level1 = kLevels.first;
+  final map1 = const MapParser().parse(kMapBlueprints.first);
 
   GamePlayScreenState stateOf({
     bool isCleared = false,
@@ -38,7 +40,8 @@ void main() {
     int moveCount = 0,
   }) => GamePlayScreenState(
     level: level1,
-    board: level1.initialBoard,
+    map: map1,
+    board: map1.initialBoard,
     moveCount: moveCount,
     isCleared: isCleared,
     isPlayerLost: isPlayerLost,
@@ -50,7 +53,7 @@ void main() {
 
     expect(
       find.byType(BlockTile),
-      findsNWidgets(level1.initialBoard.blocks.length),
+      findsNWidgets(map1.initialBoard.blocks.length),
     );
     expect(find.text('레벨 1 · ${level1.name}'), findsOneWidget);
   });

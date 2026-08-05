@@ -155,3 +155,21 @@ test/feature/level/
 
 - `level_di.dart` 의 Presentation 절은 배너만 있고 비어 있다. 레벨 선택 화면의 Notifier 는 `08` 에서 붙인다.
 - 별점 경계값(기획서 §5의 1.5배 반올림/버림)은 아직 확정하지 않았다. `09-progress` 의 몫이다.
+
+---
+
+## 정정 (2026-08-05, `05` 착수 전)
+
+**이 문서가 서술하는 파일 배치는 더 이상 유효하지 않다.** 레벨 데이터가 맵과 메타데이터로 쪼개졌다.
+
+| 이 문서의 것 | 실제 |
+|---|---|
+| `level/data/level_blueprints.dart` (`LevelBlueprint`, rows + minMoves) | `game/data/map_blueprints.dart` (`MapBlueprint`, rows) + `level/data/level_data.dart` (`kLevels`, 번호 · 이름 · minMoves) |
+| `level/data/level_parser.dart` (`→ Level`) | `game/data/map_parser.dart` (`→ GameMap`) |
+| `LevelRepository.getLevel → Level(판 포함)` | `LevelRepository`(메타데이터) + `MapRepository`(판), 둘 다 유지 |
+| `FailureCode.invalidLevelData` | `invalidMapData`, `mapNotFound` 추가 |
+| `test/feature/level/level_blueprints_test.dart` | `test/feature/game/map_and_level_data_test.dart` — 두 목록을 **번호로 조인**해 검사 |
+
+이유는 `docs/architecture.md` §2 "feature 의존 방향" 에 있다. `Level` 이 판을 품는 한 `level` 이 `game` 을 알아야 하고, `game` 은 레벨 조회 때문에 `level` 을 알아야 해서 순환이 생겼다.
+
+**BFS 솔버로 `minMoves` 를 검증한다는 결정은 그대로 유효하다.** 오히려 쪼개진 뒤 더 중요해졌다 — 이제 맵과 `minMoves` 가 서로 다른 파일에 있으므로, 한쪽만 고치면 조용히 어긋난다. 솔버가 그걸 막는다.

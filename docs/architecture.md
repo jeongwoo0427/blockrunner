@@ -40,10 +40,24 @@ lib/
 │   ├── util/
 │   └── widget/      여러 feature가 공유하는 위젯
 └── feature/
-    ├── game/        플레이 화면 · 보드 렌더링 · 이동 규칙 엔진
-    ├── level/       레벨 상수 데이터 · 레벨 선택 화면
+    ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
+    ├── level/       레벨 메타데이터(번호 · 이름 · 최소 이동 횟수) · 레벨 선택 화면
     └── progress/    클리어 여부 · 별점 · 최소 이동 기록 저장
 ```
+
+### feature 의존 방향 — **순환 금지**
+
+```
+game → level          레벨 이름 · 최소 이동 횟수를 표시하려고
+progress → level      별점 기준이 필요해서
+level → (없음)        level 은 판을 모른다
+```
+
+**`level` 이 `game` 을 모르는 것이 이 배치의 핵심이다.** 레벨 선택 화면에 필요한 것은 번호 · 이름 · 별점뿐이고 판은 전혀 필요 없다. 그래서 판(`BoardState` · `Block` · `Position` …)과 맵 데이터는 전부 `game` 이 소유하고, `level` 은 메타데이터만 갖는다.
+
+> **한때 순환이 있었다.** `Level` 이 `initialBoard` 를 품고 있어서 `level` 이 판 모델 전체를 알아야 했고, 동시에 `game` 은 레벨 조회 때문에 `level` 을 알아야 했다. 개념을 **`Level`(메타데이터) / `GameMap`(판)** 으로 쪼개 끊었다. 두 상수 목록은 **레벨 번호로만** 이어지며, 어긋나면 테스트가 잡는다.
+
+`minMoves` 는 맵에서 파생되는 값이지만 **`Level` 쪽에 둔다.** 맵에 두면 레벨 선택 화면이 별점을 그리려고 `game` 을 알아야 해서 순환이 되살아난다.
 
 ### feature 내부 템플릿
 
@@ -89,15 +103,15 @@ lib/feature/<name>/
 `RepositoryImpl`이 데이터를 직접 갖는 형태는 이렇게 생긴다:
 
 ```dart
-class LevelRepositoryImpl implements LevelRepository {
-  // 레벨 데이터는 상수. 별도 datasource를 두지 않는다.
-  static const List<LevelBlueprint> _levels = kLevelBlueprints;
+class MapRepositoryImpl implements MapRepository {
+  // 맵 데이터는 상수. 별도 datasource를 두지 않는다.
+  MapRepositoryImpl({this._blueprints = kMapBlueprints, this._parser = const MapParser()});
+
+  // 파싱은 첫 접근에 한 번만 하고 캐시한다.
+  List<GameMap> get _maps => _cache ??= _blueprints.map(_parser.parse).toList();
 
   @override
-  List<Level> getAllLevels() => _levels.map(LevelParser.parse).toList();
-
-  @override
-  Level getLevel(int levelNumber) => ...;
+  GameMap getMap(int levelNumber) => ...;
 }
 ```
 

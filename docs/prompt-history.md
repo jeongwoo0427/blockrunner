@@ -513,3 +513,69 @@
 
 **결정 / 메모**
 - 작업 단위가 하나(`04`)뿐이라 분리 없이 한 커밋으로 처리했다
+
+---
+
+## 2026-08-05 #22 — 도메인·역할·의존 계층 검토 후 순환 의존 제거
+
+**요청**
+> 05 진행하기 전에 레벨 말인데, game기능 안에 엔티티로 있는데. level이라는 기능이있는데도 거기에 둔 이유가 뭐지? 도메인 분리와 역할 분리. 의존성 계층 분리 잘 되고 있는지 꼼꼼하게 검토해줘.
+>
+> (이어서) 아니 level 엔티티를 level도메인으로 옮겨야되는거 아님?
+>
+> (이어서) 그냥 level은 그냥 난이도나 이름 정보위주들의 형태를 하고. map이라는 엔티티를 게임에 넣어서 활용하게 하는건 어때?
+>
+> (이어서) 그렇게 진행해줘
+
+**한 일**
+- 의존 그래프를 실제로 추출해 검토 → **`game ⇄ level` 순환 의존 확인**
+- 사용자 제안대로 개념을 쪼개 순환 제거
+  - `Level` → `level/domain/entity/`, 필드는 `number` · `name` · `minMoves` (판 제거)
+  - `GameMap(levelNumber, initialBoard)` 를 game 에 신설
+  - `level_blueprints`/`level_parser` → `game/data/map_blueprints.dart` · `map_parser.dart`
+  - `MapRepository` + `Impl` + `GetMapUsecase` 신설, `GameUsecases` 에 `getMap` 추가
+  - `FailureCode` — `invalidLevelData` → `invalidMapData`, `mapNotFound` 추가
+  - `GamePlayScreenState` 에 `map` 추가, 다시하기는 `map.initialBoard` 기준
+- 두 상수 목록을 번호로 조인해 검사하는 `map_and_level_data_test.dart` 신설
+- `architecture.md` §2 에 **feature 의존 방향(순환 금지)** 절 추가, §3 예시 코드 갱신
+- `game-design.md` §9 를 "맵 / 메타데이터 2분할" 로 다시 씀
+- `01` · `03` 완료 문서에 정정 절 추가, `CLAUDE.md` 에 규약 명문화
+
+**변경 파일**
+- `lib/core/error/failure_code.dart`
+- `lib/feature/game/**` — `game_map.dart` · `map_blueprints.dart` · `map_parser.dart` · `map_repository.dart` · `map_repository_impl.dart` · `get_map_usecase.dart` (신규), `game_usecases.dart` · `game_di.dart` · state · notifier (수정)
+- `lib/feature/level/**` — `domain/entity/level.dart` · `data/level_data.dart` (신규), repository impl · usecases (수정), `level_blueprints.dart` · `level_parser.dart` (삭제/이동)
+- `test/feature/game/**` — `map_parser_test.dart`(이동) · `map_and_level_data_test.dart` · `map_repository_impl_test.dart` (신규), `min_moves_solver.dart`(이동)
+- `docs/architecture.md` · `docs/game-design.md` · `docs/tasks/07-undo-reset.md` · `completed/01` · `completed/03` · `CLAUDE.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 101/101 통과 (기존 97 + 신규 4)
+- 의존 그래프 재추출 → **`game → level` 3건뿐, `level → game` 0건**
+
+**결정 / 메모**
+- **순환의 원인은 `Level` 이 메타데이터와 판을 한 덩어리로 묶고 있었다는 것.** 사용자가 짚었다. `Level` 이 `initialBoard` 를 품으니 레벨 목록만 그리면 되는 `level` 이 판 모델 전체를 알아야 했고, `game` 은 레벨 조회 때문에 `level` 을 알아야 했다
+- **`Level` 만 옮기는 것으로는 안 풀린다.** 판을 계속 품고 있으면 방향만 바뀌고 고리는 남는다. **개념을 쪼개야** 풀린다 — 이게 사용자 제안의 핵심이었다
+- 내가 먼저 제안했던 `lib/domain/` 공유 커널은 **불필요해졌다.** 판 모델을 쓰는 feature 가 `game` 하나뿐이 되므로 최상위 폴더를 늘릴 이유가 없다. 사용자 안이 더 낫다
+- **`minMoves` 는 `Level` 에 둔다.** 맵에서 파생된 값이지만 레벨 선택 화면이 별점을 그리려면 필요한데, 맵에 두면 `level → game` 이 되살아난다
+- **`Map` 이라는 이름은 쓰지 않았다.** `dart:core` 의 `Map` 과 충돌해 게임 코드 전역에서 걸린다. `GameMap` 으로 갔다
+- **쪼개면서 없던 실패 모드가 생겼다** — 두 상수 목록이 번호로 어긋날 수 있다. `map_and_level_data_test.dart` 가 집합 비교 + 중복 검사 + `minMoves` BFS 대조로 막는다. 레벨을 추가할 때 한쪽만 넣으면 즉시 빨간불
+- **`core/router` → feature Root import 는 그대로 둔다.** 전역 단일 라우터 구조상 불가피하고 라우트 2개에 registry 패턴은 과하다. 수용하기로 하고 문서에만 남긴다
+- **작업 중 `dart format` 을 `fvm` 없이 돌려 무관한 파일이 대량 리포맷됐다.** `fvm dart format` 으로 되돌리고 남은 3개 파일은 `git checkout` 으로 복원했다. **이 저장소에서 dart 명령은 항상 `fvm` 을 붙인다**
+- **ASCII 맵은 `// dart format off` 로 감쌌다.** 포매터가 한 줄로 접으면 맵을 눈으로 검증할 수 없다 — 이 표기를 쓰는 이유 자체가 사라진다
+
+---
+
+## 2026-08-05 #23 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- #22(순환 의존 제거 리팩터링)를 단일 커밋으로 커밋
+
+**변경 파일**
+- 없음 (커밋 작업만)
+
+**결정 / 메모**
+- 검토와 리팩터링이 한 흐름이라 분리하지 않았다. 기능 변경이 없고 101개 테스트가 그대로 통과하는 순수 구조 변경이므로 한 커밋으로 되돌리기 쉬운 편이 낫다

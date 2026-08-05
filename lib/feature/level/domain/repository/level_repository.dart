@@ -1,4 +1,4 @@
-import 'package:blockrunner/feature/game/domain/entity/level.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 
 /// 레벨 데이터 공급.
 ///

@@ -18,18 +18,19 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
   @override
   GamePlayScreenState build() {
     try {
+      // 메타데이터(level)와 판(map)은 각자의 feature 가 소유하며 번호로 이어진다.
       final level = _usecases.getLevel(levelNumber);
+      final map = _usecases.getMap(levelNumber);
       return GamePlayScreenState(
         level: level,
-        board: level.initialBoard,
-        hasNextLevel: _usecases
-            .getAllLevels()
-            .any((other) => other.number == levelNumber + 1),
+        map: map,
+        board: map.initialBoard,
+        hasNextLevel: _usecases.getAllLevels().any(
+          (other) => other.number == levelNumber + 1,
+        ),
       );
     } catch (error, stackTrace) {
-      return GamePlayScreenState(
-        failure: Failure.fromError(error, stackTrace),
-      );
+      return GamePlayScreenState(failure: Failure.fromError(error, stackTrace));
     }
   }
 
@@ -61,11 +62,11 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
   }
 
   void _reset() {
-    final level = state.level;
-    if (level == null) return;
+    final map = state.map;
+    if (map == null) return;
 
     state = state.copyWith(
-      board: () => level.initialBoard,
+      board: () => map.initialBoard,
       moveCount: 0,
       isCleared: false,
       isPlayerLost: false,

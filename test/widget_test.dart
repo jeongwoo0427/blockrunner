@@ -51,6 +51,9 @@ void main() {
     expect(Theme.of(context).extension<BoardColors>(), isNotNull);
 
     // CustomPainter 가 색을 직접 박지 않고 테마에서 가져올 수 있어야 한다.
-    expect(context.boardColors.playerBlock, isNot(context.boardColors.normalBlock));
+    expect(
+      context.boardColors.playerBlock,
+      isNot(context.boardColors.normalBlock),
+    );
   });
 }

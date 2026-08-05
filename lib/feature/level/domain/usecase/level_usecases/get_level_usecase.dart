@@ -1,4 +1,4 @@
-import 'package:blockrunner/feature/game/domain/entity/level.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:blockrunner/feature/level/domain/repository/level_repository.dart';
 
 class GetLevelUsecase {

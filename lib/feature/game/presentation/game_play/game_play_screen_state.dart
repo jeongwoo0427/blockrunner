@@ -1,12 +1,14 @@
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
-import 'package:blockrunner/feature/game/domain/entity/level.dart';
+import 'package:blockrunner/feature/game/domain/entity/game_map.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:flutter/foundation.dart';
 
 @immutable
 class GamePlayScreenState {
   const GamePlayScreenState({
     this.level,
+    this.map,
     this.board,
     this.moveCount = 0,
     this.isAnimating = false,
@@ -16,9 +18,13 @@ class GamePlayScreenState {
     this.failure,
   });
 
+  /// 레벨 메타데이터 — 이름과 최소 이동 횟수 표시용.
   final Level? level;
 
-  /// 현재 판. 레벨 로드에 실패하면 null 이다.
+  /// 이 레벨의 맵. 다시하기가 되돌아갈 초기 배치를 갖고 있다.
+  final GameMap? map;
+
+  /// 현재 판. 로드에 실패하면 null 이다.
   final BoardState? board;
 
   final int moveCount;
@@ -44,6 +50,7 @@ class GamePlayScreenState {
 
   GamePlayScreenState copyWith({
     Level? Function()? level,
+    GameMap? Function()? map,
     BoardState? Function()? board,
     int? moveCount,
     bool? isAnimating,
@@ -54,6 +61,7 @@ class GamePlayScreenState {
   }) {
     return GamePlayScreenState(
       level: level != null ? level() : this.level,
+      map: map != null ? map() : this.map,
       board: board != null ? board() : this.board,
       moveCount: moveCount ?? this.moveCount,
       isAnimating: isAnimating ?? this.isAnimating,

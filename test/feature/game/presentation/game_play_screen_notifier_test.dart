@@ -24,7 +24,7 @@ void main() {
     final state = read(1);
 
     expect(state.level?.number, 1);
-    expect(state.board, state.level?.initialBoard);
+    expect(state.board, state.map?.initialBoard);
     expect(state.moveCount, 0);
     expect(state.failure, isNull);
     expect(state.hasNextLevel, isTrue);
@@ -97,7 +97,7 @@ void main() {
     await send(5, ResetRequested());
     final state = read(5);
 
-    expect(state.board, state.level?.initialBoard);
+    expect(state.board, state.map?.initialBoard);
     expect(state.moveCount, 0);
     expect(state.isPlayerLost, isFalse);
     expect(state.isCleared, isFalse);

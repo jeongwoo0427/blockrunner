@@ -1,3 +1,5 @@
+import 'package:blockrunner/feature/game/data/repository/map_repository_impl.dart';
+import 'package:blockrunner/feature/game/domain/repository/map_repository.dart';
 import 'package:blockrunner/feature/game/domain/usecase/game_usecases.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_notifier.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
@@ -9,9 +11,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// ----------------------------------------------------------------------------
 /// Data
 /// ----------------------------------------------------------------------------
-///
-/// game 전용 repository 는 없다. 레벨 데이터는 level feature 의
-/// `levelRepositoryProvider` 를 그대로 쓴다.
+
+final mapRepositoryProvider = Provider<MapRepository>(
+  (ref) => MapRepositoryImpl(),
+);
 
 /// ----------------------------------------------------------------------------
 /// Domain
@@ -19,6 +22,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final gameUsecasesProvider = Provider(
   (ref) => GameUsecases.fromRepositories(
+    mapRepository: ref.read(mapRepositoryProvider),
     levelRepository: ref.read(levelRepositoryProvider),
   ),
 );
