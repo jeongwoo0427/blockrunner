@@ -2,6 +2,7 @@ import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
+import 'package:blockrunner/feature/game/domain/entity/wall_edge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 기획서 §9 의 ASCII 표기를 보드로 바꾸는 **테스트 전용** 헬퍼.
@@ -9,8 +10,12 @@ import 'package:flutter_test/flutter_test.dart';
 /// 정식 파서는 `03-level-data` 에서 `lib/` 에 만든다. 이동 엔진 테스트가 아직
 /// 없는 파서에 묶이지 않도록 여기에 최소한만 둔다.
 ///
+/// 이 표기는 **칸만** 나열하므로 경계 벽을 적을 수 없다. 필요하면 [walls] 로
+/// 직접 넘긴다 — 이동 엔진 테스트가 검증하는 것은 미끄러짐·정렬 순서·구멍이지
+/// 레벨 저작이 아니라서, 31개 케이스를 격자 표기로 바꾸면 읽기만 어려워진다.
+///
 /// 블록 id 는 좌상단부터 행 우선(row-major) 순서로 0 부터 붙는다.
-BoardState parseBoard(List<String> rows) {
+BoardState parseBoard(List<String> rows, {Set<WallEdge> walls = const {}}) {
   final floors = <List<FloorType>>[];
   final blocks = <Block>[];
   var nextId = 0;
@@ -60,6 +65,7 @@ BoardState parseBoard(List<String> rows) {
     colCount: rows.first.length,
     floors: floors,
     blocks: blocks,
+    walls: walls,
   );
 }
 

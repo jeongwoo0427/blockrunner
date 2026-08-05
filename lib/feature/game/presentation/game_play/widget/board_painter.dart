@@ -2,6 +2,7 @@ import 'package:blockrunner/core/theme/board_colors.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
+import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:flutter/material.dart';
 
 /// 고정된 것만 그린다 — 배경 · 바닥(목표 · 구멍) · 격자선 · 벽.
@@ -24,7 +25,9 @@ class BoardPainter extends CustomPainter {
 
     _paintFloors(canvas, cell);
     _paintGridLines(canvas, size, cell);
-    _paintWalls(canvas, cell);
+    _paintCellWalls(canvas, cell);
+    _paintEdgeWalls(canvas, cell);
+    _paintOuterFrame(canvas, size, cell);
   }
 
   void _paintFloors(Canvas canvas, double cell) {
@@ -69,7 +72,8 @@ class BoardPainter extends CustomPainter {
     }
   }
 
-  void _paintWalls(Canvas canvas, double cell) {
+  /// 칸 벽 — 칸을 통째로 채운다. 여기엔 아무것도 설 수 없다.
+  void _paintCellWalls(Canvas canvas, double cell) {
     final paint = Paint()..color = colors.wall;
 
     for (var row = 0; row < board.rowCount; row++) {
@@ -79,6 +83,39 @@ class BoardPainter extends CustomPainter {
       }
     }
   }
+
+  /// 경계 벽 — 칸 사이에 굵은 선. 양쪽 칸은 살아 있다.
+  void _paintEdgeWalls(Canvas canvas, double cell) {
+    final paint = _wallStroke(cell);
+
+    for (final wall in board.walls) {
+      final rect = _cellRect(wall.position.row, wall.position.col, cell);
+      final (from, to) = switch (wall.direction) {
+        Direction.right => (rect.topRight, rect.bottomRight),
+        Direction.down => (rect.bottomLeft, rect.bottomRight),
+        // WallEdge 는 right/down 으로 정규화된다.
+        Direction.left || Direction.up => (rect.topLeft, rect.topLeft),
+      };
+      canvas.drawLine(from, to, paint);
+    }
+  }
+
+  /// 맵 경계도 벽이다(기획서 §2.2). 경계 벽과 같은 두께·색으로 그려야
+  /// "판이 벽으로 둘러싸여 있다"가 화면에서도 읽힌다.
+  void _paintOuterFrame(Canvas canvas, Size size, double cell) {
+    final stroke = _wallStroke(cell);
+    final inset = stroke.strokeWidth / 2;
+
+    canvas.drawRect(
+      Rect.fromLTWH(0, 0, size.width, size.height).deflate(inset),
+      stroke..style = PaintingStyle.stroke,
+    );
+  }
+
+  Paint _wallStroke(double cell) => Paint()
+    ..color = colors.wall
+    ..strokeWidth = cell * Spacing.wallWidthRatio
+    ..strokeCap = StrokeCap.square;
 
   Rect _cellRect(int row, int col, double cell) =>
       Rect.fromLTWH(col * cell, row * cell, cell, cell);

@@ -153,3 +153,15 @@ test/feature/game/domain/entity/entity_test.dart   10건
 - 나머지 엔티티(`Position` · `Direction` · `FloorType` · `Block` · `BoardState` · `MoveResult`)는 `game/domain/entity/` 에 그대로
 
 교훈: **"나중에 재검토" 라고 적어둔 것은 실제로 재검토해야 한다.** 그 시점이 `03` 이었고, 놓치는 바람에 화면까지 얹힌 뒤에야 고쳤다.
+
+---
+
+## 정정 2 (2026-08-05, `06` 착수 전) — 경계 벽 추가
+
+`BoardState` 에 **`Set<WallEdge> walls`** 가 추가됐고, 엔티티가 하나 늘었다.
+
+- **`wall_edge.dart`** — 이웃한 두 칸 **사이**를 막는 벽. `#`(칸 벽, `FloorType.wall`)과 달리 공간을 소비하지 않아 양쪽 칸에 블록이 설 수 있다
+- 같은 벽이 한쪽에서는 "오른쪽 벽", 반대쪽에서는 "왼쪽 벽"으로 보이므로 **`right`/`down` 으로 정규화**한다. 정규화하지 않으면 `Set` 안에 같은 벽이 둘로 들어가 **한 방향에서만 막히는** 조용한 버그가 된다
+- `BoardState.hasWallBetween(from, direction)` 로 조회하고, `==`/`hashCode`·`withBlocks` 가 `walls` 를 함께 다룬다
+
+규칙은 `docs/game-design.md` §2.2 를 보라.

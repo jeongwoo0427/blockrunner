@@ -138,9 +138,15 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 ### Current state
 
 `00-foundation` through `05-input` are done — **the game is playable on all three platforms.** The
-rules engine is locked down by 31 unit tests including all three hand-verified traces from
-`docs/game-design.md` §4, six 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
+rules engine is locked down by unit tests including all three hand-verified traces from
+`docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, `R`, and on-screen buttons.
+
+**There are two kinds of wall and they are not interchangeable.** `#` is a *cell wall* that occupies
+a whole square; `|` and `-` are *edge walls* that sit between two squares and block passage without
+consuming either one. Maps are written as an interleaved `2N+1` grid so edges are expressible at all
+— see `docs/game-design.md` §9.1. Never "simplify" a map back to one line per row; that silently
+drops every edge wall.
 
 Still missing: **animation** (moves apply instantly), **undo**, and **progress saving**. The level
 select screen is still a placeholder.

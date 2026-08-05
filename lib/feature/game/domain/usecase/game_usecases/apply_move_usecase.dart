@@ -37,7 +37,10 @@ class ApplyMoveUsecase {
       while (true) {
         final next = current.translate(direction);
         // 맵 밖은 floorAt 이 벽으로 돌려주므로 경계를 따로 분기하지 않는다.
-        if (board.floorAt(next) == FloorType.wall || occupied.contains(next)) {
+        // 경계 벽은 칸이 아니라 칸 사이를 막으므로 next 가 아니라 "나가는 길"을 본다.
+        if (board.hasWallBetween(current, direction) ||
+            board.floorAt(next) == FloorType.wall ||
+            occupied.contains(next)) {
           break;
         }
         current = next;

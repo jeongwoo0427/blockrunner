@@ -66,7 +66,18 @@ void main() {
   testWidgets('정사각이 아닌 판도 셀은 정사각이다', (tester) async {
     // 2행 6열. 셀이 정사각이면 그려진 영역은 가로세로 비가 3:1 이어야 한다.
     final wide = const MapParser()
-        .parse(const MapBlueprint(levelNumber: 98, rows: ['@.....', '.....G']))
+        .parse(
+          const MapBlueprint(
+            levelNumber: 98,
+            rows: [
+              '+-+-+-+-+-+-+',
+              '|@ . . . . .|',
+              '+ + + + + + +',
+              '|. . . . . G|',
+              '+-+-+-+-+-+-+',
+            ],
+          ),
+        )
         .initialBoard;
 
     final rendered = await pumpBoard(tester, wide, const Size(600, 600));

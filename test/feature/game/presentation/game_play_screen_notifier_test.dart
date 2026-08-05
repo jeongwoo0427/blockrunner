@@ -2,6 +2,7 @@ import 'package:blockrunner/core/error/failure_code.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/game_di.dart';
+import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -31,7 +32,8 @@ void main() {
   });
 
   test('마지막 레벨은 hasNextLevel 이 false 다', () {
-    expect(read(6).hasNextLevel, isFalse);
+    // 레벨을 추가해도 따라오도록 번호를 박아두지 않는다.
+    expect(read(kLevels.last.number).hasNextLevel, isFalse);
   });
 
   test('없는 레벨은 throw 하지 않고 failure 로 담긴다', () {

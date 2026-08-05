@@ -1,6 +1,8 @@
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
+import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
+import 'package:blockrunner/feature/game/domain/entity/wall_edge.dart';
 
 /// 한 시점의 판 전체. 불변이며, 이동할 때마다 새 인스턴스를 만든다.
 ///
@@ -12,6 +14,7 @@ class BoardState {
     required this.colCount,
     required this.floors,
     required this.blocks,
+    this.walls = const {},
   }) : assert(
          floors.length == rowCount &&
              floors.every((row) => row.length == colCount),
@@ -26,6 +29,14 @@ class BoardState {
 
   /// 이동 가능한 블록 전체. 순서에는 의미가 없다.
   final List<Block> blocks;
+
+  /// 칸 사이를 막는 벽. 바닥과 마찬가지로 레벨 내내 바뀌지 않는다.
+  /// [WallEdge] 가 정규화되어 있으므로 양쪽 칸 어디서 물어도 같은 벽을 가리킨다.
+  final Set<WallEdge> walls;
+
+  /// [from] 에서 [direction] 쪽으로 나가는 길이 경계 벽에 막혀 있는가.
+  bool hasWallBetween(Position from, Direction direction) =>
+      walls.contains(WallEdge.between(from, direction));
 
   bool contains(Position position) =>
       position.row >= 0 &&
@@ -63,12 +74,13 @@ class BoardState {
     return player != null && floorAt(player.position) == FloorType.goal;
   }
 
-  /// 바닥은 그대로 두고 블록만 교체한 새 보드.
+  /// 바닥과 벽은 그대로 두고 블록만 교체한 새 보드.
   BoardState withBlocks(List<Block> blocks) => BoardState(
     rowCount: rowCount,
     colCount: colCount,
     floors: floors,
     blocks: blocks,
+    walls: walls,
   );
 
   @override
@@ -77,6 +89,10 @@ class BoardState {
     if (other is! BoardState) return false;
     if (other.rowCount != rowCount || other.colCount != colCount) return false;
     if (!_sameFloors(other.floors)) return false;
+    if (other.walls.length != walls.length ||
+        !other.walls.containsAll(walls)) {
+      return false;
+    }
     return other.blocks.toSet().containsAll(blocks) &&
         other.blocks.length == blocks.length;
   }
@@ -98,5 +114,6 @@ class BoardState {
     // 블록 순서는 의미가 없다. 이동 엔진이 처리 순서대로 정렬해 내놓으므로
     // 같은 판이 다른 순서로 표현될 수 있고, 순서에 민감하면 비교가 깨진다.
     Object.hashAllUnordered(blocks),
+    Object.hashAllUnordered(walls),
   );
 }

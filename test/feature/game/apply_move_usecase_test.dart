@@ -1,6 +1,7 @@
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/move_result.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
+import 'package:blockrunner/feature/game/domain/entity/wall_edge.dart';
 import 'package:blockrunner/feature/game/domain/usecase/game_usecases/apply_move_usecase.dart';
 import 'package:flutter_test/flutter_test.dart';
 
@@ -16,9 +17,10 @@ MoveResult expectMove({
   required List<String> before,
   required Direction direction,
   required List<String> after,
+  Set<WallEdge> walls = const {},
   bool moved = true,
 }) {
-  final result = applyMove(parseBoard(before), direction);
+  final result = applyMove(parseBoard(before, walls: walls), direction);
 
   expect(formatBoard(result.board), after, reason: '${direction.name} 입력 결과');
   expect(result.moved, moved, reason: '${direction.name} 입력의 moved 판정');
@@ -88,6 +90,84 @@ void main() {
         after: ['..@#.'],
         moved: false,
       );
+    });
+  });
+
+  group('경계 벽', () {
+    // (0,3) 과 (0,4) 사이를 막는 벽.
+    final wallRightOf3 = {
+      WallEdge.between(const Position(0, 3), Direction.right),
+    };
+
+    test('경계에 막혀 그 앞 칸에 멈춘다', () {
+      expectMove(
+        before: ['@.....'],
+        walls: wallRightOf3,
+        direction: Direction.right,
+        after: ['...@..'],
+      );
+    });
+
+    test('벽 양쪽 칸이 모두 살아 있다 — 칸 벽과 다른 점', () {
+      // 왼쪽에서 온 블록은 (0,3) 에, 오른쪽에서 온 블록은 (0,4) 에 선다.
+      expectMove(
+        before: ['@....O'],
+        walls: wallRightOf3,
+        direction: Direction.left,
+        after: ['@...O.'],
+      );
+    });
+
+    test('반대 방향에서도 같은 벽에 막힌다', () {
+      // (0,3) 의 오른쪽 벽 == (0,4) 의 왼쪽 벽. 정규화가 되어 있어야 통과한다.
+      expectMove(
+        before: ['.....@'],
+        walls: wallRightOf3,
+        direction: Direction.left,
+        after: ['....@.'],
+      );
+    });
+
+    test('벽에 붙어 있으면 움직이지 못한다', () {
+      expectMove(
+        before: ['...@..'],
+        walls: wallRightOf3,
+        direction: Direction.right,
+        after: ['...@..'],
+        moved: false,
+      );
+    });
+
+    test('경계 벽 앞에서 멈춰 구멍을 피한다', () {
+      final result = expectMove(
+        before: ['@...X.'],
+        walls: wallRightOf3,
+        direction: Direction.right,
+        after: ['...@X.'],
+      );
+
+      expect(result.board.hasPlayer, isTrue);
+      expect(result.fellIntoHole, isEmpty);
+    });
+
+    test('세로 경계 벽도 같은 규칙이다', () {
+      expectMove(
+        before: ['@', '.', '.', '.'],
+        walls: {WallEdge.between(const Position(1, 0), Direction.down)},
+        direction: Direction.down,
+        after: ['.', '@', '.', '.'],
+      );
+    });
+
+    test('경계 벽에 막혀 목표 칸에 멈추면 클리어다', () {
+      final result = expectMove(
+        before: ['@..G..'],
+        walls: {WallEdge.between(const Position(0, 3), Direction.right)},
+        direction: Direction.right,
+        after: ['...@..'],
+      );
+
+      expect(result.board.isCleared, isTrue);
     });
   });
 

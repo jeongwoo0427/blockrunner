@@ -14,4 +14,5 @@ const List<Level> kLevels = [
   Level(number: 4, name: '지나쳐버리다', minMoves: 3),
   Level(number: 5, name: '구멍을 피해', minMoves: 3),
   Level(number: 6, name: '순서가 있다', minMoves: 2),
+  Level(number: 7, name: '보이지 않는 턱', minMoves: 2),
 ];

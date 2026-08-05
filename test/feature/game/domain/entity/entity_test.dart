@@ -3,6 +3,7 @@ import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
+import 'package:blockrunner/feature/game/domain/entity/wall_edge.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 /// 기획서 §4.3 의 6×6 예시 레벨.
@@ -16,7 +17,7 @@ import 'package:flutter_test/flutter_test.dart';
 ///    4 | .  .  G  #  .  .
 ///    5 | .  .  .  .  .  .
 /// ```
-BoardState buildSampleBoard({List<Block>? blocks}) {
+BoardState buildSampleBoard({List<Block>? blocks, Set<WallEdge> walls = const {}}) {
   final floors = List.generate(
     6,
     (_) => List.filled(6, FloorType.empty),
@@ -29,6 +30,7 @@ BoardState buildSampleBoard({List<Block>? blocks}) {
     rowCount: 6,
     colCount: 6,
     floors: floors,
+    walls: walls,
     blocks:
         blocks ??
         const [
@@ -73,6 +75,41 @@ void main() {
       expect(moved.type, BlockType.player);
       expect(moved.position, const Position(4, 1));
       expect(block.position, const Position(1, 1), reason: '원본은 불변이어야 한다');
+    });
+  });
+
+  group('WallEdge', () {
+    test('같은 벽은 어느 칸에서 물어도 같은 값이다', () {
+      // (2,3) 의 오른쪽 == (2,4) 의 왼쪽. 정규화하지 않으면 Set 안에 둘로 들어가
+      // 한 방향에서만 막히는 조용한 버그가 된다.
+      expect(
+        WallEdge.between(const Position(2, 3), Direction.right),
+        WallEdge.between(const Position(2, 4), Direction.left),
+      );
+      expect(
+        WallEdge.between(const Position(2, 3), Direction.down),
+        WallEdge.between(const Position(3, 3), Direction.up),
+      );
+    });
+
+    test('정규화된 값은 Set 에서 하나로 합쳐진다', () {
+      final walls = <WallEdge>{}
+        ..add(WallEdge.between(const Position(2, 3), Direction.right))
+        ..add(WallEdge.between(const Position(2, 4), Direction.left));
+
+      expect(walls, hasLength(1));
+      expect(walls.single.direction, Direction.right);
+    });
+
+    test('다른 경계는 다른 값이다', () {
+      expect(
+        WallEdge.between(const Position(2, 3), Direction.right),
+        isNot(WallEdge.between(const Position(2, 3), Direction.down)),
+      );
+      expect(
+        WallEdge.between(const Position(2, 3), Direction.right),
+        isNot(WallEdge.between(const Position(2, 4), Direction.right)),
+      );
     });
   });
 
@@ -154,6 +191,49 @@ void main() {
 
       expect(a, b);
       expect(a.hashCode, b.hashCode);
+    });
+
+    test('경계 벽은 양방향으로 조회된다', () {
+      final board = buildSampleBoard(
+        walls: {WallEdge.between(const Position(1, 1), Direction.right)},
+      );
+
+      expect(
+        board.hasWallBetween(const Position(1, 1), Direction.right),
+        isTrue,
+      );
+      expect(
+        board.hasWallBetween(const Position(1, 2), Direction.left),
+        isTrue,
+        reason: '같은 벽을 반대쪽에서 물어도 막혀 있어야 한다',
+      );
+      expect(
+        board.hasWallBetween(const Position(1, 1), Direction.down),
+        isFalse,
+      );
+    });
+
+    test('벽이 없으면 어느 방향도 막히지 않는다', () {
+      final board = buildSampleBoard();
+
+      for (final direction in Direction.values) {
+        expect(board.hasWallBetween(const Position(1, 1), direction), isFalse);
+      }
+    });
+
+    test('벽이 다르면 다른 판이다', () {
+      final walled = buildSampleBoard(
+        walls: {WallEdge.between(const Position(1, 1), Direction.right)},
+      );
+
+      expect(buildSampleBoard(), isNot(walled));
+    });
+
+    test('withBlocks 는 벽을 유지한다', () {
+      final walls = {WallEdge.between(const Position(1, 1), Direction.right)};
+      final board = buildSampleBoard(walls: walls);
+
+      expect(board.withBlocks(const []).walls, walls);
     });
 
     test('블록 위치가 다르면 다른 판이다', () {
