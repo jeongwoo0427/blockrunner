@@ -2,10 +2,12 @@ import 'dart:async';
 
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/swipe_direction.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
@@ -150,6 +152,26 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     _ => null,
   };
 
+  /// HUD 가 맞출 보드 폭 (기획서 §6.2).
+  ///
+  /// 보드의 실제 크기는 [BoardView] 가 자기 제약에서 정하지만, `Column` 은
+  /// 비유연 자식인 HUD 를 **먼저** 배치하므로 그 결과를 받아볼 수 없다. 그래서
+  /// 같은 [BoardMetrics.fit] 을 화면 제약으로 한 번 더 부른다 — 공식이 한 곳에만
+  /// 있으니 두 값이 갈리지 않는다.
+  ///
+  /// 여기 넘기는 높이에는 HUD 자신의 높이가 아직 빠져 있지 않다. **폭이 짧은
+  /// 변이면 높이는 결과에 관여하지 않으므로 정확하고**(세로 고정인 모바일과
+  /// 대부분의 창이 여기 해당한다), 가로로 납작한 창에서만 HUD 가 보드보다
+  /// 조금 넓어진다. 그 경우까지 맞추려면 두 번 배치하는 수밖에 없다.
+  double _hudWidth(BoardState board, BoxConstraints constraints) =>
+      BoardMetrics.fit(
+        board: board,
+        available: Size(
+          constraints.maxWidth - 2 * Spacing.md,
+          constraints.maxHeight - 2 * Spacing.md,
+        ),
+      ).width;
+
   void _onPanStart(DragStartDetails _) => _panDelta = Offset.zero;
 
   void _onPanUpdate(DragUpdateDetails details) => _panDelta += details.delta;
@@ -189,31 +211,39 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
             onKeyEvent: _onKeyEvent,
             child: Stack(
               children: [
-                Column(
-                  children: [
-                    Expanded(
-                      child: GestureDetector(
-                        onPanStart: _onPanStart,
-                        onPanUpdate: _onPanUpdate,
-                        onPanEnd: _onPanEnd,
-                        // 빈 공간에서 시작한 스와이프도 받아야 한다.
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.all(Spacing.md),
-                          child: BoardView(
-                            board: board,
-                            fallingBlocks: state.fallingBlocks,
-                            isAnimating: state.isAnimating,
+                LayoutBuilder(
+                  builder: (context, constraints) => Column(
+                    children: [
+                      Expanded(
+                        child: GestureDetector(
+                          onPanStart: _onPanStart,
+                          onPanUpdate: _onPanUpdate,
+                          onPanEnd: _onPanEnd,
+                          // 빈 공간에서 시작한 스와이프도 받아야 한다.
+                          behavior: HitTestBehavior.opaque,
+                          child: Padding(
+                            padding: const EdgeInsets.all(Spacing.md),
+                            child: BoardView(
+                              board: board,
+                              fallingBlocks: state.fallingBlocks,
+                              isAnimating: state.isAnimating,
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    GameHud(
-                      moveCount: state.moveCount,
-                      minMoves: level.minMoves,
-                      onReset: () => _sendAndRefocus(ResetRequested()),
-                    ),
-                  ],
+                      // HUD 는 화면 폭이 아니라 **보드 폭**에 맞춘다 (기획서 §6.2).
+                      Center(
+                        child: SizedBox(
+                          width: _hudWidth(board, constraints),
+                          child: GameHud(
+                            moveCount: state.moveCount,
+                            minMoves: level.minMoves,
+                            onReset: () => _sendAndRefocus(ResetRequested()),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
                 if (state.showsTutorial && level.tutorial != null)
                   Positioned.fill(

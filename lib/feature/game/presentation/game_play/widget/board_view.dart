@@ -1,11 +1,9 @@
-import 'dart:math';
-
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/theme/board_colors.dart';
-import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_painter.dart';
 import 'package:flutter/material.dart';
 
@@ -20,10 +18,12 @@ const Curve _fallCurve = Interval(
   curve: Curves.easeIn,
 );
 
-/// 보드를 그린다. **셀 좌표계를 계산하는 유일한 곳이다.**
+/// 보드를 그린다.
 ///
-/// 페인터와 블록 위젯이 같은 좌표계를 써야 하므로, 셀 크기를 두 곳에서
-/// 각자 계산하게 두면 언젠가 어긋난다. 여기서 계산해 페인터에도 넘긴다.
+/// 좌표 계산은 [BoardMetrics] 가 한다 — 화면 쪽에서도 보드 폭을 알아야
+/// HUD 를 맞출 수 있어(기획서 §6.2) 계산을 여기서 꺼내 두었다.
+/// **부모가 준 제약에 스스로 맞춘다.** 밖에서 계산한 크기를 받아 그리면
+/// 그 계산이 실제 가용 공간보다 크던 순간 보드가 넘친다.
 class BoardView extends StatelessWidget {
   const BoardView({
     super.key,
@@ -54,19 +54,16 @@ class BoardView extends StatelessWidget {
     return Center(
       child: LayoutBuilder(
         builder: (context, constraints) {
-          final available = min(constraints.maxWidth, constraints.maxHeight);
-          final extent = min(available, AppConstants.maxBoardExtent);
-
-          // 격자 바깥에 외곽 프레임이 들어갈 여백을 양쪽으로 한 겹씩 남긴다.
-          // 프레임이 칸 안쪽을 파고들면 가장자리 칸만 여백이 비대칭이 되어
-          // 블록이 중앙에서 밀려 보인다.
-          final longSide = max(board.rowCount, board.colCount);
-          final cell = extent / (longSide + 2 * Spacing.wallWidthRatio);
-          final margin = cell * Spacing.wallWidthRatio;
+          final metrics = BoardMetrics.fit(
+            board: board,
+            available: constraints.biggest,
+          );
+          final cell = metrics.cell;
+          final margin = metrics.margin;
 
           return SizedBox(
-            width: cell * board.colCount + 2 * margin,
-            height: cell * board.rowCount + 2 * margin,
+            width: metrics.width,
+            height: metrics.height,
             child: Stack(
               children: [
                 Positioned.fill(
@@ -75,7 +72,7 @@ class BoardView extends StatelessWidget {
                       board: board,
                       colors: context.boardColors,
                       cell: cell,
-                      origin: Offset(margin, margin),
+                      origin: metrics.origin,
                     ),
                   ),
                 ),

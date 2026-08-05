@@ -1275,3 +1275,100 @@
 
 **결정 / 메모**
 - 순환 제거(`SaveClearResultUsecase` 시그니처 변경)와 화면 신설을 쪼갤지 검토했으나 합쳤다. **순환을 끊는 것이 이 화면을 만들기 위한 전제**라 앞 커밋만 떼어내면 "왜 지금 이걸 바꾸나" 가 설명되지 않는다. `#43` 때와 달리 두 변경이 실제로 의존 관계다
+
+---
+
+## 2026-08-05 #48 — 웹으로 실행
+
+**요청**
+> 일단 실행해줘 웹으로
+
+**한 일**
+- `fvm flutter run -d chrome --web-port=5123` 로 실행. Chrome 창이 열리고 디버그 서비스가 붙은 것까지 확인
+
+**변경 파일**
+- 없음 (실행만)
+
+**결정 / 메모**
+- 앞선 두 번의 시도에서 URL 이 끝내 안 나온 원인은 앱이 아니라 **내 쪽 파이프 버퍼링**이었다. `flutter run` 출력을 `grep -m1` 에 물리면 라인 버퍼가 차기 전까지 아무것도 안 보인다. 파이프 없이 파일로 받고 나서 정상 출력이 잡혔다
+- 기존 프로세스를 정리할 때 `pkill` 패턴이 넓으면 **사용자의 quizlab 실행까지 죽인다.** 확인해보니 살아 있던 3개가 전부 quizlab(3.44.2, `--flavor dev`) 이었다. 패턴을 좁혀 건드리지 않았다
+- **육안 확인 3건은 여전히 열려 있다** — 웹에서의 진행도 영속(`09` 의 유일한 미체크 완료 기준), 레벨 카드 비율·간격(`08`), 조인 별점 체감
+
+---
+
+## 2026-08-05 #49 — 프로젝트 구조·의도·다음 할 일 검토
+
+**요청**
+> CLAUDE.md 읽고 이 프로젝트의 구조와 의도 및 다음에 할 일 검토해줘
+
+**한 일**
+- `CLAUDE.md` → `docs/game-design.md` · `docs/architecture.md` · `docs/tasks/README.md` · `docs/prompt-history.md`(#46·#47) 순으로 읽고 현황 파악
+- `git log` · `git status` 확인 — 작업 트리 깨끗, HEAD `c232fe0`
+- 남은 작업이 `10-responsive` 하나임을 확인하고 착수 전 쟁점을 정리해 보고
+
+**변경 파일**
+- `docs/prompt-history.md` — 이 항목과 `#48`(누락분) 추가
+
+**결정 / 메모**
+- **코드 변경 없음.** 파악·보고만 한 요청이지만 규약대로 기록한다
+- `#48` 이 빠져 있었다. 실행만 하고 코드가 안 바뀐 요청도 기록 대상이라 소급해 채웠다
+- `10-responsive` 착수 전에 사용자 판단이 필요한 것: ① 휴대폰 가로 모드 지원 여부(문서상 "고정하지 않는 쪽으로 기움") ② expanded 에서 HUD 를 우측 패널로 뺄지. 임의로 정하지 않고 남긴다
+
+---
+
+## 2026-08-05 #50 — 세로 고정 · HUD 폭을 보드 폭에 맞춤
+
+**요청**
+> 1. 이 앱은 세로고정.
+> 2. 이동횟수랑 다시하기는 맵의 너비에 맞춰주면 좋겠어. 지금 화면 끝과 끝에 UI가 있는데 맵의 좌우 크기 따라가게.
+
+**한 일**
+- `docs/game-design.md` **§6.2 신설을 먼저** — 세로 고정과 HUD 폭 규칙, 각각의 근거
+- 보드 기하 계산을 `BoardMetrics` 로 분리 (`widget/board_metrics.dart` 신규). `BoardView` 와 화면이 같은 함수를 부른다
+- `GamePlayScreen` 이 HUD 를 `SizedBox(width: 보드 폭)` 으로 감싼다. `GameHud` 의 좌우 여백은 제거(이중이 된다)
+- `main.dart` 에서 `SystemChrome.setPreferredOrientations` 로 세로 고정
+- 테스트 6건 추가 (246 → 252) — `hud_width_test.dart` 5건, `main_orientation_test.dart` 1건
+- `docs/tasks/10-responsive.md` 갱신 — 열린 질문 해소, 가로 배치 항목 철회
+
+**변경 파일**
+- `docs/game-design.md` — §6.2 신설
+- `lib/feature/game/presentation/game_play/widget/board_metrics.dart` (신규)
+- `lib/feature/game/presentation/game_play/widget/board_view.dart` — 계산을 `BoardMetrics` 에 위임
+- `lib/feature/game/presentation/game_play/widget/game_hud.dart` — 좌우 여백 제거
+- `lib/feature/game/presentation/game_play/game_play_screen.dart` — `LayoutBuilder` + `_hudWidth`
+- `lib/main.dart` — 세로 고정
+- `test/feature/game/presentation/hud_width_test.dart`, `test/main_orientation_test.dart` (신규)
+- `docs/tasks/10-responsive.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 252/252 통과
+- **HUD 폭 제한을 `constraints.maxWidth` 로 되돌리는 교란으로 5건 전부 실패하는 것을 확인**했다
+
+**결정 / 메모**
+- **§6.1(튜토리얼) 뒤에 §6.2 로 붙였다.** 앞에 끼우면 절 번호가 밀리는데 `§6.1` 참조가 코드·테스트·문서 15곳에 있다. 번호는 위치가 아니라 **참조의 안정성**이 정한다
+- **계산을 `BoardMetrics` 로 꺼낸 이유는 HUD 다.** 셀 크기 계산은 `BoardView` 한 곳에만 둔다는 규약이 있었는데, 이제 화면도 보드 폭을 알아야 한다. 규약의 의도는 "`BoardView` 안에" 가 아니라 **"공식이 한 벌만 있을 것"** 이므로, 위젯이 아니라 값 타입으로 옮겨 둘 다 부르게 했다
+- **`BoardView` 는 여전히 자기 제약에 스스로 맞춘다.** 밖에서 계산한 크기를 받아 그리게 하면 그 계산이 실제 가용 공간보다 큰 순간 보드가 넘친다. 밖의 계산은 HUD 폭에만 쓴다
+- **정확히 맞지 않는 구간이 하나 남는다.** `Column` 은 비유연 자식인 HUD 를 보드보다 **먼저** 배치하므로 화면 쪽 계산에 HUD 높이가 빠져 있다. 폭이 짧은 변이면 높이는 `min` 에 걸리지 않아 정확하고, **가로로 납작한 창에서만** HUD 가 보드보다 조금 넓다. 세로 고정이라 실기기에서는 나지 않는다
+  - 완전히 맞추려면 `CustomMultiChildLayout` 으로 두 번 배치하거나 한 프레임 늦게 반영해야 하는데, 안 보이는 경우 하나를 위해 감당할 구조가 아니라고 판단했다. 코드와 작업 문서에 남겼다
+- **`GameHud` 의 좌우 여백(`Spacing.lg`)을 없앴다.** 폭을 밖에서 주는데 안에서 또 넣으면 보드 끝과 어긋난다. 폭을 정하는 곳과 여백을 정하는 곳은 하나여야 한다
+- **HUD 폭 테스트가 처음엔 엉뚱한 것을 쟀다.** `find.byType(BoardView)` 는 부모가 준 상자라 화면 폭에 가깝고, 좁은 화면에서는 보드 폭과 우연히 같아 3건이 **틀린 이유로 통과**했다. 넓은 화면 케이스에서 드러나 실제 보드 `SizedBox` 를 재도록 고쳤다 — 넓은 화면 케이스를 넣지 않았으면 못 잡았다
+- **세로 고정은 `SystemChrome` 한 줄이지만 테스트를 붙였다.** 조용히 빠져도 웹·데스크탑에서는 아무 증상이 없어 눈치채지 못한다. `dart:io` 분기가 아니라 `SystemChrome` 을 쓴 것도 의도적이다 — 웹에서 `dart:io` 는 못 쓰고, `SystemChrome` 은 해당 없는 플랫폼에서 조용히 무시된다
+- **`10-responsive` 를 착수하지는 않았다.** 이번 요청은 그 작업의 열린 질문 두 개에 대한 답이고, 그중 지시받은 것(HUD 폭)만 했다. 남은 항목은 작은 화면 오버플로 · 큰 글꼴 · 6×6/8×8 외곽 크기 검증이다
+
+---
+
+## 2026-08-05 #51 — 커밋
+
+**요청**
+> 커밋 해줘
+
+**한 일**
+- `#50`(세로 고정 · HUD 폭)을 단일 커밋으로 커밋
+
+**변경 파일**
+- `docs/prompt-history.md` — 이 항목 (커밋에 `--amend` 로 합침)
+
+**결정 / 메모**
+- 세로 고정과 HUD 폭을 쪼개지 않았다. 별개의 변경으로 보이지만 **둘 다 §6.2 라는 한 결정의 두 면**이고, 기획서 절 하나가 양쪽 근거를 함께 담고 있어 떼어내면 그 절이 두 커밋에 걸친다
+- `main` 에 직접 커밋했다. 이 저장소의 기존 커밋이 전부 그렇고 푸시는 사용자가 한다
