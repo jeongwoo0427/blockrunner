@@ -74,6 +74,11 @@ abstract class AppConstants {
   /// 대형 모니터에서 보드가 화면을 다 먹으면 시선 이동이 커져 오히려 불편하다.
   static const double maxBoardExtent = 640;
 
+  /// 다음 레벨로 넘어갈 때 **몸통만** 밀려 나가는 시간.
+  ///
+  /// 화면 전체를 미는 머티리얼 전환은 레벨 선택에서 들어올 때만 쓴다.
+  static const Duration levelSlideDuration = Duration(milliseconds: 340);
+
   /// 갈 수 없는 방향을 눌렀을 때 판이 밀렸다 돌아오는 시간 (13-game-feel §7).
   static const Duration bumpDuration = Duration(milliseconds: 200);
 

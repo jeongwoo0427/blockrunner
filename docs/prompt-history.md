@@ -2123,3 +2123,34 @@
 
 **결정 / 메모**
 - `docs/tasks/` 가 다시 비었다. 다음 요청은 목록에서 고르는 것이 아니다
+
+---
+
+## 2026-08-06 #78 — 다음 레벨은 몸통만 넘어가게
+
+**요청**
+> 레벨 선택하고 플레이화면에서 클리어후 다음 레벨로 이동할때 페이지 이동 효과가 발생하는데, 레벨 선택 에서 플레이화면으로 갈땐 머티리얼 페이지 전환효과는 괜찮거든. 근데 다음 레벨로 이동할땐 바디부분만 페이지 이동하듯이 다음레벨로 전환되면 좋겠어. 당연히 손으로 밀어도 페이지 이동은 안돼야하고.
+
+**한 일**
+- 라우터의 플레이 페이지 키를 **레벨과 무관하게 고정** (`ValueKey('game-play')`)
+- `GamePlayScreen` 이 `didUpdateWidget` 에서 레벨 변경을 보고 **판·HUD 만** 밀어 넘김 (340ms)
+- 테스트 8건 추가 (408 → 416), `docs/architecture.md` §13 신설
+
+**변경 파일**
+- `lib/core/router/router.dart` — `builder` → `pageBuilder`
+- `lib/feature/game/presentation/game_play/game_play_screen.dart`
+- `lib/core/config/app_constants.dart` — `levelSlideDuration`
+- `test/feature/game/presentation/level_transition_test.dart` (신규)
+- `docs/architecture.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 416/416 통과
+- **교란 2종** — ① 페이지 키를 레벨별로 되돌리기 ② 몸통 전환 제거
+
+**결정 / 메모**
+- **핵심은 페이지 키다.** 키가 레벨마다 다르면 go_router 가 페이지를 갈아끼워 화면 전체가 밀린다. 키를 고정하니 **레벨 선택에서 들어올 때만 페이지가 새로 생겨** 머티리얼 전환이 나고, 다음 레벨은 같은 페이지가 갱신될 뿐이다. 요청의 두 조건이 이 한 줄로 갈린다
+- **`AnimatedSwitcher` 를 쓰지 않았다.** 나가는 쪽과 들어오는 쪽에 같은 애니메이션이 걸려서 **한쪽이 반대 방향으로 움직인다.** 이전 몸통을 직접 들고 있다가 두 개를 겹쳐 옮기는 편이 방향이 정확하다
+- **`PageView` 를 쓰지 않았다.** 손으로 밀어 레벨을 옮길 수 있으면 판 위의 스와이프가 이동인지 페이지 넘김인지 갈리지 않는다 — 요청의 마지막 문장이 이것이고, 드래그해도 라우트가 그대로인지 테스트로 못박았다
+- **`late final AnimationController _x = AnimationController(vsync: this, ...)` 가 65개 테스트를 깨뜨렸다.** 한 번도 쓰이지 않은 채 화면이 사라지면 `dispose` 가 그때 처음 만들면서 이미 떨어져 나간 트리를 뒤진다. `initState` 에서 만들도록 바꿨다 — **`BoardView` 는 `didChangeDependencies` 에서 항상 건드려서 우연히 무사했던 것**이라, 같은 패턴이 남아 있다
+- **교란 1이 통과해서 테스트를 보강했다.** 위젯 단위 테스트만으로는 라우팅 절반이 덮이지 않았다. 실제로 레벨 1을 클리어하고 다음 레벨을 눌러, **전환 중 `GamePlayScreen` 이 하나뿐인지**를 보게 했다 — 페이지가 갈렸다면 둘이 된다

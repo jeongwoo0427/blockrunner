@@ -3,6 +3,7 @@ import 'package:blockrunner/feature/game/presentation/board_preview/board_previe
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_root.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_root.dart';
 import 'package:blockrunner/feature/splash/presentation/splash/splash_root.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 /// 전역 라우터. 모든 GoRoute 는 *Root 위젯을 만든다.
@@ -27,11 +28,21 @@ final GoRouter router = GoRouter(
     ),
     GoRoute(
       path: RoutePaths.gamePlay,
-      builder: (context, state) {
+      // **페이지 키를 레벨과 무관하게 고정한다.**
+      //
+      // 레벨 선택에서 들어올 때는 페이지가 새로 생기므로 머티리얼 전환이
+      // 그대로 난다. 반면 다음 레벨로 갈 때는 키가 같아 **페이지가 교체되지
+      // 않고 그 자리에서 갱신**되므로 화면 전체가 밀리지 않는다 — 대신
+      // `GamePlayScreen` 이 몸통만 밀어 넘긴다.
+      pageBuilder: (context, state) {
         // 잘못된 값이 와도 1번 레벨로 폴백한다. 라우팅 단계에서 터뜨리지 않는다.
         final raw = state.uri.queryParameters[RoutePaths.levelQueryKey];
         final levelNumber = int.tryParse(raw ?? '') ?? 1;
-        return GamePlayRoot(levelNumber: levelNumber);
+
+        return MaterialPage(
+          key: const ValueKey('game-play'),
+          child: GamePlayRoot(levelNumber: levelNumber),
+        );
       },
     ),
   ],

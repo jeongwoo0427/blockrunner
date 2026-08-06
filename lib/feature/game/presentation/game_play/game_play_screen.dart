@@ -15,6 +15,7 @@ import 'package:blockrunner/feature/game/presentation/game_play/widget/board_vie
 import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
+import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
@@ -29,8 +30,22 @@ class GamePlayScreen extends StatefulWidget {
   State<GamePlayScreen> createState() => _GamePlayScreenState();
 }
 
-class _GamePlayScreenState extends State<GamePlayScreen> {
+class _GamePlayScreenState extends State<GamePlayScreen>
+    with SingleTickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode(debugLabel: 'GamePlayKeyboard');
+
+  /// 레벨이 바뀔 때 몸통이 밀려 넘어가는 연출.
+  ///
+  /// **`late final ... = AnimationController(...)` 으로 두면 안 된다.** 한 번도
+  /// 쓰이지 않은 채 화면이 사라지면 `dispose` 가 그때 처음 만들면서
+  /// `vsync: this` 가 이미 떨어져 나간 트리를 뒤져 터진다.
+  late final AnimationController _levelSlide;
+
+  /// 방금 전 레벨의 몸통. 넘어가는 동안만 들고 있다.
+  Widget? _outgoingBody;
+
+  /// 마지막으로 그린 몸통 — 레벨이 바뀌면 이것이 [_outgoingBody] 가 된다.
+  Widget? _lastBody;
 
   /// 스와이프 시작부터 누적한 이동량. `onPanEnd` 는 총 이동량을 주지 않는다.
   Offset _panDelta = Offset.zero;
@@ -42,8 +57,18 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   Timer? _animationTimer;
 
   @override
+  void initState() {
+    super.initState();
+    _levelSlide = AnimationController(
+      vsync: this,
+      duration: AppConstants.levelSlideDuration,
+    );
+  }
+
+  @override
   void dispose() {
     _animationTimer?.cancel();
+    _levelSlide.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -64,6 +89,8 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
   void didUpdateWidget(GamePlayScreen oldWidget) {
     super.didUpdateWidget(oldWidget);
 
+    _startLevelSlideIfNeeded(oldWidget);
+
     if (!oldWidget.state.isAnimating && widget.state.isAnimating) {
       _startAnimationTimer();
     } else if (oldWidget.state.isAnimating && !widget.state.isAnimating) {
@@ -78,6 +105,25 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     if (_showsResult(oldWidget.state) && !_showsResult(widget.state)) {
       _focusNode.requestFocus();
     }
+  }
+
+  /// 레벨이 바뀌었으면 몸통을 밀어 넘긴다.
+  ///
+  /// 라우터가 **같은 페이지를 재사용**하므로(`router.dart`) 여기서 새 레벨을
+  /// `didUpdateWidget` 으로 받는다 — 페이지가 통째로 갈리면 이 자리에
+  /// 이전 화면이 남아 있지 않다.
+  void _startLevelSlideIfNeeded(GamePlayScreen oldWidget) {
+    final before = oldWidget.state.level?.number;
+    final after = widget.state.level?.number;
+    if (before == null || after == null || before == after) return;
+
+    final outgoing = _lastBody;
+    if (outgoing == null || MediaQuery.disableAnimationsOf(context)) return;
+
+    _outgoingBody = outgoing;
+    _levelSlide.forward(from: 0).whenComplete(() {
+      if (mounted) setState(() => _outgoingBody = null);
+    });
   }
 
   /// 판정은 이동 직후 확정되지만 **보여주는 것은 연출이 끝난 뒤다**(기획서 §7).
@@ -110,6 +156,85 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
     return falling.any((block) => block.type == BlockType.player)
         ? AppConstants.moveWithPlayerFallDuration
         : AppConstants.moveWithFallDuration;
+  }
+
+  /// 판과 HUD — **레벨이 바뀔 때 이것만 밀려 넘어간다** (13-game-feel 이후).
+  ///
+  /// AppBar 와 오버레이는 제자리에 둔다. 화면 전체가 밀리면 레벨 선택에서
+  /// 들어올 때와 구분이 안 되고, 같은 판을 계속 보고 있다는 감각이 끊긴다.
+  Widget _buildBody(
+    GamePlayScreenState state,
+    BoardState board,
+    Level level,
+  ) {
+    return LayoutBuilder(
+      builder: (context, constraints) => Column(
+        children: [
+          Expanded(
+            child: GestureDetector(
+              onPanStart: _onPanStart,
+              onPanUpdate: _onPanUpdate,
+              onPanEnd: _onPanEnd,
+              // 빈 공간에서 시작한 스와이프도 받아야 한다.
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.all(Spacing.md),
+                child: BoardView(
+                  board: board,
+                  fallingBlocks: state.fallingBlocks,
+                  isAnimating: state.isAnimating,
+                  bump: state.bump,
+                ),
+              ),
+            ),
+          ),
+          // HUD 는 화면 폭이 아니라 **보드 폭**에 맞춘다 (기획서 §6.2).
+          Center(
+            child: SizedBox(
+              width: _hudWidth(board, constraints),
+              child: GameHud(
+                moveCount: state.moveCount,
+                minMoves: level.minMoves,
+                onReset: () => _sendAndRefocus(ResetRequested()),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  /// 넘어가는 중이면 이전 몸통과 함께 겹쳐 그린다.
+  ///
+  /// **`PageView` 를 쓰지 않는다.** 손으로 밀어서 레벨을 옮길 수 있으면
+  /// 판 위의 스와이프가 이동인지 페이지 넘김인지 갈리지 않는다.
+  Widget _bodyLayer(Widget body) {
+    _lastBody = body;
+    final outgoing = _outgoingBody;
+    if (outgoing == null) return body;
+
+    return LayoutBuilder(
+      builder: (context, constraints) => AnimatedBuilder(
+        animation: _levelSlide,
+        builder: (context, _) {
+          final t = Curves.easeInOut.transform(_levelSlide.value);
+          final width = constraints.maxWidth;
+
+          return Stack(
+            children: [
+              Transform.translate(
+                offset: Offset(-width * t, 0),
+                child: outgoing,
+              ),
+              Transform.translate(
+                offset: Offset(width * (1 - t), 0),
+                child: body,
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   /// 모든 입력 경로가 지나는 한 곳.
@@ -230,41 +355,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
             onKeyEvent: _onKeyEvent,
             child: Stack(
               children: [
-                LayoutBuilder(
-                  builder: (context, constraints) => Column(
-                    children: [
-                      Expanded(
-                        child: GestureDetector(
-                          onPanStart: _onPanStart,
-                          onPanUpdate: _onPanUpdate,
-                          onPanEnd: _onPanEnd,
-                          // 빈 공간에서 시작한 스와이프도 받아야 한다.
-                          behavior: HitTestBehavior.opaque,
-                          child: Padding(
-                            padding: const EdgeInsets.all(Spacing.md),
-                            child: BoardView(
-                              board: board,
-                              fallingBlocks: state.fallingBlocks,
-                              isAnimating: state.isAnimating,
-                              bump: state.bump,
-                            ),
-                          ),
-                        ),
-                      ),
-                      // HUD 는 화면 폭이 아니라 **보드 폭**에 맞춘다 (기획서 §6.2).
-                      Center(
-                        child: SizedBox(
-                          width: _hudWidth(board, constraints),
-                          child: GameHud(
-                            moveCount: state.moveCount,
-                            minMoves: level.minMoves,
-                            onReset: () => _sendAndRefocus(ResetRequested()),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                _bodyLayer(_buildBody(state, board, level)),
                 if (state.showsTutorial && level.hasTutorial)
                   Positioned.fill(
                     child: TutorialOverlay(
