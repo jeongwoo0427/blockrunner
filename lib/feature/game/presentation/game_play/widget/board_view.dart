@@ -3,10 +3,12 @@ import 'package:blockrunner/core/theme/board_colors.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
+import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/black_hole_painter.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_painter.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:flutter/material.dart';
 
 /// 슬라이드가 끝난 뒤부터 낙하를 재생한다 (기획서 §7).
@@ -46,6 +48,7 @@ class BoardView extends StatefulWidget {
     required this.board,
     this.fallingBlocks = const [],
     this.isAnimating = false,
+    this.bump = const Bump.none(),
   });
 
   final BoardState board;
@@ -60,12 +63,14 @@ class BoardView extends StatefulWidget {
   /// 그대로 튄다 — 즉시 반영해야 한다는 기획서 §7 이 공짜로 지켜진다.
   final bool isAnimating;
 
+  /// 마지막 무효 입력 (13-game-feel §7). 세대가 오르면 다시 재생한다.
+  final Bump bump;
+
   @override
   State<BoardView> createState() => _BoardViewState();
 }
 
-class _BoardViewState extends State<BoardView>
-    with SingleTickerProviderStateMixin {
+class _BoardViewState extends State<BoardView> with TickerProviderStateMixin {
   /// 블랙홀 회전. **이 프로젝트의 유일한 `AnimationController` 다.**
   ///
   /// 끝나지 않는 애니메이션이라 암시적으로는 표현할 수 없다 — `06-animation`
@@ -74,6 +79,15 @@ class _BoardViewState extends State<BoardView>
   late final AnimationController _swirl = AnimationController(
     vsync: this,
     duration: AppConstants.blackHoleRotationDuration,
+  );
+
+  /// 갈 수 없는 방향을 눌렀을 때 판 전체가 밀렸다 돌아온다 (13-game-feel §7).
+  ///
+  /// 0 → 1 → 0 을 한 번 재생하고 멈춘다. `AnimatedX` 로는 안 된다 —
+  /// **같은 방향을 두 번 누르면 목표값이 같아 아무 일도 일어나지 않는다.**
+  late final AnimationController _bump = AnimationController(
+    vsync: this,
+    duration: AppConstants.bumpDuration,
   );
 
   /// 판에 블랙홀이 있는가. 바닥은 레벨 내내 바뀌지 않는다.
@@ -90,11 +104,41 @@ class _BoardViewState extends State<BoardView>
   void didUpdateWidget(BoardView oldWidget) {
     super.didUpdateWidget(oldWidget);
     _syncSwirl();
+
+    // **세대로 비교한다.** 방향만 보면 같은 방향 연타에서 재생되지 않는다.
+    if (widget.bump.generation != oldWidget.bump.generation) {
+      _playBump();
+    }
+  }
+
+  void _playBump() {
+    if (MediaQuery.disableAnimationsOf(context)) return;
+    _bump.forward(from: 0).whenComplete(() {
+      if (mounted) _bump.reverse();
+    });
+  }
+
+  /// 지금 판이 밀려 있어야 할 거리.
+  Offset _bumpOffset(double cell) {
+    final direction = widget.bump.direction;
+    if (direction == null || _bump.value == 0) return Offset.zero;
+
+    final distance = cell *
+        AppConstants.bumpDistanceRatio *
+        Curves.easeOut.transform(_bump.value);
+
+    return switch (direction) {
+      Direction.up => Offset(0, -distance),
+      Direction.down => Offset(0, distance),
+      Direction.left => Offset(-distance, 0),
+      Direction.right => Offset(distance, 0),
+    };
   }
 
   @override
   void dispose() {
     _swirl.dispose();
+    _bump.dispose();
     super.dispose();
   }
 
@@ -130,53 +174,60 @@ class _BoardViewState extends State<BoardView>
             available: constraints.biggest,
           );
 
-          return SizedBox(
-            width: metrics.width,
-            height: metrics.height,
-            child: Stack(
-              children: [
-                Positioned.fill(
-                  child: CustomPaint(
-                    painter: BoardPainter(
-                      board: board,
-                      colors: colors,
-                      cell: metrics.cell,
-                      origin: metrics.origin,
+          return AnimatedBuilder(
+            animation: _bump,
+            builder: (context, child) => Transform.translate(
+              offset: _bumpOffset(metrics.cell),
+              child: child,
+            ),
+            child: SizedBox(
+              width: metrics.width,
+              height: metrics.height,
+              child: Stack(
+                children: [
+                  Positioned.fill(
+                    child: CustomPaint(
+                      painter: BoardPainter(
+                        board: board,
+                        colors: colors,
+                        cell: metrics.cell,
+                        origin: metrics.origin,
+                      ),
                     ),
                   ),
-                ),
-                // 회전하는 것만 따로 그린다. 이 레이어만 매 프레임 갱신된다.
-                if (_hasBlackHole)
-                  Positioned.fill(
-                    child: RepaintBoundary(
-                      child: AnimatedBuilder(
-                        animation: _swirl,
-                        builder: (context, _) => CustomPaint(
-                          painter: BlackHolePainter(
-                            board: board,
-                            colors: colors,
-                            cell: metrics.cell,
-                            origin: metrics.origin,
-                            turns: _swirl.value,
+                  // 회전하는 것만 따로 그린다. 이 레이어만 매 프레임 갱신된다.
+                  if (_hasBlackHole)
+                    Positioned.fill(
+                      child: RepaintBoundary(
+                        child: AnimatedBuilder(
+                          animation: _swirl,
+                          builder: (context, _) => CustomPaint(
+                            painter: BlackHolePainter(
+                              board: board,
+                              colors: colors,
+                              cell: metrics.cell,
+                              origin: metrics.origin,
+                              turns: _swirl.value,
+                            ),
                           ),
                         ),
                       ),
                     ),
-                  ),
-                // 빠지는 블록도 같은 목록에 섞어 그린다. 키로 추적되므로 판에서
-                // 이 목록으로 옮겨와도 같은 위젯으로 남아 이어서 미끄러진다.
-                for (final (block, isFalling) in [
-                  for (final block in board.blocks) (block, false),
-                  for (final block in widget.fallingBlocks) (block, true),
-                ])
-                  _blockTile(
-                    block: block,
-                    isFalling: isFalling,
-                    animates: animates,
-                    slide: slide,
-                    metrics: metrics,
-                  ),
-              ],
+                  // 빠지는 블록도 같은 목록에 섞어 그린다. 키로 추적되므로 판에서
+                  // 이 목록으로 옮겨와도 같은 위젯으로 남아 이어서 미끄러진다.
+                  for (final (block, isFalling) in [
+                    for (final block in board.blocks) (block, false),
+                    for (final block in widget.fallingBlocks) (block, true),
+                  ])
+                    _blockTile(
+                      block: block,
+                      isFalling: isFalling,
+                      animates: animates,
+                      slide: slide,
+                      metrics: metrics,
+                    ),
+                ],
+              ),
             ),
           );
         },

@@ -71,6 +71,14 @@ abstract class AppConstants {
   /// 대형 모니터에서 보드가 화면을 다 먹으면 시선 이동이 커져 오히려 불편하다.
   static const double maxBoardExtent = 640;
 
+  /// 갈 수 없는 방향을 눌렀을 때 판이 밀렸다 돌아오는 시간 (13-game-feel §7).
+  static const Duration bumpDuration = Duration(milliseconds: 200);
+
+  /// 그때 밀리는 거리 — 셀 크기 대비 비율.
+  ///
+  /// 한 칸을 넘어가면 갈 수 있는 것처럼 보인다. 살짝만 움직여야 "막혔다" 가 된다.
+  static const double bumpDistanceRatio = 0.12;
+
   /// 스와이프로 인정할 최소 이동 거리(논리 픽셀).
   static const double swipeThreshold = 24;
 }

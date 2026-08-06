@@ -246,6 +246,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                               board: board,
                               fallingBlocks: state.fallingBlocks,
                               isAnimating: state.isAnimating,
+                              bump: state.bump,
                             ),
                           ),
                         ),

@@ -67,8 +67,14 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
 
     final before = state.board!;
     final result = _usecases.applyMove(before, direction);
-    // 무효 입력은 상태도 이동 횟수도 건드리지 않는다 (기획서 §3.2).
-    if (!result.moved) return;
+
+    // 무효 입력은 판도 이동 횟수도 건드리지 않는다 (기획서 §3.2).
+    // **다만 화면이 막혔음을 알린다** — 아무 반응이 없으면 입력을 못 받은
+    // 것인지 갈 수 없는 것인지 구분되지 않는다 (13-game-feel §7).
+    if (!result.moved) {
+      state = state.copyWith(bump: state.bump.next(direction));
+      return;
+    }
 
     // 클리어·소실 판정은 여기서 확정된다. 결과 오버레이를 **언제 보여줄지**는
     // 화면이 정한다 — 미끄러지는 중에 덮어버리면 안 되기 때문이다(기획서 §7).

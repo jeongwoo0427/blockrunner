@@ -2,6 +2,7 @@ import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/error/failure.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
+import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/game_map.dart';
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
 import 'package:flutter/foundation.dart';
@@ -21,6 +22,7 @@ class GamePlayScreenState {
     this.isPlayerLost = false,
     this.hasNextLevel = false,
     this.showsTutorial = false,
+    this.bump = const Bump.none(),
     this.failure,
   });
 
@@ -73,6 +75,9 @@ class GamePlayScreenState {
   /// 파생값이 아니다 — "이미 봤는지" 는 저장소가 알고, 닫는 것은 사용자다.
   final bool showsTutorial;
 
+  /// 마지막 무효 입력 (13-game-feel §7).
+  final Bump bump;
+
   final Failure? failure;
 
   /// 방향 입력을 받아도 되는 상태인가.
@@ -101,6 +106,7 @@ class GamePlayScreenState {
     bool? isPlayerLost,
     bool? hasNextLevel,
     bool? showsTutorial,
+    Bump? bump,
     Failure? Function()? failure,
   }) {
     return GamePlayScreenState(
@@ -116,7 +122,41 @@ class GamePlayScreenState {
       isPlayerLost: isPlayerLost ?? this.isPlayerLost,
       hasNextLevel: hasNextLevel ?? this.hasNextLevel,
       showsTutorial: showsTutorial ?? this.showsTutorial,
+      bump: bump ?? this.bump,
       failure: failure != null ? failure() : this.failure,
     );
   }
+}
+
+/// 갈 수 없는 방향을 눌렀다는 사실 (13-game-feel §7).
+///
+/// **방향과 세대를 함께 갖는다.**
+/// - 방향이 없으면 어느 쪽으로 밀렸다 돌아올지 알 수 없다.
+/// - **세대가 없으면 같은 방향을 두 번 눌렀을 때 상태가 같아** 화면이 다시
+///   재생하지 않는다. 두 번째 입력이 삼켜진 것처럼 보인다.
+///
+/// 이동 횟수는 올라가지 않는다 — 규칙(기획서 §3.2)은 그대로이고 알려주기만 한다.
+@immutable
+class Bump {
+  const Bump({required this.direction, required this.generation});
+
+  /// 아직 한 번도 막히지 않은 상태.
+  const Bump.none() : direction = null, generation = 0;
+
+  final Direction? direction;
+
+  /// 무효 입력마다 1씩 오른다.
+  final int generation;
+
+  Bump next(Direction direction) =>
+      Bump(direction: direction, generation: generation + 1);
+
+  @override
+  bool operator ==(Object other) =>
+      other is Bump &&
+      other.direction == direction &&
+      other.generation == generation;
+
+  @override
+  int get hashCode => Object.hash(direction, generation);
 }
