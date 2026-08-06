@@ -11,8 +11,10 @@ import 'package:flutter/material.dart';
 /// 튀어나오는 데 걸리는 시간.
 ///
 /// `elasticOut` 은 되튕기는 구간이 있어 짧으면 그 구간이 보이지 않는다.
-/// 예전 180ms 에서는 사실상 그냥 커지기만 했다.
-const Duration overlayEntranceDuration = Duration(milliseconds: 520);
+/// 180ms 에서는 사실상 그냥 커지기만 했고, 520ms 에서도 카드 몫이 절반뿐이라
+/// 튕김이 잘 안 보였다. **길이만 늘리지 않고 [overlayScrimSplit] 도 앞당겨**
+/// 카드에 더 많은 시간을 줬다 — 배경까지 늘어지면 답답해진다.
+const Duration overlayEntranceDuration = Duration(milliseconds: 700);
 
 /// 사라지는 데 걸리는 시간.
 ///
@@ -24,7 +26,7 @@ const Duration overlayExitDuration = Duration(milliseconds: 340);
 ///
 /// **배경이 먼저 깔리고 카드가 나중에 뜬다. 나갈 때는 반대다** — 카드가 먼저
 /// 사라지고 배경이 뒤따라 걷힌다. 한꺼번에 사라지면 판이 갑자기 튀어나온다.
-const double overlayScrimSplit = 0.45;
+const double overlayScrimSplit = 0.32;
 
 /// 배경(스크림)이 짙어지고 옅어지는 구간.
 ///

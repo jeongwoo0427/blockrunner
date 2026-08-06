@@ -152,6 +152,21 @@ void main() {
     double scrimFade(WidgetTester tester) =>
         tester.widget<FadeTransition>(find.byKey(overlayScrimKey)).opacity.value;
 
+    test('카드가 튕김을 보여줄 만큼 시간을 갖는다', () {
+      // `elasticOut` 은 되튕기는 구간이 짧으면 그냥 커지기만 한 것처럼 보인다.
+      // **하한만 둔다** — 정확한 값은 취향이지만 조용히 짧아지는 것은 막는다.
+      final cardMs =
+          overlayEntranceDuration.inMilliseconds * (1 - overlayScrimSplit);
+
+      expect(cardMs, greaterThanOrEqualTo(400));
+
+      // 배경은 반대로 짧아야 한다. 덮개가 늦게 깔리면 답답하다.
+      final scrimMs =
+          overlayEntranceDuration.inMilliseconds * overlayScrimSplit;
+
+      expect(scrimMs, lessThan(cardMs));
+    });
+
     test('작게 시작해서 1로 끝난다', () {
       // **곡선 자체를 검사한다.** 위젯으로 재면 프레임 타이밍에 걸린다 —
       // `elasticOut` 은 t=0.1 에서 이미 1을 지나므로 작게 보이는 구간이
