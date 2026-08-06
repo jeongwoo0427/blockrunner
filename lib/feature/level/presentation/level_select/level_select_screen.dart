@@ -8,9 +8,9 @@ import 'package:flutter/material.dart';
 
 /// 그리기만 한다. **Riverpod 을 모른다** (docs/architecture.md §5).
 ///
-/// 로컬 UI 상태가 없어 `StatefulWidget` 을 쓰지 않는다 — 규약의 "Screen 은
-/// StatefulWidget" 은 컨트롤러·포커스를 두기 위한 것이고 여기엔 그럴 것이 없다.
-class LevelSelectScreen extends StatelessWidget {
+/// 한때 `StatelessWidget` 이었다 — 로컬 상태가 없었기 때문이다. 카드가 순서대로
+/// 나타나는 연출이 붙으면서 컨트롤러가 생겨 규약(§5)의 원래 모습으로 돌아왔다.
+class LevelSelectScreen extends StatefulWidget {
   const LevelSelectScreen({
     super.key,
     required this.state,
@@ -31,7 +31,63 @@ class LevelSelectScreen extends StatelessWidget {
   final Widget Function(BuildContext, int levelNumber)? previewBuilder;
 
   @override
+  State<LevelSelectScreen> createState() => _LevelSelectScreenState();
+}
+
+class _LevelSelectScreenState extends State<LevelSelectScreen>
+    with SingleTickerProviderStateMixin {
+  /// 카드가 하나씩 떠오르는 연출.
+  ///
+  /// **화면이 만들어질 때 한 번만 재생된다.** 플레이하고 돌아오거나 언어를
+  /// 바꿔도 다시 돌지 않는다 — 그때는 `State` 가 살아 있어 `initState` 를
+  /// 다시 타지 않기 때문이다.
+  ///
+  /// `late final ... = AnimationController(...)` 로 두지 않는다. 한 번도 쓰이지
+  /// 않은 채 화면이 사라지면 `dispose` 가 그때 처음 만들며 터진다.
+  late final AnimationController _entrance;
+
+  /// 카드 하나가 떠오르는 데 걸리는 시간.
+  static const Duration _cardSpan = Duration(milliseconds: 420);
+
+  /// 다음 카드가 시작되기까지의 간격.
+  ///
+  /// 이것이 "순서대로" 를 만든다. 짧으면 한꺼번에 켜지는 것처럼 보인다.
+  static const Duration _stagger = Duration(milliseconds: 80);
+
+  @override
+  void initState() {
+    super.initState();
+
+    final count = widget.state.levels.length;
+    _entrance = AnimationController(
+      vsync: this,
+      duration: _cardSpan + _stagger * count,
+    )..forward();
+  }
+
+  @override
+  void dispose() {
+    _entrance.dispose();
+    super.dispose();
+  }
+
+  /// [index] 번째 카드가 차지하는 구간(0~1).
+  Interval _intervalFor(int index) {
+    final total = _entrance.duration!.inMilliseconds;
+    final begin = (_stagger.inMilliseconds * index) / total;
+
+    return Interval(
+      begin,
+      (begin + _cardSpan.inMilliseconds / total).clamp(0.0, 1.0),
+      curve: Curves.easeOutCubic,
+    );
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final state = widget.state;
+    final onEvent = widget.onEvent;
+    final previewBuilder = widget.previewBuilder;
     final failure = state.failure;
 
     return Scaffold(
@@ -68,19 +124,23 @@ class LevelSelectScreen extends StatelessWidget {
                   final level = state.levels[index];
                   final isUnlocked = state.isUnlocked(level.number);
 
-                  return LevelCard(
-                    level: level,
-                    progress: state.progressOf(level.number),
-                    isUnlocked: isUnlocked,
+                  return _CardEntrance(
+                    animation: _entrance,
+                    interval: _intervalFor(index),
+                    child: LevelCard(
+                      level: level,
+                      progress: state.progressOf(level.number),
+                      isUnlocked: isUnlocked,
                     // **잠긴 레벨은 아예 만들지 않는다** — 판을 가려야 하므로
                     // 그릴 이유가 없다 (13-game-feel §2).
-                    preview: isUnlocked
-                        ? previewBuilder?.call(context, level.number)
-                        : null,
-                    onTap: () => onEvent(
-                      isUnlocked
-                          ? LevelSelected(level)
-                          : LockedLevelSelected(level),
+                      preview: isUnlocked
+                          ? previewBuilder?.call(context, level.number)
+                          : null,
+                      onTap: () => onEvent(
+                        isUnlocked
+                            ? LevelSelected(level)
+                            : LockedLevelSelected(level),
+                      ),
                     ),
                   );
                 },
@@ -121,6 +181,47 @@ class _ErrorBody extends StatelessWidget {
           textAlign: TextAlign.center,
         ),
       ),
+    );
+  }
+}
+
+/// 카드 하나를 **아래에서 떠오르며 나타나게** 한다.
+///
+/// 위치와 투명도를 함께 움직인다 — 투명도만 바꾸면 그냥 켜지는 것처럼 보이고,
+/// 위치만 바꾸면 어디서 왔는지가 급하게 읽힌다.
+class _CardEntrance extends StatelessWidget {
+  const _CardEntrance({
+    required this.animation,
+    required this.interval,
+    required this.child,
+  });
+
+  final Animation<double> animation;
+  final Interval interval;
+  final Widget child;
+
+  /// 처음에 얼마나 아래에 있는가(논리 픽셀).
+  static const double _rise = 28;
+
+  @override
+  Widget build(BuildContext context) {
+    // "동작 줄이기" 를 켠 사용자에게는 그냥 놓여 있다.
+    if (MediaQuery.disableAnimationsOf(context)) return child;
+
+    return AnimatedBuilder(
+      animation: animation,
+      builder: (context, child) {
+        final t = interval.transform(animation.value);
+
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(
+            offset: Offset(0, _rise * (1 - t)),
+            child: child,
+          ),
+        );
+      },
+      child: child,
     );
   }
 }
