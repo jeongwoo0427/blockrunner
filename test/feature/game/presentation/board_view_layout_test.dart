@@ -35,7 +35,11 @@ Future<Size> pumpBoard(WidgetTester tester, BoardState board, Size size) async {
 }
 
 void main() {
-  final board = const MapParser().parse(kMapBlueprints.first).initialBoard;
+  // **정사각 판을 골라 쓴다.** 1번은 2×4 가로 판이라(기획서 §4.3 — 판이 레벨에
+  // 따라 커진다) 여기서 검사하려는 "정사각은 정사각으로" 를 못 본다.
+  final board = const MapParser()
+      .parse(kMapBlueprints.firstWhere((map) => map.levelNumber == 2))
+      .initialBoard;
 
   const sizes = <String, Size>{
     '작은 폰': Size(320, 568),

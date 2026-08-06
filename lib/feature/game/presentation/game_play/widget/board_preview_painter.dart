@@ -3,6 +3,7 @@ import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
+import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:flutter/material.dart';
 
 /// 카드 안에 들어갈 **작고 움직이지 않는** 판 (12-ui-polish §2).
@@ -43,6 +44,9 @@ class BoardPreviewPainter extends CustomPainter {
       _paintBlock(canvas, block);
     }
 
+
+    _paintEdgeWalls(canvas);
+
     canvas.drawRect(
       grid,
       Paint()
@@ -50,6 +54,30 @@ class BoardPreviewPainter extends CustomPainter {
         ..strokeWidth = cell * Spacing.wallWidthRatio
         ..style = PaintingStyle.stroke,
     );
+  }
+
+  /// 경계 벽 — 칸 사이의 굵은 선.
+  ///
+  /// **빼먹으면 조용히 틀린다.** 칸 벽과 달리 칸을 차지하지 않으므로, 안 그려도
+  /// 판은 멀쩡해 보이고 그저 규칙이 없는 것처럼 보인다. 경계 벽을 가르치는
+  /// 튜토리얼 데모에서 정작 벽이 안 보이는 상태가 실제로 그렇게 나왔다.
+  void _paintEdgeWalls(Canvas canvas) {
+    final paint = Paint()
+      ..color = colors.wall
+      ..strokeWidth = cell * Spacing.wallWidthRatio
+      // 캡이 있으면 선이 칸 하나보다 길어진다 — `BoardPainter` 와 같은 이유.
+      ..strokeCap = StrokeCap.butt;
+
+    for (final wall in board.walls) {
+      final rect = _cellRect(wall.position.row, wall.position.col);
+      final (from, to) = switch (wall.direction) {
+        Direction.right => (rect.topRight, rect.bottomRight),
+        Direction.down => (rect.bottomLeft, rect.bottomRight),
+        // WallEdge 는 right/down 으로 정규화된다.
+        Direction.left || Direction.up => (rect.topLeft, rect.topLeft),
+      };
+      canvas.drawLine(from, to, paint);
+    }
   }
 
   void _paintFloor(Canvas canvas, FloorType floor, Rect rect) {

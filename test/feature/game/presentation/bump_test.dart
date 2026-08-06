@@ -42,18 +42,11 @@ void main() {
         .read(gamePlayScreenNotifierProvider(1).notifier)
         .onEvent(MoveRequested(direction));
 
-    /// 판 끝까지 밀어붙인다. 레벨 1의 플레이어는 처음엔 가운데라 어느 쪽도
-    /// 막혀 있지 않다 — 먼저 벽에 붙여야 무효 입력을 만들 수 있다.
-    Future<void> pinToTop() async {
-      await move(Direction.up);
-      await container
-          .read(gamePlayScreenNotifierProvider(1).notifier)
-          .onEvent(AnimationCompleted());
-    }
+    // 레벨 1의 플레이어는 왼쪽 위 구석에서 시작한다 — 위·왼쪽은 첫 프레임부터
+    // 막혀 있으므로 따로 벽에 붙일 필요가 없다.
 
     test('무효 입력은 이동 횟수를 올리지 않는다', () async {
       // 기획서 §3.2 — 연출이 생겨도 규칙은 그대로다.
-      await pinToTop();
       final pinned = read();
 
       await move(Direction.up);
@@ -63,7 +56,6 @@ void main() {
     });
 
     test('막히면 그 방향이 상태에 남는다', () async {
-      await pinToTop();
       await move(Direction.up);
 
       expect(read().bump.direction, Direction.up);
@@ -72,7 +64,6 @@ void main() {
 
     test('같은 방향을 두 번 누르면 세대가 오른다', () async {
       // **세대가 없으면 상태가 같아 화면이 다시 재생하지 않는다.**
-      await pinToTop();
       await move(Direction.up);
       final first = read().bump;
       await move(Direction.up);
@@ -83,7 +74,6 @@ void main() {
 
     test('쫀득거리는 중에도 다른 방향을 받는다', () async {
       // 이것은 연출이지 턴이 아니다 — `isAnimating` 을 세우지 않는 이유다.
-      await pinToTop();
       final moves = read().moveCount;
 
       await move(Direction.up);
@@ -95,7 +85,7 @@ void main() {
     });
 
     test('유효한 수는 쫀득거림을 남기지 않는다', () async {
-      await move(Direction.up);
+      await move(Direction.down);
 
       expect(read().bump.generation, 0);
       expect(read().bump.direction, isNull);

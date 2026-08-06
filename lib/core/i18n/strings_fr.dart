@@ -97,12 +97,25 @@ class StringsFr extends AppStrings {
   @override
   Map<int, String> get levelNames => const {
     1: 'Glisser',
-    2: 'Le mur',
+    2: 'Deux virages',
     3: 'Bloc-frein',
-    4: 'Trop loin',
-    5: 'Trou noir',
-    6: "Dans l'ordre",
-    7: 'Rebord caché',
+    4: 'Contre le mur',
+    5: 'Seuil caché',
+    6: 'Mur et bloc',
+    7: 'Double mur',
+    8: 'Porte étroite',
+    9: 'Bifurcation',
+    10: 'Murs seuls',
+    11: 'Engrenage',
+    12: 'Les trois',
+    13: 'Voie étroite',
+    14: 'Répétition',
+    15: 'Trou noir',
+    16: 'Voie coupée',
+    17: 'Dégager la voie',
+    18: 'Double abîme',
+    19: 'Long chemin',
+    20: 'Dernière porte',
   };
 
   @override
@@ -114,10 +127,10 @@ class StringsFr extends AppStrings {
         'Une seule commande fait glisser tous les blocs à la fois.\n'
         'Les autres blocs peuvent aussi arrêter le joueur.',
     5:
-        'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
-        "Surveille le trajet, pas seulement la case d'arrivée.",
-    7:
         'Le trait épais entre deux cases est un mur de bordure.\n'
         'Il bloque le passage, mais les deux cases restent utilisables.',
+    15:
+        'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
+        "Surveille le trajet, pas seulement la case d'arrivée.",
   };
 }

@@ -16,8 +16,17 @@ import '../../support/strings_harness.dart';
 /// 바로 터진다 — "Screen 은 dumb" 규약의 실질적 가드다.
 Future<List<LevelSelectScreenEvent>> pumpScreen(
   WidgetTester tester,
-  LevelSelectScreenState state,
-) async {
+  LevelSelectScreenState state, {
+  Size size = const Size(600, 2400),
+}) async {
+  // **전부 그려질 만큼 높은 화면을 쓴다.** 레벨이 20개가 되면서 목록이
+  // 스크롤되고, 화면 밖 카드는 아예 만들어지지 않는다 — 개수를 세는 단언이
+  // 조용히 어긋난다.
+  tester.view
+    ..physicalSize = size
+    ..devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+
   final events = <LevelSelectScreenEvent>[];
 
   await tester.pumpWidget(
@@ -126,8 +135,7 @@ void main() {
 
     /// 첫 줄에 놓인 카드 수 = 열 수. 같은 y 에 있는 것들을 센다.
     Future<int> columnsAt(double width) async {
-      tester.view.physicalSize = Size(width, 900);
-      await pumpScreen(tester, stateOf());
+      await pumpScreen(tester, stateOf(), size: Size(width, 900));
 
       final cards = find.byType(LevelCard);
       final firstRowTop = tester.getTopLeft(cards.first).dy;

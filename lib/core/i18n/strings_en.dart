@@ -100,12 +100,25 @@ class StringsEn extends AppStrings {
   @override
   Map<int, String> get levelNames => const {
     1: 'Sliding',
-    2: 'The Wall',
+    2: 'Two Turns',
     3: 'Block Brake',
-    4: 'Overshoot',
-    5: 'Black Hole',
-    6: 'In Order',
-    7: 'Hidden Ledge',
+    4: 'The Wall',
+    5: 'Hidden Ledge',
+    6: 'Wall and Block',
+    7: 'Double Walls',
+    8: 'Narrow Gate',
+    9: 'The Fork',
+    10: 'Walls Only',
+    11: 'Interlock',
+    12: 'All Three',
+    13: 'Tight Path',
+    14: 'Rehearsal',
+    15: 'Black Hole',
+    16: 'Severed',
+    17: 'Clear the Way',
+    18: 'Twin Abyss',
+    19: 'The Long Way',
+    20: 'Last Gate',
   };
 
   @override
@@ -117,10 +130,10 @@ class StringsEn extends AppStrings {
         'One input slides every block at once.\n'
         'Other blocks can bring the player to a stop too.',
     5:
-        'A black hole swallows any block that merely passes over it.\n'
-        'Watch the path, not just the landing tile.',
-    7:
         'The thick line between two tiles is an edge wall.\n'
         'It blocks passage only — both tiles are still usable.',
+    15:
+        'A black hole swallows any block that merely passes over it.\n'
+        'Watch the path, not just the landing tile.',
   };
 }

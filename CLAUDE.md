@@ -144,8 +144,20 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 is not a task from the list; ask what it should be. **The game is playable end to end on all
 three platforms:** level select → play → clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
-`docs/game-design.md` §4, seven 6×6 levels are ASCII constants whose `minMoves` a BFS solver in
+`docs/game-design.md` §4, **twenty levels** are ASCII constants whose `minMoves` a BFS solver in
 `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
+
+**Level design is a checked property, not taste** (`docs/game-design.md` §4.4). `test/feature/game/
+level_design.dart` exhaustively searches every level and `level_design_test.dart` asserts five
+things: no board reachable from the start may be unclearable (there is no undo, so a silent dead
+end ends the level while the screen says nothing — the old level 1 had six of them); removing any
+wall, edge wall, block, or black hole must change `minMoves`, or it was decoration; boards only
+grow and carry no padding — **cutting an empty edge row must change `minMoves`**, which caught
+half the first twenty (level 17 was 9×9 using a 4×8 corner); black holes appear only from level 15;
+and the back ten levels must total more moves than the front ten. **Boards are deliberately not all
+square** — at least five are wider than tall and five taller than wide, because a long axis slides
+far and a short one hits the wall at once. **Maps are not hand-drawn**; a random search keeps only
+what passes those checks, and the test then pins it.
 
 **There is no on-screen d-pad on any platform** (`docs/game-design.md` §6) — a test asserts its
 absence, so don't reintroduce one for discoverability. Discoverability is handled by **per-level

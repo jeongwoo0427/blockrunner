@@ -23,6 +23,16 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// 통과한다(실제로 그런 상태를 만들어 확인했다). `level` 이 `game` 을 직접
 /// 부르지 않는다는 것은 `no_game_dependency_test` 가 지킨다.
 void main() {
+  // **전부 그려질 만큼 높은 화면을 쓴다.** 레벨이 20개가 되면서 목록이
+  // 스크롤되고, 화면 밖 카드는 아예 만들어지지 않는다 — 개수를 세는 단언이
+  // 조용히 어긋난다.
+  void useTallView(WidgetTester tester) {
+    tester.view
+      ..physicalSize = const Size(600, 2400)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+  }
+
   Future<Widget> boot({int clearedUpTo = 0}) async {
     SharedPreferences.setMockInitialValues({
       'settings_v1_locale': 'ko',
@@ -58,6 +68,7 @@ void main() {
       .toList();
 
   testWidgets('열린 레벨에만 미니 보드가 그려진다', (tester) async {
+    useTallView(tester);
     // 진행도가 없으면 1번만 열려 있다.
     await tester.pumpWidget(await boot());
     await tester.pumpAndSettle();
@@ -67,6 +78,7 @@ void main() {
   });
 
   testWidgets('잠긴 레벨은 판을 아예 가린다', (tester) async {
+    useTallView(tester);
     // 실루엣조차 보여주지 않는다 — 판 모양이 곧 스포일러다 (13-game-feel §2).
     await tester.pumpWidget(await boot());
     await tester.pumpAndSettle();
@@ -79,6 +91,7 @@ void main() {
   });
 
   testWidgets('깨면 그만큼 판이 드러난다', (tester) async {
+    useTallView(tester);
     // 1·2번을 깼으므로 3번까지 열린다.
     await tester.pumpWidget(await boot(clearedUpTo: 2));
     await tester.pumpAndSettle();
@@ -88,6 +101,7 @@ void main() {
   });
 
   testWidgets('레벨마다 다른 판을 그린다', (tester) async {
+    useTallView(tester);
     await tester.pumpWidget(await boot(clearedUpTo: kLevels.length));
     await tester.pumpAndSettle();
 
@@ -99,6 +113,7 @@ void main() {
   });
 
   testWidgets('진짜 라우터를 태워도 잠긴 레벨은 가려진다', (tester) async {
+    useTallView(tester);
     // 위 테스트들은 previewBuilder 를 직접 넣으므로 라우터가 어떻게 잇든
     // 통과한다. 배선 자체를 검사하는 것은 이 하나뿐이다.
     SharedPreferences.setMockInitialValues({'settings_v1_locale': 'ko'});
