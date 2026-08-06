@@ -168,8 +168,11 @@ void main() {
       // 전체가 밀려서, 레벨 선택에서 들어올 때와 구분이 안 된다.
       await bootToLevel1(tester);
 
-      // 레벨 1은 오른쪽으로 한 번 밀면 클리어다.
+      // 레벨 1의 목표는 반대편 모서리다 — 오른쪽으로 민 뒤 아래로 밀면 클리어.
       await tester.drag(find.byType(BoardView), const Offset(300, 0));
+      await tester.pump();
+      await tester.pump(AppConstants.moveAnimationDuration);
+      await tester.drag(find.byType(BoardView), const Offset(0, 300));
       await tester.pump();
       await tester.pump(AppConstants.moveAnimationDuration);
       await tester.pump(const Duration(seconds: 2)); // 별 연출

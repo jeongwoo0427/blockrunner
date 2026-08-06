@@ -89,23 +89,27 @@ void main() {
   });
 
   test('목표에 멈추면 클리어가 된다', () async {
-    // 레벨 1 은 오른쪽으로 한 번 밀면 반대편 구석의 목표에 선다.
+    // 레벨 1 의 목표는 반대편 모서리라 가로와 세로를 한 번씩 써야 한다.
     await send(1, MoveRequested(Direction.right));
+    await send(1, AnimationCompleted());
+    await send(1, MoveRequested(Direction.down));
     final state = read(1);
 
     expect(state.isCleared, isTrue);
-    expect(state.moveCount, 1);
+    expect(state.moveCount, 2);
   });
 
   test('클리어한 뒤에는 이동 입력을 받지 않는다', () async {
     await send(1, MoveRequested(Direction.right));
+    await send(1, AnimationCompleted());
+    await send(1, MoveRequested(Direction.down));
     // 연출을 끝내둔다. 그러지 않으면 isAnimating 때문에 막혀서
     // "클리어라서 막힌다" 를 검사하지 못한다.
     await send(1, AnimationCompleted());
 
     await send(1, MoveRequested(Direction.left));
 
-    expect(read(1).moveCount, 1, reason: '클리어 후 입력은 무시되어야 한다');
+    expect(read(1).moveCount, 2, reason: '클리어 후 입력은 무시되어야 한다');
   });
 
   test('블랙홀에 빠지면 소실 상태가 되고 이후 입력이 막힌다', () async {
@@ -212,6 +216,8 @@ void main() {
 
     test('클리어하면 기록이 저장된다', () async {
       await send(1, MoveRequested(Direction.right));
+      await send(1, AnimationCompleted());
+      await send(1, MoveRequested(Direction.down));
       final state = read(1);
       expect(state.isCleared, isTrue);
 
@@ -232,6 +238,8 @@ void main() {
       expect(progress().highestUnlockedLevel, 1);
 
       await send(1, MoveRequested(Direction.right));
+      await send(1, AnimationCompleted());
+      await send(1, MoveRequested(Direction.down));
 
       expect(progress().highestUnlockedLevel, 2);
     });
@@ -338,6 +346,7 @@ void main() {
 
     test('클리어를 무르면 클리어도 풀린다', () async {
       await move(1, Direction.right);
+      await move(1, Direction.down);
       expect(read(1).isCleared, isTrue);
 
       await send(1, UndoRequested());

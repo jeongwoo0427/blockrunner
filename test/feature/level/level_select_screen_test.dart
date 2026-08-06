@@ -91,7 +91,16 @@ void main() {
     expect(find.byIcon(Icons.star_rounded), findsNWidgets(2));
     expect(find.text(ko.movesLabel(3)), findsOneWidget);
     // 클리어했으면 목표가 아니라 자기 기록이 보여야 한다.
-    expect(find.text(ko.minMovesLabel(kLevels.first.minMoves)), findsNothing);
+    //
+    // **1번 카드 안에서만 찾는다.** 화면 전체를 뒤지면 최소 수가 같은 다른
+    // 레벨의 카드에 걸려서, 1번이 제대로 그려져도 실패한다.
+    expect(
+      find.descendant(
+        of: find.byType(LevelCard).first,
+        matching: find.text(ko.minMovesLabel(kLevels.first.minMoves)),
+      ),
+      findsNothing,
+    );
   });
 
   testWidgets('열린 레벨을 누르면 LevelSelected 를 올려보낸다', (tester) async {

@@ -110,8 +110,10 @@ void main() {
       }
     });
 
-    test('첫 레벨은 한 수로 깨진다', () {
-      expect(kLevels.first.minMoves, 1);
+    test('첫 레벨은 두 수 안에 깨진다', () {
+      // 정확한 수는 설계자의 것이다. 다만 첫 판이 길어지면 규칙을 익히기 전에
+      // 헤매게 되므로 상한만 둔다.
+      expect(kLevels.first.minMoves, lessThanOrEqualTo(2));
     });
 
     test('뒤로 갈수록 대체로 길어진다', () {

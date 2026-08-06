@@ -72,6 +72,8 @@ void main() {
       gamePlayScreenNotifierProvider(1).notifier,
     );
     await gameNotifier.onEvent(MoveRequested(Direction.right));
+    await gameNotifier.onEvent(AnimationCompleted());
+    await gameNotifier.onEvent(MoveRequested(Direction.down));
 
     // 스트림 방출이 한 바퀴 돌 틈을 준다.
     await Future<void>.delayed(Duration.zero);
@@ -86,6 +88,8 @@ void main() {
       gamePlayScreenNotifierProvider(1).notifier,
     );
     await gameNotifier.onEvent(MoveRequested(Direction.right));
+    await gameNotifier.onEvent(AnimationCompleted());
+    await gameNotifier.onEvent(MoveRequested(Direction.down));
     await Future<void>.delayed(Duration.zero);
 
     // 알림이 준 LevelProgress 만 끼워넣었다면 highestUnlockedLevel 은
