@@ -46,8 +46,10 @@ class BoardColors extends ThemeExtension<BoardColors> {
   });
 
   static const light = BoardColors(
-    background: Color(0xFFECEFF4),
-    gridLine: Color(0xFFD3DAE3),
+    // **판은 하얗다.** 화면 바탕이 옅게 색을 띠므로, 판까지 색이 있으면
+    // 배경의 일부처럼 읽힌다. 흰 판이어야 그 위가 퍼즐이라는 것이 갈린다.
+    background: Color(0xFFFFFFFF),
+    gridLine: Color(0xFFDDE3EC),
     wall: Color(0xFF4A5568),
     normalBlock: Color(0xFF8598B8),
     playerBlock: Color(0xFF2E63E8),

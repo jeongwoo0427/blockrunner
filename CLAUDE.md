@@ -234,6 +234,18 @@ distinction. A source-scan test fails if a Material `FilledButton`/`OutlinedButt
 (`surfaceContainerHighest`, board hidden entirely), playable (`primary`), cleared (`tertiary`) — and
 star count is carried by the star row, not by the fill.
 
+**The UI palette and the board are seeded separately, and `tertiary` is hand-picked.**
+`BaseTheme.seed` drives every Material role; the board keeps its own `BoardColors`. They used to be
+one — the seed *was* the player block — so the board dictated the whole screen and no amount of UI
+tweaking could fix it without repainting the board. The palette itself has changed more than once
+(blue → brown → blue); what stays is the structure and the rules `theme_palette_test` enforces: no
+saturated role may sit in the purple arc (hue 255–335), the saturated roles must stay within 120° of
+each other, and the three level-card fills must differ by more than 0.1 lightness. **`tertiary`
+always needs picking by hand** — Material rotates it +60° off the seed, which lands on magenta for a
+blue seed and olive for a brown one, and that role paints the *cleared* level card, the most visible
+tile on the screen. That derived magenta was the "purple" complaint. Note HSL reports near-white as
+fully saturated, so the palette test filters on lightness too, or `surface` reads as purple.
+
 **There are five animation controllers and each one broke `06`'s "implicit animations only" rule for
 a stated reason**: black-hole rotation and the tutorial demo never end, the overlay entrance needs a
 guaranteed first frame (`TweenAnimationBuilder` renders its end value immediately), and the bump
