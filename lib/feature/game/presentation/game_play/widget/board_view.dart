@@ -34,7 +34,7 @@ class BoardView extends StatelessWidget {
 
   final BoardState board;
 
-  /// 구멍으로 사라지는 중인 블록. [board] 에는 없지만 연출이 끝날 때까지 그린다.
+  /// 블랙홀로 사라지는 중인 블록. [board] 에는 없지만 연출이 끝날 때까지 그린다.
   final List<Block> fallingBlocks;
 
   /// 연출을 재생할 것인가.

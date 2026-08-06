@@ -11,7 +11,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// 없는 파서에 묶이지 않도록 여기에 최소한만 둔다.
 ///
 /// 이 표기는 **칸만** 나열하므로 경계 벽을 적을 수 없다. 필요하면 [walls] 로
-/// 직접 넘긴다 — 이동 엔진 테스트가 검증하는 것은 미끄러짐·정렬 순서·구멍이지
+/// 직접 넘긴다 — 이동 엔진 테스트가 검증하는 것은 미끄러짐·정렬 순서·블랙홀이지
 /// 레벨 저작이 아니라서, 31개 케이스를 격자 표기로 바꾸면 읽기만 어려워진다.
 ///
 /// 블록 id 는 좌상단부터 행 우선(row-major) 순서로 0 부터 붙는다.
@@ -34,7 +34,7 @@ BoardState parseBoard(List<String> rows, {Set<WallEdge> walls = const {}}) {
         case 'G':
           floorRow.add(FloorType.goal);
         case 'X':
-          floorRow.add(FloorType.hole);
+          floorRow.add(FloorType.blackHole);
         case 'O':
           floorRow.add(FloorType.empty);
           blocks.add(
@@ -87,7 +87,7 @@ List<String> formatBoard(BoardState board) {
         FloorType.empty => '.',
         FloorType.wall => '#',
         FloorType.goal => 'G',
-        FloorType.hole => 'X',
+        FloorType.blackHole => 'X',
       });
     }
     return buffer.toString();

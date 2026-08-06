@@ -51,7 +51,7 @@ class StringsEn extends AppStrings {
   String get cleared => 'Cleared!';
 
   @override
-  String get fellIntoHole => 'Fell into a hole';
+  String get fellIntoBlackHole => 'Fell into a black hole';
 
   @override
   String get retryHint => 'Start over and try again';
@@ -84,7 +84,7 @@ class StringsEn extends AppStrings {
     2: 'The Wall',
     3: 'Block Brake',
     4: 'Overshoot',
-    5: 'The Hole',
+    5: 'Black Hole',
     6: 'In Order',
     7: 'Hidden Ledge',
   };
@@ -98,7 +98,7 @@ class StringsEn extends AppStrings {
         'One input slides every block at once.\n'
         'Other blocks can bring the player to a stop too.',
     5:
-        'A hole swallows any block that merely passes over it.\n'
+        'A black hole swallows any block that merely passes over it.\n'
         'Watch the path, not just the landing tile.',
     7:
         'The thick line between two tiles is an edge wall.\n'

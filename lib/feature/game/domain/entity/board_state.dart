@@ -55,7 +55,7 @@ class BoardState {
     return null;
   }
 
-  /// 플레이어 블록. 구멍에 빠져 사라졌다면 `null`.
+  /// 플레이어 블록. 블랙홀에 빠져 사라졌다면 `null`.
   Block? get player {
     for (final block in blocks) {
       if (block.isPlayer) return block;

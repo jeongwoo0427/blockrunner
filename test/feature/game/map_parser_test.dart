@@ -45,7 +45,7 @@ void main() {
       expect(board.colCount, 6);
 
       expect(board.floorAt(const Position(1, 2)), FloorType.wall);
-      expect(board.floorAt(const Position(1, 3)), FloorType.hole);
+      expect(board.floorAt(const Position(1, 3)), FloorType.blackHole);
       expect(board.floorAt(const Position(1, 5)), FloorType.goal);
       // 블록이 선 칸의 바닥은 빈 칸이다.
       expect(board.floorAt(const Position(0, 0)), FloorType.empty);
@@ -151,7 +151,7 @@ void main() {
         () =>
             parser.parse(blueprintOf(const ['+-+ +-+', '|@ . G|', '+-+-+-+'])),
         throwsInvalidMapData,
-        reason: '윗변에 구멍이 뚫려 있다',
+        reason: '윗변이 뚫려 있다',
       );
       expect(
         () =>

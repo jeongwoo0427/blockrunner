@@ -50,7 +50,7 @@ class StringsZh extends AppStrings {
   String get cleared => '过关！';
 
   @override
-  String get fellIntoHole => '掉进坑里了';
+  String get fellIntoBlackHole => '被黑洞吞噬了';
 
   @override
   String get retryHint => '从头再来一次吧';
@@ -79,7 +79,7 @@ class StringsZh extends AppStrings {
     2: '靠墙停下',
     3: '借块而停',
     4: '冲过头',
-    5: '避开坑洞',
+    5: '避开黑洞',
     6: '顺序有别',
     7: '看不见的坎',
   };
@@ -93,7 +93,7 @@ class StringsZh extends AppStrings {
         '输入一个方向，所有方块会一起滑动。\n'
         '其他方块同样能挡住玩家。',
     5:
-        '坑洞只要经过就会吞掉方块。\n'
+        '黑洞只要经过就会吞掉方块。\n'
         '要看的是路线，而不是落点。',
     7:
         '格与格之间的粗线是边界墙。\n'

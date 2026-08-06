@@ -47,7 +47,7 @@ class StringsKo extends AppStrings {
   String get cleared => '클리어!';
 
   @override
-  String get fellIntoHole => '구멍에 빠졌다';
+  String get fellIntoBlackHole => '블랙홀에 빠졌다';
 
   @override
   String get retryHint => '처음부터 다시 해보자';
@@ -76,7 +76,7 @@ class StringsKo extends AppStrings {
     2: '벽에 기대어',
     3: '블록을 밟고',
     4: '지나쳐버리다',
-    5: '구멍을 피해',
+    5: '블랙홀을 피해',
     6: '순서가 있다',
     7: '보이지 않는 턱',
   };
@@ -90,7 +90,7 @@ class StringsKo extends AppStrings {
         '방향을 입력하면 모든 블록이 함께 미끄러진다.\n'
         '다른 블록도 플레이어를 멈춰 세우는 브레이크가 된다.',
     5:
-        '구멍은 지나가기만 해도 블록을 삼킨다.\n'
+        '블랙홀은 지나가기만 해도 블록을 삼킨다.\n'
         '멈추는 자리가 아니라 지나는 길을 살펴야 한다.',
     7:
         '칸 사이의 굵은 선은 경계 벽이다.\n'

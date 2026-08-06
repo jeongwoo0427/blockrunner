@@ -25,7 +25,7 @@ int? solveMinMoves(BoardState initial, {int maxMoves = 12}) {
 
         final moved = result.board;
         if (moved.isCleared) return depth;
-        // 플레이어가 구멍에 빠진 판은 되돌리기 말고는 길이 없다.
+        // 플레이어가 블랙홀에 빠진 판은 되돌리기 말고는 길이 없다.
         if (!moved.hasPlayer) continue;
         if (visited.add(_key(moved))) next.add(moved);
       }

@@ -55,7 +55,7 @@ class GamePlayScreenState {
   /// [AnimationCompleted] 를 올려보내면 내린다.
   final bool isAnimating;
 
-  /// 이번 이동에서 구멍에 빠진 블록들. 위치는 **빠진 구멍 칸**이다.
+  /// 이번 이동에서 블랙홀에 빠진 블록들. 위치는 **빠진 블랙홀 칸**이다.
   ///
   /// [board] 에는 이미 없다. 그래도 들고 있는 이유는 낙하 연출 때문이다 —
   /// 판에서 지워버리면 미끄러지다 말고 순간 소멸한다. 연출이 끝나면 비운다.
@@ -63,7 +63,7 @@ class GamePlayScreenState {
 
   final bool isCleared;
 
-  /// 플레이어가 구멍에 빠져 되돌리기 유도 중 (기획서 §3.5).
+  /// 플레이어가 블랙홀에 빠져 되돌리기 유도 중 (기획서 §3.5).
   final bool isPlayerLost;
 
   final bool hasNextLevel;

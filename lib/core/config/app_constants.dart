@@ -11,7 +11,7 @@ abstract class AppConstants {
   /// 거리 비례가 아닌 고정값이다. (docs/game-design.md §7)
   static const Duration moveAnimationDuration = Duration(milliseconds: _moveMs);
 
-  /// 구멍에 빠지는 연출 시간. 슬라이드가 끝난 뒤 별도로 재생한다.
+  /// 블랙홀에 빠지는 연출 시간. 슬라이드가 끝난 뒤 별도로 재생한다.
   static const Duration fallAnimationDuration = Duration(milliseconds: _fallMs);
 
   /// 낙하가 있는 이동 한 번의 전체 소요 시간 — 슬라이드 + 낙하.

@@ -49,7 +49,7 @@ class StringsJa extends AppStrings {
   String get cleared => 'クリア！';
 
   @override
-  String get fellIntoHole => '穴に落ちた';
+  String get fellIntoBlackHole => 'ブラックホールに落ちた';
 
   @override
   String get retryHint => '最初からやり直そう';
@@ -78,7 +78,7 @@ class StringsJa extends AppStrings {
     2: '壁に寄せて',
     3: 'ブロックを踏んで',
     4: '行き過ぎる',
-    5: '穴を避けて',
+    5: 'ブラックホール',
     6: '順番がある',
     7: '見えない段差',
   };
@@ -92,7 +92,7 @@ class StringsJa extends AppStrings {
         '方向を入力すると、すべてのブロックが一緒に滑る。\n'
         '他のブロックもプレイヤーを止める壁になる。',
     5:
-        '穴は通り過ぎるだけでブロックを飲み込む。\n'
+        'ブラックホールは通り過ぎるだけでブロックを飲み込む。\n'
         '止まる場所ではなく、通る道を見よう。',
     7:
         'マスとマスの間の太い線は境界壁だ。\n'

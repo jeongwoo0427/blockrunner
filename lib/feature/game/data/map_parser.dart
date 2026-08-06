@@ -53,7 +53,7 @@ class MapParser {
             floorRow.add(FloorType.goal);
             goals.add(position);
           case 'X':
-            floorRow.add(FloorType.hole);
+            floorRow.add(FloorType.blackHole);
           case 'O':
             floorRow.add(FloorType.empty);
             blocks.add(

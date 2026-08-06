@@ -8,7 +8,7 @@ import 'package:flutter/material.dart';
 /// **레이아웃을 차지하지 않는다.** 보드 아래 한 줄로 두면 사라질 때 판이 갑자기
 /// 커져 시선이 흔들린다. 판 위에 겹치면 나타나고 사라져도 레이아웃이 그대로다.
 ///
-/// 배경을 완전히 덮지 않는 것도 의도다 — "이 판에 구멍이 있다" 는 말로만
+/// 배경을 완전히 덮지 않는 것도 의도다 — "이 판에 블랙홀이 있다" 는 말로만
 /// 설명하는 것보다 가리키며 설명하는 편이 낫다.
 class TutorialOverlay extends StatelessWidget {
   const TutorialOverlay({

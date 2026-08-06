@@ -30,11 +30,24 @@ import 'support/strings_harness.dart';
 void main() {
   final map = const MapParser().parse(kMapBlueprints.first);
 
-  Widget playScreen() => GamePlayScreen(
+  /// [isCleared] · [isPlayerLost] 를 주면 결과 오버레이가 뜬 상태로 그린다.
+  ///
+  /// **오버레이도 검사 대상이다.** 평소에 안 보이므로 다른 테스트에서는 드러나지
+  /// 않는다. 다만 오버레이 문구는 줄바꿈되므로 조금 길어지는 정도로는 넘치지
+  /// 않는다 — 세로로 넘칠 만큼 길어질 때 걸린다.
+  Widget playScreen({
+    bool isCleared = false,
+    bool isPlayerLost = false,
+    bool showsTutorial = false,
+  }) => GamePlayScreen(
     state: GamePlayScreenState(
       level: kLevels.first,
       map: map,
       board: map.initialBoard,
+      moveCount: isCleared ? 3 : 0,
+      isCleared: isCleared,
+      isPlayerLost: isPlayerLost,
+      showsTutorial: showsTutorial,
     ),
     onEvent: (GamePlayScreenEvent _) {},
   );
@@ -99,6 +112,33 @@ void main() {
         );
       });
     }
+  });
+
+  group('오버레이도 작은 폰에 들어간다', () {
+    // 클리어 · 블랙홀 · 튜토리얼 오버레이는 평소에 안 보이므로, 문구가 길어져도
+    // 다른 테스트에서는 드러나지 않는다.
+    const overlays = <String, ({bool cleared, bool lost, bool tutorial})>{
+      '클리어': (cleared: true, lost: false, tutorial: false),
+      '블랙홀': (cleared: false, lost: true, tutorial: false),
+      '튜토리얼': (cleared: false, lost: false, tutorial: true),
+    };
+
+    overlays.forEach((label, flags) {
+      testWidgets('$label — 5개 언어', (tester) async {
+        for (final locale in AppLocale.values) {
+          await expectFits(
+            tester,
+            playScreen(
+              isCleared: flags.cleared,
+              isPlayerLost: flags.lost,
+              showsTutorial: flags.tutorial,
+            ),
+            size: smallPhone,
+            locale: locale,
+          );
+        }
+      });
+    });
   });
 
   group('글꼴을 키워도 넘치지 않는다', () {

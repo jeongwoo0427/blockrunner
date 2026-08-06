@@ -138,7 +138,7 @@ void main() {
       );
     });
 
-    test('경계 벽 앞에서 멈춰 구멍을 피한다', () {
+    test('경계 벽 앞에서 멈춰 블랙홀을 피한다', () {
       final result = expectMove(
         before: ['@...X.'],
         walls: wallRightOf3,
@@ -147,7 +147,7 @@ void main() {
       );
 
       expect(result.board.hasPlayer, isTrue);
-      expect(result.fellIntoHole, isEmpty);
+      expect(result.fellIntoBlackHole, isEmpty);
     });
 
     test('세로 경계 벽도 같은 규칙이다', () {
@@ -248,7 +248,7 @@ void main() {
     });
   });
 
-  group('구멍', () {
+  group('블랙홀', () {
     test('기획서 §4.2 — 플레이어가 지나가다 빠진다', () {
       final result = expectMove(
         before: ['.O.X.@'],
@@ -258,9 +258,9 @@ void main() {
 
       expect(result.board.hasPlayer, isFalse);
       expect(result.board.isCleared, isFalse);
-      expect(result.fellIntoHole, hasLength(1));
-      // 낙하 연출이 "어디서 사라졌는지" 를 알아야 하므로 도착 위치는 구멍 칸이다.
-      expect(result.to[result.fellIntoHole.single], const Position(0, 3));
+      expect(result.fellIntoBlackHole, hasLength(1));
+      // 낙하 연출이 "어디서 사라졌는지" 를 알아야 하므로 도착 위치는 블랙홀 칸이다.
+      expect(result.to[result.fellIntoBlackHole.single], const Position(0, 3));
     });
 
     test('일반 블록만 빠지고 플레이어는 남는다', () {
@@ -271,21 +271,21 @@ void main() {
       );
 
       expect(result.board.hasPlayer, isTrue);
-      expect(result.fellIntoHole, [1], reason: '행 우선 순서로 @ 가 0, O 가 1');
+      expect(result.fellIntoBlackHole, [1], reason: '행 우선 순서로 @ 가 0, O 가 1');
     });
 
-    test('구멍은 소모되지 않는다 — 두 블록이 연달아 빠진다', () {
+    test('블랙홀은 소모되지 않는다 — 두 블록이 연달아 빠진다', () {
       final result = expectMove(
         before: ['OO.X..'],
         direction: Direction.right,
         after: ['...X..'],
       );
 
-      expect(result.fellIntoHole, hasLength(2));
+      expect(result.fellIntoBlackHole, hasLength(2));
       expect(result.board.blocks, isEmpty);
     });
 
-    test('구멍 앞에서 멈추면 빠지지 않는다', () {
+    test('블랙홀 앞에서 멈추면 빠지지 않는다', () {
       final result = expectMove(
         before: ['@.#X..'],
         direction: Direction.right,
@@ -293,7 +293,7 @@ void main() {
       );
 
       expect(result.board.hasPlayer, isTrue);
-      expect(result.fellIntoHole, isEmpty);
+      expect(result.fellIntoBlackHole, isEmpty);
     });
   });
 
@@ -306,7 +306,7 @@ void main() {
         moved: false,
       );
 
-      expect(result.fellIntoHole, isEmpty);
+      expect(result.fellIntoBlackHole, isEmpty);
     });
 
     test('모든 블록이 그 방향 끝에 몰려 있으면 무효다', () {
@@ -397,7 +397,7 @@ void main() {
       expect(result.to[0], const Position(0, 4));
       expect(result.from[1], const Position(0, 1));
       expect(result.to[1], const Position(0, 5));
-      expect(result.fellIntoHole, isEmpty);
+      expect(result.fellIntoBlackHole, isEmpty);
     });
   });
 

@@ -201,7 +201,7 @@ class GamePlayScreenState {
   final int moveCount;
   final bool isAnimating;
   final bool isCleared;
-  final bool isPlayerLost;   // 구멍에 빠져 되돌리기 유도 중
+  final bool isPlayerLost;   // 블랙홀에 빠져 되돌리기 유도 중
   final Failure? failure;
 
   const GamePlayScreenState({ this.level, ..., this.moveCount = 0 });

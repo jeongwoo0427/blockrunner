@@ -11,7 +11,7 @@ class MoveResult {
     required this.moved,
     required this.from,
     required this.to,
-    required this.fellIntoHole,
+    required this.fellIntoBlackHole,
   });
 
   /// 이동이 끝난 뒤의 보드. [moved] 가 `false` 면 입력 전 보드와 같다.
@@ -23,9 +23,9 @@ class MoveResult {
   /// blockId → 출발 위치.
   final Map<int, Position> from;
 
-  /// blockId → 도착 위치. 구멍에 빠진 블록은 **사라진 칸(구멍 위치)** 이 담긴다.
+  /// blockId → 도착 위치. 블랙홀에 빠진 블록은 **사라진 칸(블랙홀 위치)** 이 담긴다.
   final Map<int, Position> to;
 
-  /// 구멍에 빠져 사라진 blockId 목록. [board] 에는 남아있지 않다.
-  final List<int> fellIntoHole;
+  /// 블랙홀에 빠져 사라진 blockId 목록. [board] 에는 남아있지 않다.
+  final List<int> fellIntoBlackHole;
 }

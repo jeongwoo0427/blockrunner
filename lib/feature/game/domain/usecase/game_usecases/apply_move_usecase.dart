@@ -27,7 +27,7 @@ class ApplyMoveUsecase {
     final occupied = <Position>{};
     final from = <int, Position>{};
     final to = <int, Position>{};
-    final fellIntoHole = <int>[];
+    final fellIntoBlackHole = <int>[];
     var moved = false;
 
     for (final block in ordered) {
@@ -44,9 +44,9 @@ class ApplyMoveUsecase {
           break;
         }
         current = next;
-        // 구멍은 정지 지점이 아니라 통과 경로에서 판정한다. 들어서는 순간
-        // 사라지며 구멍 너머로 나아가지 않는다(기획서 §3.3).
-        if (board.floorAt(current) == FloorType.hole) {
+        // 블랙홀은 정지 지점이 아니라 통과 경로에서 판정한다. 들어서는 순간
+        // 사라지며 블랙홀 너머로 나아가지 않는다(기획서 §3.3).
+        if (board.floorAt(current) == FloorType.blackHole) {
           fell = true;
           break;
         }
@@ -57,7 +57,7 @@ class ApplyMoveUsecase {
       if (current != block.position) moved = true;
 
       if (fell) {
-        fellIntoHole.add(block.id);
+        fellIntoBlackHole.add(block.id);
       } else {
         settled.add(block.moveTo(current));
         occupied.add(current);
@@ -71,7 +71,7 @@ class ApplyMoveUsecase {
       moved: moved,
       from: from,
       to: to,
-      fellIntoHole: fellIntoHole,
+      fellIntoBlackHole: fellIntoBlackHole,
     );
   }
 

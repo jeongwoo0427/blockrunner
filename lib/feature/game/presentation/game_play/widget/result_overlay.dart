@@ -19,7 +19,7 @@ class ResultOverlay extends StatelessWidget {
     required this.onBackToLevelSelect,
   });
 
-  /// `false` 면 플레이어가 구멍에 빠진 상태다.
+  /// `false` 면 플레이어가 블랙홀에 빠진 상태다.
   final bool isCleared;
 
   final int moveCount;
@@ -48,7 +48,7 @@ class ResultOverlay extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                isCleared ? strings.cleared : strings.fellIntoHole,
+                isCleared ? strings.cleared : strings.fellIntoBlackHole,
                 style: theme.textTheme.headlineSmall,
               ),
               if (isCleared) ...[
@@ -57,7 +57,7 @@ class ResultOverlay extends StatelessWidget {
               ],
               const SizedBox(height: Spacing.sm),
               Text(
-                // 되돌리기가 없으므로 구멍에 빠지면 처음부터다 (기획서 §3.5).
+                // 되돌리기가 없으므로 블랙홀에 빠지면 처음부터다 (기획서 §3.5).
                 isCleared
                     ? strings.clearedSummary(moveCount, minMoves)
                     : strings.retryHint,

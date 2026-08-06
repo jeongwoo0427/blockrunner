@@ -51,7 +51,7 @@ class StringsFr extends AppStrings {
   String get cleared => 'Réussi !';
 
   @override
-  String get fellIntoHole => 'Tombé dans un trou';
+  String get fellIntoBlackHole => 'Aspiré par un trou noir';
 
   @override
   String get retryHint => 'Recommence depuis le début';
@@ -81,7 +81,7 @@ class StringsFr extends AppStrings {
     2: 'Le mur',
     3: 'Bloc-frein',
     4: 'Trop loin',
-    5: 'Le trou',
+    5: 'Trou noir',
     6: "Dans l'ordre",
     7: 'Rebord caché',
   };
@@ -95,7 +95,7 @@ class StringsFr extends AppStrings {
         'Une seule commande fait glisser tous les blocs à la fois.\n'
         'Les autres blocs peuvent aussi arrêter le joueur.',
     5:
-        'Un trou avale tout bloc qui ne fait que le traverser.\n'
+        'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
         "Surveille le trajet, pas seulement la case d'arrivée.",
     7:
         'Le trait épais entre deux cases est un mur de bordure.\n'

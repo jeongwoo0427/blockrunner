@@ -58,9 +58,9 @@ abstract class AppStrings {
 
   String get cleared;
 
-  String get fellIntoHole;
+  String get fellIntoBlackHole;
 
-  /// 되돌리기가 없으므로 구멍에 빠지면 처음부터다 (기획서 §3.5).
+  /// 되돌리기가 없으므로 블랙홀에 빠지면 처음부터다 (기획서 §3.5).
   String get retryHint;
 
   /// "3수 / 최소 2수".

@@ -5,7 +5,7 @@ import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:flutter/material.dart';
 
-/// 고정된 것만 그린다 — 배경 · 바닥(목표 · 구멍) · 격자선 · 벽.
+/// 고정된 것만 그린다 — 배경 · 바닥(목표 · 블랙홀) · 격자선 · 벽.
 ///
 /// 움직이는 블록은 이 위에 위젯으로 얹는다. 그래야 `06-animation` 에서
 /// 슬라이드와 낙하 연출을 위젯 애니메이션으로 처리할 수 있다.
@@ -55,12 +55,12 @@ class BoardPainter extends CustomPainter {
 
   void _paintFloors(Canvas canvas) {
     final goalPaint = Paint()..color = colors.goal;
-    final holePaint = Paint()..color = colors.hole;
+    final blackHolePaint = Paint()..color = colors.blackHole;
 
     for (var row = 0; row < board.rowCount; row++) {
       for (var col = 0; col < board.colCount; col++) {
         final floor = board.floors[row][col];
-        if (floor != FloorType.goal && floor != FloorType.hole) continue;
+        if (floor != FloorType.goal && floor != FloorType.blackHole) continue;
 
         final rect = _cellRect(row, col);
         if (floor == FloorType.goal) {
@@ -74,7 +74,7 @@ class BoardPainter extends CustomPainter {
               ..style = PaintingStyle.fill,
           );
         } else {
-          canvas.drawOval(rect.deflate(cell * 0.08), holePaint);
+          canvas.drawOval(rect.deflate(cell * 0.08), blackHolePaint);
         }
       }
     }

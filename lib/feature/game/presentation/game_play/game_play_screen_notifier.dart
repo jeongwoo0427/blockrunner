@@ -120,12 +120,12 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
     );
   }
 
-  /// 구멍에 빠진 블록을 **빠진 칸에 놓인 채로** 되살려 돌려준다.
+  /// 블랙홀에 빠진 블록을 **빠진 칸에 놓인 채로** 되살려 돌려준다.
   ///
-  /// `result.board` 에서는 이미 지워졌으므로, 이것이 없으면 구멍까지 미끄러지는
+  /// `result.board` 에서는 이미 지워졌으므로, 이것이 없으면 블랙홀까지 미끄러지는
   /// 장면 없이 그 자리에서 순간 소멸한다.
   List<Block> _fallenBlocks(BoardState before, MoveResult result) => [
-    for (final id in result.fellIntoHole)
+    for (final id in result.fellIntoBlackHole)
       before.blocks
           .firstWhere((block) => block.id == id)
           .moveTo(result.to[id]!),

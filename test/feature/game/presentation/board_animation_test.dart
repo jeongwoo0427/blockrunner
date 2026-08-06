@@ -142,7 +142,7 @@ void main() {
     );
   });
 
-  testWidgets('빠지는 블록도 구멍까지 미끄러진 뒤 사라진다', (tester) async {
+  testWidgets('빠지는 블록도 블랙홀까지 미끄러진 뒤 사라진다', (tester) async {
     final before = boardWith(const [Position(0, 0)]);
     final after = boardWith(const []);
     final falling = [
@@ -158,7 +158,7 @@ void main() {
     expect(
       centerX(tester, 0),
       greaterThan(start),
-      reason: '제자리에서 사라지면 어느 구멍에 빠졌는지 알 수 없다',
+      reason: '제자리에서 사라지면 어느 블랙홀에 빠졌는지 알 수 없다',
     );
   });
 

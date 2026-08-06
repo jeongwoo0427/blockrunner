@@ -81,7 +81,7 @@ void main() {
     await pumpScreen(tester, stateOf());
 
     expect(find.text('클리어!'), findsNothing);
-    expect(find.text('구멍에 빠졌다'), findsNothing);
+    expect(find.text('블랙홀에 빠졌다'), findsNothing);
   });
 
   testWidgets('클리어하면 이동 횟수와 함께 결과가 뜬다', (tester) async {
@@ -102,7 +102,7 @@ void main() {
   testWidgets('플레이어가 빠지면 다시하기를 유도한다', (tester) async {
     await pumpScreen(tester, stateOf(isPlayerLost: true));
 
-    expect(find.text('구멍에 빠졌다'), findsOneWidget);
+    expect(find.text('블랙홀에 빠졌다'), findsOneWidget);
     // HUD 의 것과 오버레이의 것, 둘 다 있어야 한다.
     expect(find.text('다시하기'), findsNWidgets(2));
     expect(find.text('다음 레벨'), findsNothing);
@@ -177,7 +177,7 @@ void main() {
       expect(find.byIcon(Icons.undo), findsNothing);
     });
 
-    testWidgets('구멍에 빠진 오버레이에도 없다', (tester) async {
+    testWidgets('블랙홀에 빠진 오버레이에도 없다', (tester) async {
       await pumpScreen(
         tester,
         stateOf(isPlayerLost: true, hasHistory: true, undosLeft: 3),
@@ -228,13 +228,13 @@ void main() {
       expect(find.byIcon(Icons.star_outline_rounded), findsNWidgets(2));
     });
 
-    testWidgets('구멍에 빠지면 별점을 보여주지 않는다', (tester) async {
+    testWidgets('블랙홀에 빠지면 별점을 보여주지 않는다', (tester) async {
       await pumpScreen(tester, stateOf(isPlayerLost: true));
 
       expect(find.byIcon(Icons.star_rounded), findsNothing);
     });
 
-    testWidgets('구멍에 빠지면 다시하기만 남는다 (기획서 §3.5)', (tester) async {
+    testWidgets('블랙홀에 빠지면 다시하기만 남는다 (기획서 §3.5)', (tester) async {
       await pumpScreen(tester, stateOf(isPlayerLost: true, hasHistory: true));
 
       // 다시하기는 항상 열려 있어야 게임이 끝나지 않는다.

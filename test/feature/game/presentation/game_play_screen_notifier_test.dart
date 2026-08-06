@@ -107,8 +107,8 @@ void main() {
     expect(read(1).moveCount, 1, reason: '클리어 후 입력은 무시되어야 한다');
   });
 
-  test('구멍에 빠지면 소실 상태가 되고 이후 입력이 막힌다', () async {
-    // 레벨 5 는 목표를 향해 곧장 밀면 구멍에 빠지도록 만들어져 있다.
+  test('블랙홀에 빠지면 소실 상태가 되고 이후 입력이 막힌다', () async {
+    // 레벨 5 는 목표를 향해 곧장 밀면 블랙홀에 빠지도록 만들어져 있다.
     await send(5, MoveRequested(Direction.right));
     await send(5, AnimationCompleted());
     final lost = read(5);
@@ -161,12 +161,12 @@ void main() {
       expect(read(2).isAnimating, isFalse, reason: '판이 안 바뀌면 보여줄 것도 없다');
     });
 
-    test('구멍에 빠진 블록은 빠진 칸에 놓인 채 남는다', () async {
+    test('블랙홀에 빠진 블록은 빠진 칸에 놓인 채 남는다', () async {
       await send(5, MoveRequested(Direction.right));
       final state = read(5);
 
       // 판에서는 지워졌지만 연출용으로는 살아 있어야 한다. 그러지 않으면
-      // 구멍까지 미끄러지는 장면 없이 제자리에서 사라진다.
+      // 블랙홀까지 미끄러지는 장면 없이 제자리에서 사라진다.
       expect(state.board?.hasPlayer, isFalse);
       expect(state.fallingBlocks, hasLength(1));
 
@@ -174,8 +174,8 @@ void main() {
       expect(fallen.isPlayer, isTrue);
       expect(
         state.board?.floorAt(fallen.position),
-        FloorType.hole,
-        reason: '연출 위치는 출발 칸이 아니라 빠진 구멍이어야 한다',
+        FloorType.blackHole,
+        reason: '연출 위치는 출발 칸이 아니라 빠진 블랙홀이어야 한다',
       );
 
       await send(5, AnimationCompleted());
@@ -234,7 +234,7 @@ void main() {
       expect(progress().highestUnlockedLevel, 2);
     });
 
-    test('구멍에 빠져도 저장하지 않는다', () async {
+    test('블랙홀에 빠져도 저장하지 않는다', () async {
       await send(5, MoveRequested(Direction.right));
       expect(read(5).isPlayerLost, isTrue);
 
@@ -321,7 +321,7 @@ void main() {
       expect(read(2).canUndo, isFalse);
     });
 
-    test('구멍에 빠져도 되돌리기로 복구된다', () async {
+    test('블랙홀에 빠져도 되돌리기로 복구된다', () async {
       await move(5, Direction.right);
       expect(read(5).isPlayerLost, isTrue);
 

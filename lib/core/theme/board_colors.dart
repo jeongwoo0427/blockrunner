@@ -25,8 +25,8 @@ class BoardColors extends ThemeExtension<BoardColors> {
   /// 목표 지점 (바닥 표시)
   final Color goal;
 
-  /// 구멍 (바닥 표시)
-  final Color hole;
+  /// 블랙홀 (바닥 표시)
+  final Color blackHole;
 
   const BoardColors({
     required this.background,
@@ -35,7 +35,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     required this.normalBlock,
     required this.playerBlock,
     required this.goal,
-    required this.hole,
+    required this.blackHole,
   });
 
   static const light = BoardColors(
@@ -45,7 +45,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     normalBlock: Color(0xFF8598B8),
     playerBlock: Color(0xFFE8703A),
     goal: Color(0xFF3FA796),
-    hole: Color(0xFF1E2430),
+    blackHole: Color(0xFF1E2430),
   );
 
   static const dark = BoardColors(
@@ -55,7 +55,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     normalBlock: Color(0xFF4E5D78),
     playerBlock: Color(0xFFFF8A50),
     goal: Color(0xFF4FC3AC),
-    hole: Color(0xFF0B0E14),
+    blackHole: Color(0xFF0B0E14),
   );
 
   @override
@@ -66,7 +66,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     Color? normalBlock,
     Color? playerBlock,
     Color? goal,
-    Color? hole,
+    Color? blackHole,
   }) {
     return BoardColors(
       background: background ?? this.background,
@@ -75,7 +75,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
       normalBlock: normalBlock ?? this.normalBlock,
       playerBlock: playerBlock ?? this.playerBlock,
       goal: goal ?? this.goal,
-      hole: hole ?? this.hole,
+      blackHole: blackHole ?? this.blackHole,
     );
   }
 
@@ -89,7 +89,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
       normalBlock: Color.lerp(normalBlock, other.normalBlock, t)!,
       playerBlock: Color.lerp(playerBlock, other.playerBlock, t)!,
       goal: Color.lerp(goal, other.goal, t)!,
-      hole: Color.lerp(hole, other.hole, t)!,
+      blackHole: Color.lerp(blackHole, other.blackHole, t)!,
     );
   }
 }
