@@ -1,11 +1,11 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:flutter/material.dart';
 
 /// 클리어 · 플레이어 소실 결과를 보드 위에 얹는 레이어.
 ///
-/// 다이얼로그가 아니라 상태에서 파생되는 레이어다. Screen 이 Riverpod 도
-/// `showDialog` 도 모르는 채로 남고, 보드가 뒤에 계속 보인다.
+/// 감싸는 것은 [OverlayCard] 가 한다 — 여기는 **내용만** 담는다.
 class ResultOverlay extends StatelessWidget {
   const ResultOverlay({
     super.key,
@@ -39,50 +39,47 @@ class ResultOverlay extends StatelessWidget {
     final theme = Theme.of(context);
     final strings = context.strings;
 
-    return ColoredBox(
-      color: theme.colorScheme.surface.withValues(alpha: 0.82),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Spacing.lg),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
+    return OverlayCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            isCleared ? strings.cleared : strings.fellIntoBlackHole,
+            style: theme.textTheme.headlineSmall,
+            textAlign: TextAlign.center,
+          ),
+          if (isCleared) ...[
+            const SizedBox(height: Spacing.md),
+            _Stars(count: stars),
+          ],
+          const SizedBox(height: Spacing.sm),
+          Text(
+            // 되돌리기가 없으므로 블랙홀에 빠지면 처음부터다 (기획서 §3.5).
+            isCleared
+                ? strings.clearedSummary(moveCount, minMoves)
+                : strings.retryHint,
+            style: theme.textTheme.bodyMedium,
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: Spacing.lg),
+          Wrap(
+            spacing: Spacing.sm,
+            runSpacing: Spacing.sm,
+            alignment: WrapAlignment.center,
             children: [
-              Text(
-                isCleared ? strings.cleared : strings.fellIntoBlackHole,
-                style: theme.textTheme.headlineSmall,
+              OutlinedButton(
+                onPressed: onBackToLevelSelect,
+                child: Text(strings.backToList),
               ),
-              if (isCleared) ...[
-                const SizedBox(height: Spacing.md),
-                _Stars(count: stars),
-              ],
-              const SizedBox(height: Spacing.sm),
-              Text(
-                // 되돌리기가 없으므로 블랙홀에 빠지면 처음부터다 (기획서 §3.5).
-                isCleared
-                    ? strings.clearedSummary(moveCount, minMoves)
-                    : strings.retryHint,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: Spacing.lg),
-              Wrap(
-                spacing: Spacing.sm,
-                alignment: WrapAlignment.center,
-                children: [
-                  OutlinedButton(
-                    onPressed: onBackToLevelSelect,
-                    child: Text(strings.backToList),
-                  ),
-                  OutlinedButton(onPressed: onReset, child: Text(strings.reset)),
-                  if (isCleared && hasNextLevel)
-                    FilledButton(
-                      onPressed: onNextLevel,
-                      child: Text(strings.nextLevel),
-                    ),
-                ],
-              ),
+              OutlinedButton(onPressed: onReset, child: Text(strings.reset)),
+              if (isCleared && hasNextLevel)
+                FilledButton(
+                  onPressed: onNextLevel,
+                  child: Text(strings.nextLevel),
+                ),
             ],
           ),
-        ),
+        ],
       ),
     );
   }

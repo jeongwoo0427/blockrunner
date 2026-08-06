@@ -2,6 +2,8 @@ import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/theme/board_colors.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
+import 'package:blockrunner/feature/game/domain/entity/cell.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/black_hole_painter.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_painter.dart';
@@ -18,13 +20,27 @@ const Curve _fallCurve = Interval(
   curve: Curves.easeIn,
 );
 
+/// 플레이어 흡입은 훨씬 길어서 지연 비율도 다르다.
+const Curve _playerFallCurve = Interval(
+  AppConstants.playerFallStartFraction,
+  1,
+  curve: Curves.easeIn,
+);
+
+/// 회전하지 않는 블록에 물려 둘 애니메이션.
+///
+/// **빠질 때만 `RotationTransition` 을 씌우면 안 된다.** 위젯이 트리에 새로
+/// 끼어들면 그 아래 `AnimatedScale` 이 새로 생겨 시작값부터 그려지고, 축소가
+/// 아예 재생되지 않는다. 늘 씌워 두고 물리는 애니메이션만 바꾼다.
+const Animation<double> _noRotation = AlwaysStoppedAnimation(0);
+
 /// 보드를 그린다.
 ///
 /// 좌표 계산은 [BoardMetrics] 가 한다 — 화면 쪽에서도 보드 폭을 알아야
 /// HUD 를 맞출 수 있어(기획서 §6.2) 계산을 여기서 꺼내 두었다.
 /// **부모가 준 제약에 스스로 맞춘다.** 밖에서 계산한 크기를 받아 그리면
 /// 그 계산이 실제 가용 공간보다 크던 순간 보드가 넘친다.
-class BoardView extends StatelessWidget {
+class BoardView extends StatefulWidget {
   const BoardView({
     super.key,
     required this.board,
@@ -45,11 +61,66 @@ class BoardView extends StatelessWidget {
   final bool isAnimating;
 
   @override
+  State<BoardView> createState() => _BoardViewState();
+}
+
+class _BoardViewState extends State<BoardView>
+    with SingleTickerProviderStateMixin {
+  /// 블랙홀 회전. **이 프로젝트의 유일한 `AnimationController` 다.**
+  ///
+  /// 끝나지 않는 애니메이션이라 암시적으로는 표현할 수 없다 — `06-animation`
+  /// 에서 정한 방식의 유일한 예외이며, 그래서 페인터를 나눠 두었다
+  /// (12-ui-polish §5.2).
+  late final AnimationController _swirl = AnimationController(
+    vsync: this,
+    duration: AppConstants.blackHoleRotationDuration,
+  );
+
+  /// 판에 블랙홀이 있는가. 바닥은 레벨 내내 바뀌지 않는다.
+  bool get _hasBlackHole =>
+      widget.board.floors.any((row) => row.contains(FloorType.blackHole));
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    _syncSwirl();
+  }
+
+  @override
+  void didUpdateWidget(BoardView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    _syncSwirl();
+  }
+
+  @override
+  void dispose() {
+    _swirl.dispose();
+    super.dispose();
+  }
+
+  /// **블랙홀이 없는 판에서는 아예 돌리지 않는다.**
+  ///
+  /// 배터리 때문이기도 하지만, 도는 컨트롤러가 있으면 `pumpAndSettle` 이 영원히
+  /// 끝나지 않는다. 블랙홀이 있는 레벨을 그렇게 검사하려 들면 멈추므로
+  /// `pump` 를 쓸 것.
+  void _syncSwirl() {
+    final shouldRun = _hasBlackHole && !MediaQuery.disableAnimationsOf(context);
+
+    if (shouldRun && !_swirl.isAnimating) {
+      _swirl.repeat();
+    } else if (!shouldRun && _swirl.isAnimating) {
+      _swirl.stop();
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final board = widget.board;
     // OS 의 "동작 줄이기" 를 켠 사용자에게는 연출을 건너뛴다. 게임 진행은 같다.
-    final animates = isAnimating && !MediaQuery.disableAnimationsOf(context);
+    final animates =
+        widget.isAnimating && !MediaQuery.disableAnimationsOf(context);
     final slide = animates ? AppConstants.moveAnimationDuration : Duration.zero;
-    final whole = animates ? AppConstants.moveWithFallDuration : Duration.zero;
+    final colors = context.boardColors;
 
     return Center(
       child: LayoutBuilder(
@@ -58,8 +129,6 @@ class BoardView extends StatelessWidget {
             board: board,
             available: constraints.biggest,
           );
-          final cell = metrics.cell;
-          final margin = metrics.margin;
 
           return SizedBox(
             width: metrics.width,
@@ -70,46 +139,93 @@ class BoardView extends StatelessWidget {
                   child: CustomPaint(
                     painter: BoardPainter(
                       board: board,
-                      colors: context.boardColors,
-                      cell: cell,
+                      colors: colors,
+                      cell: metrics.cell,
                       origin: metrics.origin,
                     ),
                   ),
                 ),
+                // 회전하는 것만 따로 그린다. 이 레이어만 매 프레임 갱신된다.
+                if (_hasBlackHole)
+                  Positioned.fill(
+                    child: RepaintBoundary(
+                      child: AnimatedBuilder(
+                        animation: _swirl,
+                        builder: (context, _) => CustomPaint(
+                          painter: BlackHolePainter(
+                            board: board,
+                            colors: colors,
+                            cell: metrics.cell,
+                            origin: metrics.origin,
+                            turns: _swirl.value,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
                 // 빠지는 블록도 같은 목록에 섞어 그린다. 키로 추적되므로 판에서
                 // 이 목록으로 옮겨와도 같은 위젯으로 남아 이어서 미끄러진다.
                 for (final (block, isFalling) in [
                   for (final block in board.blocks) (block, false),
-                  for (final block in fallingBlocks) (block, true),
+                  for (final block in widget.fallingBlocks) (block, true),
                 ])
-                  AnimatedPositioned(
-                    // 같은 블록으로 추적되려면 안정적인 키가 있어야 한다.
-                    // 키가 없으면 목록 순서가 바뀔 때 블록끼리 정체가 뒤바뀐다.
-                    key: ValueKey(block.id),
-                    duration: slide,
-                    curve: Curves.easeOut,
-                    left: margin + block.position.col * cell,
-                    top: margin + block.position.row * cell,
-                    width: cell,
-                    height: cell,
-                    // 축소·페이드는 **항상 걸어둔다.** 빠지는 순간에만 감싸면
-                    // 위젯이 새로 생겨 시작값부터 그려지고, 애니메이션 없이 사라진다.
-                    child: AnimatedScale(
-                      scale: isFalling ? 0.1 : 1,
-                      duration: whole,
-                      curve: _fallCurve,
-                      child: AnimatedOpacity(
-                        opacity: isFalling ? 0 : 1,
-                        duration: whole,
-                        curve: _fallCurve,
-                        child: BlockTile(type: block.type, size: cell),
-                      ),
-                    ),
+                  _blockTile(
+                    block: block,
+                    isFalling: isFalling,
+                    animates: animates,
+                    slide: slide,
+                    metrics: metrics,
                   ),
               ],
             ),
           );
         },
+      ),
+    );
+  }
+
+  Widget _blockTile({
+    required Block block,
+    required bool isFalling,
+    required bool animates,
+    required Duration slide,
+    required BoardMetrics metrics,
+  }) {
+    // 플레이어만 블랙홀에 끌려 들어가는 긴 연출을 받는다 (12-ui-polish §5.3).
+    final isPlayerFalling = isFalling && block.type == BlockType.player;
+    final span = isPlayerFalling
+        ? AppConstants.moveWithPlayerFallDuration
+        : AppConstants.moveWithFallDuration;
+    final whole = animates ? span : Duration.zero;
+    final curve = isPlayerFalling ? _playerFallCurve : _fallCurve;
+
+    return AnimatedPositioned(
+      // 같은 블록으로 추적되려면 안정적인 키가 있어야 한다.
+      // 키가 없으면 목록 순서가 바뀔 때 블록끼리 정체가 뒤바뀐다.
+      key: ValueKey(block.id),
+      duration: slide,
+      curve: Curves.easeOut,
+      left: metrics.margin + block.position.col * metrics.cell,
+      top: metrics.margin + block.position.row * metrics.cell,
+      width: metrics.cell,
+      height: metrics.cell,
+      // 블랙홀과 **같은 각속도로** 돈다. 어긋나면 빨려 들어가는 것으로 보이지
+      // 않고 그냥 따로 도는 두 물체가 된다.
+      child: RotationTransition(
+        turns: isPlayerFalling ? _swirl : _noRotation,
+        // 축소·페이드는 **항상 걸어둔다.** 빠지는 순간에만 감싸면
+        // 위젯이 새로 생겨 시작값부터 그려지고, 애니메이션 없이 사라진다.
+        child: AnimatedScale(
+          scale: isFalling ? 0.1 : 1,
+          duration: whole,
+          curve: curve,
+          child: AnimatedOpacity(
+            opacity: isFalling ? 0 : 1,
+            duration: whole,
+            curve: curve,
+            child: BlockTile(type: block.type, size: metrics.cell),
+          ),
+        ),
       ),
     );
   }

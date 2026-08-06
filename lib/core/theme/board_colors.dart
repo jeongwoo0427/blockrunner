@@ -20,9 +20,16 @@ class BoardColors extends ThemeExtension<BoardColors> {
   final Color normalBlock;
 
   /// 플레이어 블록
+  ///
+  /// **[goal] 과 같은 색 계열이다** (12-ui-polish §4). "내가 어디로 가야 하는가"
+  /// 가 색 하나로 읽혀야 한다.
   final Color playerBlock;
 
   /// 목표 지점 (바닥 표시)
+  ///
+  /// [playerBlock] 과 같은 색상이되 **더 밝다.** 플레이어가 목표 칸 위에 서는
+  /// 것이 클리어 조건이라 둘은 반드시 겹치는데, 명도까지 같으면 그 순간 목표가
+  /// 사라진 것처럼 보인다. 링으로 그리는 것과 함께 이 차이가 둘을 갈라 놓는다.
   final Color goal;
 
   /// 블랙홀 (바닥 표시)
@@ -43,8 +50,8 @@ class BoardColors extends ThemeExtension<BoardColors> {
     gridLine: Color(0xFFD3DAE3),
     wall: Color(0xFF4A5568),
     normalBlock: Color(0xFF8598B8),
-    playerBlock: Color(0xFFE8703A),
-    goal: Color(0xFF3FA796),
+    playerBlock: Color(0xFF2E63E8),
+    goal: Color(0xFF7BA5F5),
     blackHole: Color(0xFF1E2430),
   );
 
@@ -53,8 +60,8 @@ class BoardColors extends ThemeExtension<BoardColors> {
     gridLine: Color(0xFF2A303C),
     wall: Color(0xFF7C8899),
     normalBlock: Color(0xFF4E5D78),
-    playerBlock: Color(0xFFFF8A50),
-    goal: Color(0xFF4FC3AC),
+    playerBlock: Color(0xFF74A2FF),
+    goal: Color(0xFF35538F),
     blackHole: Color(0xFF0B0E14),
   );
 

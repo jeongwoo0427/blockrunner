@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
@@ -88,14 +89,26 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
 
     final duration = MediaQuery.disableAnimationsOf(context)
         ? Duration.zero
-        : (widget.state.fallingBlocks.isEmpty
-              ? AppConstants.moveAnimationDuration
-              : AppConstants.moveWithFallDuration);
+        : _animationSpan();
 
     _animationTimer = Timer(duration, () {
       _animationTimer = null;
       if (mounted) widget.onEvent(AnimationCompleted());
     });
+  }
+
+  /// 이번 연출이 끝나는 데 걸리는 시간.
+  ///
+  /// **플레이어가 빨려 들어가면 훨씬 길다** (12-ui-polish §5.3). 판이 끝나는
+  /// 순간이라 연출을 다 보여준 뒤에 결과를 띄운다. 일반 블록만 빠졌다면
+  /// 게임이 계속되므로 짧게 끝낸다 — 한 수마다 2초를 기다리면 답답해진다.
+  Duration _animationSpan() {
+    final falling = widget.state.fallingBlocks;
+    if (falling.isEmpty) return AppConstants.moveAnimationDuration;
+
+    return falling.any((block) => block.type == BlockType.player)
+        ? AppConstants.moveWithPlayerFallDuration
+        : AppConstants.moveWithFallDuration;
   }
 
   /// 모든 입력 경로가 지나는 한 곳.

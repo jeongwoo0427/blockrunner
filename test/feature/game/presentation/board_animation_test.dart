@@ -114,8 +114,10 @@ void main() {
     final before = boardWith(const [Position(0, 0)]);
     // 빠진 블록은 판에서 지워지고 fallingBlocks 로 넘어간다.
     final after = boardWith(const []);
+    // **일반 블록으로 본다.** 플레이어는 2초짜리 흡입 연출을 받으므로
+    // (12-ui-polish §5.3) 여기서 재는 짧은 타이밍과 맞지 않는다.
     final falling = [
-      const Block(id: 0, type: BlockType.player, position: Position(0, 3)),
+      const Block(id: 0, type: BlockType.normal, position: Position(0, 3)),
     ];
 
     await tester.pumpWidget(app(before));

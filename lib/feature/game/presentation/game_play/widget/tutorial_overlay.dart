@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -9,7 +10,8 @@ import 'package:flutter/material.dart';
 /// 커져 시선이 흔들린다. 판 위에 겹치면 나타나고 사라져도 레이아웃이 그대로다.
 ///
 /// 배경을 완전히 덮지 않는 것도 의도다 — "이 판에 블랙홀이 있다" 는 말로만
-/// 설명하는 것보다 가리키며 설명하는 편이 낫다.
+/// 설명하는 것보다 가리키며 설명하는 편이 낫다. [OverlayCard] 를 써도 두 성질은
+/// 그대로다.
 class TutorialOverlay extends StatelessWidget {
   const TutorialOverlay({
     super.key,
@@ -44,36 +46,31 @@ class TutorialOverlay extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return ColoredBox(
-      color: theme.colorScheme.surface.withValues(alpha: 0.86),
-      child: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(Spacing.lg),
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 360),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(title, style: theme.textTheme.headlineSmall),
-                const SizedBox(height: Spacing.md),
-                Text(
-                  body,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.bodyLarge,
-                ),
-                if (showsControls) ...[
-                  const SizedBox(height: Spacing.md),
-                  _ControlLine(isTouch: _isTouch),
-                ],
-                const SizedBox(height: Spacing.lg),
-                FilledButton(
-                  onPressed: onDismiss,
-                  child: Text(context.strings.start),
-                ),
-              ],
-            ),
+    return OverlayCard(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            title,
+            style: theme.textTheme.headlineSmall,
+            textAlign: TextAlign.center,
           ),
-        ),
+          const SizedBox(height: Spacing.md),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: theme.textTheme.bodyLarge,
+          ),
+          if (showsControls) ...[
+            const SizedBox(height: Spacing.md),
+            _ControlLine(isTouch: _isTouch),
+          ],
+          const SizedBox(height: Spacing.lg),
+          FilledButton(
+            onPressed: onDismiss,
+            child: Text(context.strings.start),
+          ),
+        ],
       ),
     );
   }

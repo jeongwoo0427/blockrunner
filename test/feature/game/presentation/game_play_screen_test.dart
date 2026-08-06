@@ -265,7 +265,7 @@ void main() {
       expect(events.single, isA<AnimationCompleted>());
     });
 
-    testWidgets('낙하가 있으면 그것까지 끝난 뒤에 통지한다', (tester) async {
+    testWidgets('일반 블록 낙하는 그것까지 끝난 뒤에 통지한다', (tester) async {
       final events = <GamePlayScreenEvent>[];
       final pump = rebuilder(tester, events);
 
@@ -275,7 +275,7 @@ void main() {
           isAnimating: true,
           // 빠진 블록은 판에서 지워지므로 판에 없는 id 여야 한다.
           fallingBlocks: const [
-            Block(id: 99, type: BlockType.player, position: Position(0, 3)),
+            Block(id: 99, type: BlockType.normal, position: Position(0, 3)),
           ],
         ),
       );
@@ -284,6 +284,30 @@ void main() {
       expect(events, isEmpty, reason: '슬라이드만 끝났고 낙하가 남아 있다');
 
       await tester.pump(AppConstants.fallAnimationDuration);
+      expect(events.single, isA<AnimationCompleted>());
+    });
+
+    testWidgets('플레이어 흡입은 2초를 다 기다린다', (tester) async {
+      // 판이 끝나는 순간이라 연출을 다 보여준 뒤에 결과를 띄운다
+      // (12-ui-polish §5.3). 일반 블록과 섞이면 안 된다.
+      final events = <GamePlayScreenEvent>[];
+      final pump = rebuilder(tester, events);
+
+      await pump(stateOf());
+      await pump(
+        stateOf(
+          isAnimating: true,
+          fallingBlocks: const [
+            Block(id: 99, type: BlockType.player, position: Position(0, 3)),
+          ],
+        ),
+      );
+
+      // 일반 블록이었다면 이미 끝났을 시점.
+      await tester.pump(AppConstants.moveWithFallDuration);
+      expect(events, isEmpty, reason: '플레이어는 아직 빨려 들어가는 중이다');
+
+      await tester.pump(AppConstants.moveWithPlayerFallDuration);
       expect(events.single, isA<AnimationCompleted>());
     });
 

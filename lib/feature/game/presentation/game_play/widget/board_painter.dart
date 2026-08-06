@@ -5,7 +5,10 @@ import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:flutter/material.dart';
 
-/// 고정된 것만 그린다 — 배경 · 바닥(목표 · 블랙홀) · 격자선 · 벽.
+/// **움직이지 않는 것만** 그린다 — 배경 · 목표 · 격자선 · 벽.
+///
+/// 블랙홀은 계속 회전하므로 [BlackHolePainter] 가 따로 그린다. 한 페인터에
+/// 두면 회전 한 프레임마다 격자와 벽까지 전부 다시 그려진다.
 ///
 /// 움직이는 블록은 이 위에 위젯으로 얹는다. 그래야 `06-animation` 에서
 /// 슬라이드와 낙하 연출을 위젯 애니메이션으로 처리할 수 있다.
@@ -55,27 +58,22 @@ class BoardPainter extends CustomPainter {
 
   void _paintFloors(Canvas canvas) {
     final goalPaint = Paint()..color = colors.goal;
-    final blackHolePaint = Paint()..color = colors.blackHole;
 
     for (var row = 0; row < board.rowCount; row++) {
       for (var col = 0; col < board.colCount; col++) {
-        final floor = board.floors[row][col];
-        if (floor != FloorType.goal && floor != FloorType.blackHole) continue;
+        if (board.floors[row][col] != FloorType.goal) continue;
 
+        // 목표는 통과 가능한 바닥이므로 칸을 꽉 채우지 않고 테두리 링으로 둔다.
+        // **플레이어와 같은 색이라 링이어야 한다**(12-ui-polish §4) — 채운
+        // 도형이면 플레이어가 그 위에 선 순간 목표가 사라져 보인다.
         final rect = _cellRect(row, col);
-        if (floor == FloorType.goal) {
-          // 목표는 통과 가능한 바닥이므로 칸을 꽉 채우지 않고 테두리 링으로 둔다.
-          // 블록이 그 위에 서도 목표였다는 사실이 보여야 한다.
-          canvas.drawRect(rect, goalPaint..style = PaintingStyle.fill);
-          canvas.drawRect(
-            rect.deflate(cell * 0.12),
-            Paint()
-              ..color = colors.background
-              ..style = PaintingStyle.fill,
-          );
-        } else {
-          canvas.drawOval(rect.deflate(cell * 0.08), blackHolePaint);
-        }
+        canvas.drawRect(rect, goalPaint..style = PaintingStyle.fill);
+        canvas.drawRect(
+          rect.deflate(cell * 0.12),
+          Paint()
+            ..color = colors.background
+            ..style = PaintingStyle.fill,
+        );
       }
     }
   }
