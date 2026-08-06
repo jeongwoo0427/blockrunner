@@ -15,8 +15,7 @@ class LevelSelectRoot extends ConsumerStatefulWidget {
   const LevelSelectRoot({super.key, this.previewBuilder});
 
   /// 미니 보드 생성기. 라우터가 넣어 준다 (12-ui-polish §2).
-  final Widget Function(BuildContext, int levelNumber, bool isUnlocked)?
-  previewBuilder;
+  final Widget Function(BuildContext, int levelNumber)? previewBuilder;
 
   @override
   ConsumerState<LevelSelectRoot> createState() => _LevelSelectRootState();

@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -66,9 +67,10 @@ class TutorialOverlay extends StatelessWidget {
             _ControlLine(isTouch: _isTouch),
           ],
           const SizedBox(height: Spacing.lg),
-          FilledButton(
+          GameButton(
+            label: context.strings.start,
             onPressed: onDismiss,
-            child: Text(context.strings.start),
+            isPrimary: true,
           ),
         ],
       ),

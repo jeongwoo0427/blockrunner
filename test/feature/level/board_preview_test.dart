@@ -16,7 +16,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-/// 레벨 카드의 미니 보드 (12-ui-polish §2).
+/// 레벨 카드의 미니 보드 (12-ui-polish §2, 13-game-feel §2).
 ///
 /// **조립은 라우터가 한다.** 아래 대부분은 그 배선을 흉내 내지만, 마지막
 /// 하나는 **진짜 라우터를 태운다** — 흉내만 내면 라우터가 잘못 이어져 있어도
@@ -38,10 +38,8 @@ void main() {
         child: MaterialApp(
           home: LevelSelectRoot(
             // 라우터가 하는 것과 같은 조립.
-            previewBuilder: (context, levelNumber, isUnlocked) => BoardPreview(
-              levelNumber: levelNumber,
-              isSilhouette: !isUnlocked,
-            ),
+            previewBuilder: (context, levelNumber) =>
+                BoardPreview(levelNumber: levelNumber),
           ),
         ),
       ),
@@ -59,53 +57,48 @@ void main() {
       .whereType<BoardPreviewPainter>()
       .toList();
 
-  testWidgets('카드마다 미니 보드가 그려진다', (tester) async {
+  testWidgets('열린 레벨에만 미니 보드가 그려진다', (tester) async {
+    // 진행도가 없으면 1번만 열려 있다.
     await tester.pumpWidget(await boot());
     await tester.pumpAndSettle();
 
     expect(find.byType(LevelCard), findsNWidgets(kLevels.length));
-    expect(paintersOf(tester), hasLength(kLevels.length));
+    expect(paintersOf(tester), hasLength(1));
+  });
+
+  testWidgets('잠긴 레벨은 판을 아예 가린다', (tester) async {
+    // 실루엣조차 보여주지 않는다 — 판 모양이 곧 스포일러다 (13-game-feel §2).
+    await tester.pumpWidget(await boot());
+    await tester.pumpAndSettle();
+
+    expect(
+      find.byIcon(Icons.lock_rounded),
+      findsNWidgets(kLevels.length - 1),
+      reason: '잠긴 카드는 자물쇠만 보여준다',
+    );
+  });
+
+  testWidgets('깨면 그만큼 판이 드러난다', (tester) async {
+    // 1·2번을 깼으므로 3번까지 열린다.
+    await tester.pumpWidget(await boot(clearedUpTo: 2));
+    await tester.pumpAndSettle();
+
+    expect(paintersOf(tester), hasLength(3));
+    expect(find.byIcon(Icons.lock_rounded), findsNWidgets(kLevels.length - 3));
   });
 
   testWidgets('레벨마다 다른 판을 그린다', (tester) async {
-    await tester.pumpWidget(await boot());
+    await tester.pumpWidget(await boot(clearedUpTo: kLevels.length));
     await tester.pumpAndSettle();
 
     final boards = paintersOf(tester).map((painter) => painter.board).toList();
 
-    // 같은 판을 7번 그리고 있으면 미리보기가 레벨과 이어지지 않은 것이다.
+    // 같은 판을 여러 번 그리고 있으면 미리보기가 레벨과 이어지지 않은 것이다.
+    expect(boards, hasLength(kLevels.length));
     expect(boards.toSet(), hasLength(kLevels.length));
   });
 
-  testWidgets('잠긴 레벨은 실루엣이다', (tester) async {
-    // 판 모양이 곧 스포일러다 — 이름을 가린 것과 같은 이유다.
-    await tester.pumpWidget(await boot());
-    await tester.pumpAndSettle();
-
-    final painters = paintersOf(tester);
-
-    expect(painters.first.isSilhouette, isFalse, reason: '1번은 열려 있다');
-    expect(
-      painters.skip(1).every((painter) => painter.isSilhouette),
-      isTrue,
-      reason: '나머지는 전부 잠겨 있다',
-    );
-  });
-
-  testWidgets('깨면 그 레벨의 판이 드러난다', (tester) async {
-    await tester.pumpWidget(await boot(clearedUpTo: 2));
-    await tester.pumpAndSettle();
-
-    final painters = paintersOf(tester);
-
-    // 1·2번을 깼으므로 3번까지 열린다.
-    expect(painters[0].isSilhouette, isFalse);
-    expect(painters[1].isSilhouette, isFalse);
-    expect(painters[2].isSilhouette, isFalse);
-    expect(painters[3].isSilhouette, isTrue);
-  });
-
-  testWidgets('진짜 라우터를 태워도 잠긴 레벨은 실루엣이다', (tester) async {
+  testWidgets('진짜 라우터를 태워도 잠긴 레벨은 가려진다', (tester) async {
     // 위 테스트들은 previewBuilder 를 직접 넣으므로 라우터가 어떻게 잇든
     // 통과한다. 배선 자체를 검사하는 것은 이 하나뿐이다.
     SharedPreferences.setMockInitialValues({'settings_v1_locale': 'ko'});
@@ -121,14 +114,7 @@ void main() {
     await tester.pump(AppConstants.splashDuration);
     await tester.pumpAndSettle();
 
-    final painters = paintersOf(tester);
-
-    expect(painters, hasLength(kLevels.length));
-    expect(painters.first.isSilhouette, isFalse);
-    expect(
-      painters.skip(1).every((painter) => painter.isSilhouette),
-      isTrue,
-      reason: '라우터가 isUnlocked 를 넘기지 않고 있다',
-    );
+    expect(paintersOf(tester), hasLength(1), reason: '1번만 열려 있다');
+    expect(find.byIcon(Icons.lock_rounded), findsNWidgets(kLevels.length - 1));
   });
 }

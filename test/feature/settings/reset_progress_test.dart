@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/di/core_providers.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/i18n/strings_catalog.dart';
@@ -85,7 +86,7 @@ void main() {
     // 경고 다이얼로그의 확인 버튼.
     await tester.tap(
       find.widgetWithText(
-        FilledButton,
+        GameButton,
         stringsFor(AppLocale.ja).resetProgress,
       ),
     );
@@ -106,7 +107,7 @@ void main() {
 
     await tester.tap(
       find.widgetWithText(
-        FilledButton,
+        GameButton,
         stringsFor(AppLocale.ja).resetProgress,
       ),
     );
@@ -124,7 +125,7 @@ void main() {
     await openReset(tester);
     await tester.tap(
       find.widgetWithText(
-        FilledButton,
+        GameButton,
         stringsFor(AppLocale.ja).resetProgress,
       ),
     );

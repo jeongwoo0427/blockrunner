@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/core/theme/data/text_styles.dart';
 import 'package:flutter/material.dart';
 
@@ -57,10 +58,10 @@ class GameHud extends StatelessWidget {
               ),
             ],
           ),
-          TextButton.icon(
+          GameButton(
+            label: strings.reset,
             onPressed: onReset,
-            icon: const Icon(Icons.refresh),
-            label: Text(strings.reset),
+            icon: Icons.refresh,
           ),
         ],
       ),

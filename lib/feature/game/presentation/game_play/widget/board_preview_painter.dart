@@ -16,17 +16,12 @@ class BoardPreviewPainter extends CustomPainter {
     required this.colors,
     required this.cell,
     required this.origin,
-    this.isSilhouette = false,
   });
 
   final BoardState board;
   final BoardColors colors;
   final double cell;
   final Offset origin;
-
-  /// 잠긴 레벨. **판 모양이 곧 스포일러라** 무엇이 무엇인지 지운다
-  /// — 이름을 가린 것(`08`)과 같은 이유다.
-  final bool isSilhouette;
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -62,19 +57,19 @@ class BoardPreviewPainter extends CustomPainter {
       case FloorType.empty:
         return;
       case FloorType.wall:
-        canvas.drawRect(rect, Paint()..color = _muted(colors.wall));
+        canvas.drawRect(rect, Paint()..color = colors.wall);
       case FloorType.goal:
         canvas.drawRect(
           rect.deflate(cell * 0.16),
           Paint()
-            ..color = _muted(colors.goal)
+            ..color = colors.goal
             ..strokeWidth = cell * 0.16
             ..style = PaintingStyle.stroke,
         );
       case FloorType.blackHole:
         canvas.drawOval(
           rect.deflate(cell * 0.12),
-          Paint()..color = _muted(colors.blackHole),
+          Paint()..color = colors.blackHole,
         );
     }
   }
@@ -91,13 +86,9 @@ class BoardPreviewPainter extends CustomPainter {
         rect,
         Radius.circular(cell * Spacing.blockRadiusRatio),
       ),
-      Paint()..color = _muted(color),
+      Paint()..color = color,
     );
   }
-
-  /// 실루엣이면 전부 같은 무채색으로 뭉갠다.
-  Color _muted(Color color) =>
-      isSilhouette ? colors.wall.withValues(alpha: 0.35) : color;
 
   Rect _cellRect(int row, int col) => Rect.fromLTWH(
     origin.dx + col * cell,
@@ -111,6 +102,5 @@ class BoardPreviewPainter extends CustomPainter {
       oldDelegate.board != board ||
       oldDelegate.colors != colors ||
       oldDelegate.cell != cell ||
-      oldDelegate.origin != origin ||
-      oldDelegate.isSilhouette != isSilhouette;
+      oldDelegate.origin != origin;
 }

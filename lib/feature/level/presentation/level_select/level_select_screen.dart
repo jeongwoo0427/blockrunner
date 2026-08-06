@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_icon_button.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen_event.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen_state.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/widget/level_card.dart';
@@ -25,8 +26,9 @@ class LevelSelectScreen extends StatelessWidget {
   /// **위젯을 받지 판을 받지 않는다.** 판은 `game` 이 소유하는데 이 화면은
   /// `level` 에 있어서, 타입으로라도 새어 들어오면 `#22` 의 순환이 되살아난다.
   /// 여기 보이는 것은 순수 Flutter 타입뿐이고 조립은 라우터가 한다.
-  final Widget Function(BuildContext, int levelNumber, bool isUnlocked)?
-  previewBuilder;
+  ///
+  /// 잠긴 레벨에는 부르지 않는다 — 판을 가리기 때문이다.
+  final Widget Function(BuildContext, int levelNumber)? previewBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -36,10 +38,13 @@ class LevelSelectScreen extends StatelessWidget {
       appBar: AppBar(
         title: Text(context.strings.levelSelectTitle),
         actions: [
-          IconButton(
-            onPressed: () => onEvent(SettingsRequested()),
-            icon: const Icon(Icons.settings),
-            tooltip: context.strings.settings,
+          Padding(
+            padding: const EdgeInsets.all(Spacing.sm),
+            child: GameIconButton(
+              icon: Icons.settings,
+              onPressed: () => onEvent(SettingsRequested()),
+              tooltip: context.strings.settings,
+            ),
           ),
         ],
       ),
@@ -67,11 +72,11 @@ class LevelSelectScreen extends StatelessWidget {
                     level: level,
                     progress: state.progressOf(level.number),
                     isUnlocked: isUnlocked,
-                    preview: previewBuilder?.call(
-                      context,
-                      level.number,
-                      isUnlocked,
-                    ),
+                    // **잠긴 레벨은 아예 만들지 않는다** — 판을 가려야 하므로
+                    // 그릴 이유가 없다 (13-game-feel §2).
+                    preview: isUnlocked
+                        ? previewBuilder?.call(context, level.number)
+                        : null,
                     onTap: () => onEvent(
                       isUnlocked
                           ? LevelSelected(level)

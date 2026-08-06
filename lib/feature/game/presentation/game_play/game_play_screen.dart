@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_icon_button.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
@@ -209,10 +210,13 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
               ? strings.levelFallbackTitle
               : strings.levelTitle(level.number),
         ),
-        leading: IconButton(
-          onPressed: () => widget.onEvent(BackToLevelSelectRequested()),
-          icon: const Icon(Icons.arrow_back),
-          tooltip: strings.backToLevelSelect,
+        leading: Padding(
+          padding: const EdgeInsets.all(Spacing.sm),
+          child: GameIconButton(
+            icon: Icons.arrow_back,
+            onPressed: () => widget.onEvent(BackToLevelSelectRequested()),
+            tooltip: strings.backToLevelSelect,
+          ),
         ),
       ),
       body: SafeArea(

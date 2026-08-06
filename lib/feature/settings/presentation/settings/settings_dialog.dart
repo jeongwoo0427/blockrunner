@@ -2,6 +2,7 @@ import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:flutter/material.dart';
 
 /// 다이얼로그가 닫히며 돌려주는 요청.
@@ -90,13 +91,14 @@ Future<bool> confirmResetProgress(BuildContext context) async {
       title: Text(strings.resetProgress),
       content: Text(strings.resetProgressWarning),
       actions: [
-        TextButton(
+        GameButton(
+          label: strings.cancel,
           onPressed: () => Navigator.of(context).pop(false),
-          child: Text(strings.cancel),
         ),
-        FilledButton(
+        GameButton(
+          label: strings.resetProgress,
           onPressed: () => Navigator.of(context).pop(true),
-          child: Text(strings.resetProgress),
+          isPrimary: true,
         ),
       ],
     ),

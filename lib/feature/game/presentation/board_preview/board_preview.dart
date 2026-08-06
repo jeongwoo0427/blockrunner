@@ -15,16 +15,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 /// [BoardView] 를 재사용하지 않는다 — 미리보기는 움직이지 않으므로 블록 위젯도
 /// 회전 컨트롤러도 필요 없고, 카드 7장마다 그것을 얹으면 목록이 무거워진다.
 class BoardPreview extends ConsumerWidget {
-  const BoardPreview({
-    super.key,
-    required this.levelNumber,
-    this.isSilhouette = false,
-  });
+  const BoardPreview({super.key, required this.levelNumber});
 
   final int levelNumber;
-
-  /// 잠긴 레벨은 판 모양이 곧 스포일러라 실루엣으로만 보여준다.
-  final bool isSilhouette;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -55,7 +48,6 @@ class BoardPreview extends ConsumerWidget {
                   colors: context.boardColors,
                   cell: metrics.cell,
                   origin: metrics.origin,
-                  isSilhouette: isSilhouette,
                 ),
               ),
             ),

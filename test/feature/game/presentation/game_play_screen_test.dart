@@ -14,6 +14,8 @@ import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -238,7 +240,16 @@ void main() {
       await pumpScreen(tester, stateOf(isPlayerLost: true, hasHistory: true));
 
       // 다시하기는 항상 열려 있어야 게임이 끝나지 않는다.
-      expect(find.widgetWithText(OutlinedButton, '다시하기'), findsOneWidget);
+      //
+      // **오버레이 안으로 좁힌다.** HUD 의 다시하기도 이제 같은 `GameButton`
+      // 이라 화면 전체에서 세면 둘이 잡힌다.
+      expect(
+        find.descendant(
+          of: find.byType(ResultOverlay),
+          matching: find.widgetWithText(GameButton, '다시하기'),
+        ),
+        findsOneWidget,
+      );
       expect(find.text('다음 레벨'), findsNothing);
     });
   });

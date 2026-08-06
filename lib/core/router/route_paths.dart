@@ -10,4 +10,5 @@ abstract class RoutePaths {
 
   /// gamePlay 의 레벨 번호 쿼리 키
   static const String levelQueryKey = 'level';
+
 }

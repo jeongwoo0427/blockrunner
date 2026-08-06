@@ -21,10 +21,8 @@ final GoRouter router = GoRouter(
       // `game → level` 이 이미 있다. 라우터는 원래 모든 feature 를 아는
       // 유일한 자리라, 조립을 여기서 하면 순환이 생기지 않는다.
       builder: (context, state) => LevelSelectRoot(
-        previewBuilder: (context, levelNumber, isUnlocked) => BoardPreview(
-          levelNumber: levelNumber,
-          isSilhouette: !isUnlocked,
-        ),
+        previewBuilder: (context, levelNumber) =>
+            BoardPreview(levelNumber: levelNumber),
       ),
     ),
     GoRoute(

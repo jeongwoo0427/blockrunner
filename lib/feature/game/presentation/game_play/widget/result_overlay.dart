@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:flutter/material.dart';
 
@@ -67,15 +68,16 @@ class ResultOverlay extends StatelessWidget {
             runSpacing: Spacing.sm,
             alignment: WrapAlignment.center,
             children: [
-              OutlinedButton(
+              GameButton(
+                label: strings.backToList,
                 onPressed: onBackToLevelSelect,
-                child: Text(strings.backToList),
               ),
-              OutlinedButton(onPressed: onReset, child: Text(strings.reset)),
+              GameButton(label: strings.reset, onPressed: onReset),
               if (isCleared && hasNextLevel)
-                FilledButton(
+                GameButton(
+                  label: strings.nextLevel,
                   onPressed: onNextLevel,
-                  child: Text(strings.nextLevel),
+                  isPrimary: true,
                 ),
             ],
           ),
