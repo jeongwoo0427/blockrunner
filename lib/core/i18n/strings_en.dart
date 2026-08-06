@@ -8,6 +8,25 @@ class StringsEn extends AppStrings {
   const StringsEn();
 
   @override
+  String get settings => 'Settings';
+
+  @override
+  String get resetProgress => 'Reset progress';
+
+  @override
+  String get resetProgressWarning =>
+      'All stars and best scores will be lost. This cannot be undone.';
+
+  @override
+  String get resetProgressDone => 'Progress reset';
+
+  @override
+  String get cancel => 'Cancel';
+
+  @override
+  String get version => 'Version';
+
+  @override
   String get language => 'Language';
 
   @override

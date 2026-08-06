@@ -33,6 +33,7 @@ final levelUsecasesProvider = Provider(
   (ref) => LevelUsecases.fromRepositories(
     levelRepository: ref.read(levelRepositoryProvider),
     progressRepository: ref.read(progressRepositoryProvider),
+    tutorialRepository: ref.read(tutorialRepositoryProvider),
     // 컨테이너를 거쳐 꺼낸다. 새로 만들면 스트림이 갈려 플레이 화면의
     // 클리어 알림을 영영 받지 못한다.
     clearResults: ref.read(progressUsecasesProvider).saveClearResult.stream,

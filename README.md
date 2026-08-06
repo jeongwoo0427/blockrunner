@@ -84,7 +84,8 @@ lib/
     ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
     ├── level/       레벨 메타데이터(번호 · 최소 이동 횟수) · 레벨 선택
     ├── progress/    클리어 · 별점 · 최고 기록 저장
-    └── settings/    언어 선택과 저장
+    ├── settings/    언어 · 진행도 초기화 · 버전
+    └── splash/      시작 화면
 ```
 
 **feature 의존은 되돌아오는 간선 없이 한 방향으로만 흐른다.**
@@ -93,10 +94,13 @@ lib/
 game → level        최소 이동 횟수 · 안내 유무
 game → progress     클리어 기록 저장
 level → progress    레벨 선택 화면의 별점 · 해금
-level → settings    레벨 선택 화면에서 언어를 고름
+level → settings    레벨 선택 화면에서 설정을 엶
 progress → (없음)
 settings → (없음)
+splash → (없음)
 ```
+
+**레벨 카드의 미니 보드는 `level` 이 만들지 않고 함수로 받는다.** 판은 `game` 이 갖고 있어서 직접 그리면 순환이 된다. 조립은 두 feature를 다 아는 라우터가 한다.
 
 `level`은 판을 모르고 `progress`는 아무것도 모른다. 맵을 `Level`에 품게 하거나 진행도 저장에
 `Level`을 넘기면 곧바로 순환이 생긴다 — 실제로 두 번 겪고 두 번 끊었다.

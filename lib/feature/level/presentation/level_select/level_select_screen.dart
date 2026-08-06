@@ -14,10 +14,19 @@ class LevelSelectScreen extends StatelessWidget {
     super.key,
     required this.state,
     required this.onEvent,
+    this.previewBuilder,
   });
 
   final LevelSelectScreenState state;
   final ValueChanged<LevelSelectScreenEvent> onEvent;
+
+  /// 카드 안에 그릴 미니 보드를 만들어 준다 (12-ui-polish §2).
+  ///
+  /// **위젯을 받지 판을 받지 않는다.** 판은 `game` 이 소유하는데 이 화면은
+  /// `level` 에 있어서, 타입으로라도 새어 들어오면 `#22` 의 순환이 되살아난다.
+  /// 여기 보이는 것은 순수 Flutter 타입뿐이고 조립은 라우터가 한다.
+  final Widget Function(BuildContext, int levelNumber, bool isUnlocked)?
+  previewBuilder;
 
   @override
   Widget build(BuildContext context) {
@@ -28,9 +37,9 @@ class LevelSelectScreen extends StatelessWidget {
         title: Text(context.strings.levelSelectTitle),
         actions: [
           IconButton(
-            onPressed: () => onEvent(LanguageChangeRequested()),
-            icon: const Icon(Icons.language),
-            tooltip: context.strings.language,
+            onPressed: () => onEvent(SettingsRequested()),
+            icon: const Icon(Icons.settings),
+            tooltip: context.strings.settings,
           ),
         ],
       ),
@@ -42,7 +51,9 @@ class LevelSelectScreen extends StatelessWidget {
                 // 열 수를 박지 않고 **카드 최대 폭**을 정한다. 모바일에서는
                 // 3열 안팎, 넓은 화면에서는 그만큼 더 들어간다 (10-responsive).
                 gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
-                  maxCrossAxisExtent: 160,
+                  // 미니 보드가 들어가면서 카드가 커졌다. 폭도 함께 키워야
+                  // 판이 알아볼 수 없을 만큼 작아지지 않는다.
+                  maxCrossAxisExtent: 180,
                   mainAxisSpacing: Spacing.sm,
                   crossAxisSpacing: Spacing.sm,
                   childAspectRatio: _cardAspectRatio(context),
@@ -56,6 +67,11 @@ class LevelSelectScreen extends StatelessWidget {
                     level: level,
                     progress: state.progressOf(level.number),
                     isUnlocked: isUnlocked,
+                    preview: previewBuilder?.call(
+                      context,
+                      level.number,
+                      isUnlocked,
+                    ),
                     onTap: () => onEvent(
                       isUnlocked
                           ? LevelSelected(level)
@@ -78,7 +94,7 @@ class LevelSelectScreen extends StatelessWidget {
 /// 그래서 배율을 그대로 나누지 않고 절반만 반영하며, 지나치게 길쭉해지지
 /// 않도록 상한을 둔다.
 double _cardAspectRatio(BuildContext context) {
-  const base = 0.85;
+  const base = 0.72;
   final scale = MediaQuery.textScalerOf(context).scale(100) / 100;
   final growth = (1 + (scale - 1) * 0.5).clamp(1.0, 2.0);
 

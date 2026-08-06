@@ -44,8 +44,11 @@ class LevelSelectScreenNotifier extends Notifier<LevelSelectScreenState>
     switch (event) {
       case LevelSelected():
       case LockedLevelSelected():
-      case LanguageChangeRequested():
+      case SettingsRequested():
         break; // 네비게이션 · 안내 · 다이얼로그는 Root 가 처리한다
+      case ProgressResetConfirmed():
+        await _usecases.resetProgress();
+        _reload();
     }
   }
 }

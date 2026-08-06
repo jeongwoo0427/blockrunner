@@ -8,6 +8,25 @@ class StringsFr extends AppStrings {
   const StringsFr();
 
   @override
+  String get settings => 'Réglages';
+
+  @override
+  String get resetProgress => 'Réinitialiser la progression';
+
+  @override
+  String get resetProgressWarning =>
+      'Toutes les étoiles et tous les records seront perdus. Action irréversible.';
+
+  @override
+  String get resetProgressDone => 'Progression réinitialisée';
+
+  @override
+  String get cancel => 'Annuler';
+
+  @override
+  String get version => 'Version';
+
+  @override
   String get language => 'Langue';
 
   @override

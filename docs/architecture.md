@@ -54,7 +54,10 @@ level → progress      레벨 선택 화면이 별점 · 해금을 그리려고
 level → settings      레벨 선택 화면에서 언어를 고르므로
 progress → (없음)     progress 는 어느 feature 도 모른다
 settings → (없음)     settings 도 어느 feature 도 모른다
+splash   → (없음)     스플래시는 판도 레벨도 모른다 — 사각형 몇 개를 직접 그린다
 ```
+
+**`level` 이 `game` 을 모르는 것은 소스 스캔 테스트가 지킨다** (`test/feature/level/no_game_dependency_test.dart`). 레벨 카드의 미니 보드가 세 번째 유혹이었고, 위젯을 `Widget Function(...)` 으로 받아 **라우터가 조립하는 것**으로 피했다 — 라우터는 원래 모든 feature 를 아는 자리다.
 
 **`progress` 가 아무것도 모르는 것이 이 배치의 핵심이다.** 한때 `SaveClearResultUsecase` 가
 별점 계산을 위해 `Level` 을 받아 `progress → level` 이 있었는데, 레벨 선택 화면이 생기면서

@@ -8,6 +8,25 @@ class StringsZh extends AppStrings {
   const StringsZh();
 
   @override
+  String get settings => '设置';
+
+  @override
+  String get resetProgress => '重置进度';
+
+  @override
+  String get resetProgressWarning =>
+      '星星和最佳记录都会消失，且无法撤销。';
+
+  @override
+  String get resetProgressDone => '已重置进度';
+
+  @override
+  String get cancel => '取消';
+
+  @override
+  String get version => '版本';
+
+  @override
   String get language => '语言';
 
   @override

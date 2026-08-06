@@ -1,6 +1,8 @@
 import 'package:blockrunner/feature/level/domain/repository/level_repository.dart';
+import 'package:blockrunner/feature/level/domain/repository/tutorial_repository.dart';
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases/get_all_levels_usecase.dart';
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases/get_level_usecase.dart';
+import 'package:blockrunner/feature/level/domain/usecase/level_usecases/reset_progress_usecase.dart';
 import 'package:blockrunner/feature/progress/domain/entity/level_progress.dart';
 import 'package:blockrunner/feature/progress/domain/repository/progress_repository.dart';
 import 'package:blockrunner/feature/progress/domain/usecase/progress_usecases/get_all_progress_usecase.dart';
@@ -17,6 +19,7 @@ class LevelUsecases {
     required this.getLevel,
     required this.getAllProgress,
     required this.getHighestUnlockedLevel,
+    required this.resetProgress,
     required this.clearResults,
   });
 
@@ -29,6 +32,7 @@ class LevelUsecases {
   factory LevelUsecases.fromRepositories({
     required LevelRepository levelRepository,
     required ProgressRepository progressRepository,
+    required TutorialRepository tutorialRepository,
     required Stream<LevelProgress> clearResults,
   }) => LevelUsecases(
     getAllLevels: GetAllLevelsUsecase(repository: levelRepository),
@@ -36,6 +40,10 @@ class LevelUsecases {
     getAllProgress: GetAllProgressUsecase(repository: progressRepository),
     getHighestUnlockedLevel: GetHighestUnlockedLevelUsecase(
       repository: progressRepository,
+    ),
+    resetProgress: ResetProgressUsecase(
+      progressRepository: progressRepository,
+      tutorialRepository: tutorialRepository,
     ),
     clearResults: clearResults,
   );
@@ -45,6 +53,9 @@ class LevelUsecases {
 
   final GetAllProgressUsecase getAllProgress;
   final GetHighestUnlockedLevelUsecase getHighestUnlockedLevel;
+
+  /// 진행도와 튜토리얼 기록을 함께 지운다 (12-ui-polish §3).
+  final ResetProgressUsecase resetProgress;
 
   /// 플레이 화면에서 레벨을 클리어했다는 알림. 화면을 나갔다 들어오지 않아도
   /// 별점·해금이 갱신되게 한다 (docs/architecture.md §6).

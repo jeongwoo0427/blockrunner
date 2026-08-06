@@ -7,6 +7,25 @@ class StringsJa extends AppStrings {
   const StringsJa();
 
   @override
+  String get settings => '設定';
+
+  @override
+  String get resetProgress => '進行状況をリセット';
+
+  @override
+  String get resetProgressWarning =>
+      '星と自己ベストがすべて消える。元に戻せない。';
+
+  @override
+  String get resetProgressDone => '進行状況をリセットした';
+
+  @override
+  String get cancel => 'キャンセル';
+
+  @override
+  String get version => 'バージョン';
+
+  @override
   String get language => '言語';
 
   @override

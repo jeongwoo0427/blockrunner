@@ -9,4 +9,10 @@ abstract class TutorialRepository {
   bool hasSeen(int levelNumber);
 
   Future<void> markSeen(int levelNumber);
+
+  /// 전부 안 본 것으로 되돌린다 (12-ui-polish §3).
+  ///
+  /// 진행도 초기화가 이것까지 지운다 — 별점만 지우면 레벨 1을 다시 깨도
+  /// 안내가 안 떠서 "처음부터" 가 아니다.
+  Future<void> clearAll();
 }

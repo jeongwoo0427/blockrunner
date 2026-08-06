@@ -19,5 +19,9 @@ class LockedLevelSelected extends LevelSelectScreenEvent {
   final Level level;
 }
 
-/// 언어를 바꾸겠다. 다이얼로그를 띄우는 것은 Root 의 일이다.
-class LanguageChangeRequested extends LevelSelectScreenEvent {}
+/// 설정을 열겠다. 다이얼로그를 띄우는 것은 Root 의 일이다.
+class SettingsRequested extends LevelSelectScreenEvent {}
+
+/// 진행도 초기화가 확정됐다. **이것만 Notifier 가 처리한다** — 저장소를
+/// 건드리고 화면을 다시 읽어야 하기 때문이다 (12-ui-polish §3).
+class ProgressResetConfirmed extends LevelSelectScreenEvent {}

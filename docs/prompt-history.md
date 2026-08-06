@@ -1733,3 +1733,57 @@
 **결정 / 메모**
 - 색 · 블랙홀 · 흡입 · 오버레이를 한 커밋에 담았다. 색을 정해야 블랙홀을 그릴 수 있고, 블랙홀이 돌아야 흡입의 각속도를 맞출 수 있고, 흡입이 끝나야 결과 카드가 뜬다 — 계획서에 적은 순서 그대로 서로의 전제다
 - **육안 확인은 아직 못 받았다.** 블랙홀이 실제로 블랙홀처럼 보이는지, 회전이 어지럽지 않은지, 2초가 길지 않은지는 사용자만 판단할 수 있다. 레벨 5가 첫 블랙홀 레벨이다
+
+---
+
+## 2026-08-06 #65 — 12-ui-polish 7~9단계: 설정 · 그리드 · 스플래시
+
+**요청**
+> 너무 좋다. 커밋하고. 다음 작업.
+
+**한 일**
+- **7단계 설정 다이얼로그** — 톱니바퀴 → 언어 · 진행도 초기화 · 버전. `TutorialRepository.clearAll` 과 `ResetProgressUsecase` 신설
+- **8단계 레벨 그리드** — `BoardPreview`(game 소유) + `BoardPreviewPainter` 신설, 카드에 미니 보드 · 별점 테두리
+- **9단계 스플래시** — `splash` feature 신설, `/` 라우트, 1.8초 뒤 또는 탭하면 `go`
+- 5개 언어에 설정 문구 6개 추가, `AppConstants.appVersion`
+- 테스트 17건 추가 (343 → 360)
+
+**변경 파일**
+- `lib/feature/level/**` — `clearAll` · `ResetProgressUsecase` · 카드 개편 · 이벤트/Notifier/Root
+- `lib/feature/settings/presentation/settings/settings_dialog.dart` (신규)
+- `lib/feature/game/presentation/board_preview/board_preview.dart` · `widget/board_preview_painter.dart` (신규)
+- `lib/feature/splash/**` (신규 2), `lib/core/router/**`, `lib/core/config/app_constants.dart`, `lib/core/i18n/**`
+- `test/feature/level/no_game_dependency_test.dart` · `board_preview_test.dart` · `test/feature/settings/reset_progress_test.dart` (신규), 기존 2건 수정
+- `docs/tasks/completed/12-ui-polish.md`, `docs/tasks/README.md`, `docs/architecture.md`, `README.md`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 360/360 통과
+- **교란 5종 확인** — ① `level` 이 `game` import ② 초기화가 튜토리얼 미삭제 ③ 버전 상수 불일치 ④ 라우터가 실루엣 미전달 ⑤ 스플래시를 `push` 로
+
+**결정 / 메모**
+- **계획서가 가장 값을 한 곳은 순환 경고 두 개다.** 미니 보드(§2)와 초기화(§3) 둘 다 **코드를 짜기 전에** 걸렸고 우회로도 이미 적혀 있었다. 미니 보드를 먼저 만들었다면 카드를 다 짠 뒤에 `level → game` 을 발견했을 것이다. 그래서 **순환 금지를 소스 스캔 테스트로 못박았다** — 문서에 적어두는 것만으로는 네 번째가 온다
+- **`BoardPainter` 를 재사용하지 않고 `BoardPreviewPainter` 를 새로 만들었다.** 계획서는 재사용을 적었지만, 본체는 블록을 안 그리고(위젯이 얹힌다) 블랙홀도 회전 레이어에 맡긴다. 미리보기는 그 둘이 다 필요하면서 아무것도 안 움직인다. 조건을 붙여 합치면 양쪽 다 읽기 어려워진다
+- **카드 테두리를 금·은·동 대신 테마 색에서 뽑았다.** 열린 질문이던 "다크 테마에서 금색이 탁해진다" 를 **색을 고정하지 않는 것**으로 해소했다
+- **초기화 실행을 Root 가 아니라 Notifier 에 뒀다.** 계획서는 Root 라고 적었지만, 저장소를 건드리고 화면을 다시 읽는 것은 Notifier 의 일이다(§5). Root 는 다이얼로그만 띄우고 `ProgressResetConfirmed` 를 올린다 — 계획의 의도(`settings` 가 아무것도 모르게)는 그대로 지켜진다
+- **`AppStringsScope` 는 `MaterialApp` 위에 있어야 한다.** 테스트를 짜다 `home` 아래에 뒀더니 다이얼로그가 `context.strings` 를 못 찾았다 — 다이얼로그는 앱 오버레이에 뜨기 때문이다. `main.dart` 는 원래 맞게 돼 있었고, 테스트에 그 이유를 적었다
+- **실루엣 테스트가 실패할 수 없는 상태였다.** `previewBuilder` 를 직접 넣어 라우터를 **흉내 내고** 있어서, 라우터 배선을 망가뜨려도 통과했다. **진짜 라우터를 태우는 테스트를 따로 추가**하고 나서야 교란이 잡혔다. 흉내 낸 배선을 검사하는 테스트는 배선을 검사하지 않는다
+- **스플래시는 `push` 가 아니라 `go` 다.** 뒤로가기로 스플래시에 돌아오면 안 된다. `router.canPop()` 이 거짓인지로 검사한다
+- **`splash` feature 에 domain·data 가 없다.** `progress` 에 presentation 이 없는 것과 같은 종류의 생략이다
+
+---
+
+## 2026-08-06 #66 — 7~9단계 커밋
+
+**요청**
+> 오케이 커밋 해줘
+
+**한 일**
+- `#65`(7~9단계)를 단일 커밋으로 커밋. 이로써 `12-ui-polish` 전체 완료
+
+**변경 파일**
+- `docs/prompt-history.md` — 이 항목 (커밋에 `--amend` 로 합침)
+
+**결정 / 메모**
+- 설정 · 그리드 · 스플래시는 서로 독립적이라 쪼갤 수 있었지만 합쳤다. 계획서가 한 작업으로 묶은 세 단계이고, **셋을 잇는 것이 순환 금지 스캔 테스트** 라 따로 떼면 그 테스트가 어느 커밋에 속하는지 애매해진다
+- **`docs/tasks/` 가 다시 비었다.** 다음 요청은 목록에서 고르는 것이 아니다

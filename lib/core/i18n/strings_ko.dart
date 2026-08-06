@@ -5,6 +5,25 @@ class StringsKo extends AppStrings {
   const StringsKo();
 
   @override
+  String get settings => '설정';
+
+  @override
+  String get resetProgress => '진행도 초기화';
+
+  @override
+  String get resetProgressWarning =>
+      '별점과 최고 기록이 모두 사라진다. 되돌릴 수 없다.';
+
+  @override
+  String get resetProgressDone => '진행도를 초기화했다';
+
+  @override
+  String get cancel => '취소';
+
+  @override
+  String get version => '버전';
+
+  @override
   String get language => '언어';
 
   @override

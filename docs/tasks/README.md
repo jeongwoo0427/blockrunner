@@ -21,7 +21,7 @@
 | 09 | [09-progress.md](completed/09-progress.md) | 진행도 저장 | ✅ 완료 | 00, 07 |
 | 10 | [10-responsive.md](completed/10-responsive.md) | 반응형 레이아웃 | ✅ 완료 | 04 |
 | 11 | [11-i18n.md](completed/11-i18n.md) | 다국어 (ko·en·ja·zh·fr) | ✅ 완료 | 00, 08 |
-| 12 | [12-ui-polish.md](12-ui-polish.md) | **UI 디테일** — 스플래시 · 그리드 · 블랙홀 · 다이얼로그 | 대기 | 10, 11 |
+| 12 | [12-ui-polish.md](completed/12-ui-polish.md) | UI 디테일 — 스플래시 · 그리드 · 블랙홀 · 다이얼로그 | ✅ 완료 | 10, 11 |
 
 상태값: `대기` / `진행중` / `완료` / `보류`
 

@@ -14,8 +14,26 @@
 abstract class AppStrings {
   const AppStrings();
 
-  /// 언어 선택 다이얼로그 제목.
+  /// 설정 다이얼로그 제목.
+  String get settings;
+
+  /// 언어 선택 다이얼로그 제목이자 설정 항목 이름.
   String get language;
+
+  /// 진행도 초기화 항목.
+  String get resetProgress;
+
+  /// 초기화 전에 한 번 더 묻는 문구. 되돌릴 수 없다.
+  String get resetProgressWarning;
+
+  /// 초기화한 뒤 알리는 문구.
+  String get resetProgressDone;
+
+  /// 취소.
+  String get cancel;
+
+  /// 버전 항목 이름.
+  String get version;
 
   /// 다시하기.
   String get reset;

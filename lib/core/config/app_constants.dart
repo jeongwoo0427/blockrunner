@@ -2,6 +2,20 @@
 abstract class AppConstants {
   static const String appName = 'BlockRunner';
 
+  /// 스플래시가 머무는 시간 (12-ui-polish §1).
+  ///
+  /// 블록 슬라이드 0.6초 + 제목 페이드인 0.4초 뒤 잠시 머문다. 누르면
+  /// 즉시 넘어가므로 두 번째 실행부터 기다릴 필요는 없다.
+  static const Duration splashDuration = Duration(milliseconds: 1800);
+
+  /// 화면에 보여줄 앱 버전 (12-ui-polish §3).
+  ///
+  /// `package_info_plus` 를 넣지 않는다. 의존성을 아끼자는 것이 아니라
+  /// **틀어질 수 있는 값을 테스트가 붙잡을 수 있는 형태로 두자**는 것이다 —
+  /// `pubspec.yaml` 과 일치하는지 테스트가 검사한다. 상수만 두면 언젠가
+  /// 어긋나고, 그때는 아무도 모른다.
+  static const String appVersion = '1.0.0';
+
   static const int _moveMs = 150;
   static const int _fallMs = 120;
 
