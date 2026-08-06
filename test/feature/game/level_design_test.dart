@@ -62,6 +62,47 @@ void main() {
     }
   });
 
+  group('되풀이되는 짜임 (기획서 §4.4-1)', () {
+    /// 발판형 — 동료를 빼면 **아예 못 깨는** 레벨들.
+    ///
+    /// 목표가 통로 한가운데라 플레이어 혼자서는 지나칠 수밖에 없다. 동료가
+    /// 브레이크로 쓰이기만 하는 것과 다르다 — 없으면 최소 수가 늘어나는 게
+    /// 아니라 해법 자체가 사라진다.
+    const footing = [10, 13, 16];
+
+    /// 버리기형 — 최단 해법이 동료를 블랙홀에 버리는 레벨들.
+    const dumping = [19, 23];
+
+    for (final number in footing) {
+      test('$number 번은 동료 없이는 풀 수 없다', () {
+        final board = boardOf(number);
+        expect(
+          analyzeLevel(board).isSolvable,
+          isTrue,
+          reason: '원래 판은 풀려야 한다',
+        );
+
+        final alone = withoutCompanions(board);
+        expect(
+          analyzeLevel(alone).isSolvable,
+          isFalse,
+          reason: '동료를 빼도 풀린다면 발판이 아니라 그냥 브레이크다',
+        );
+      });
+    }
+
+    for (final number in dumping) {
+      test('$number 번은 최단 해법이 동료를 버린다', () {
+        // 판에 블랙홀과 블록이 함께 있다고 버리는 판은 아니다.
+        expect(
+          swallowedOnBestPath(boardOf(number)),
+          greaterThanOrEqualTo(2),
+          reason: '동료를 버리지 않고도 최단으로 풀린다',
+        );
+      });
+    }
+  });
+
   group('난이도 곡선 (기획서 §4.3)', () {
     final boards = [for (final level in kLevels) boardOf(level.number)];
 
@@ -92,21 +133,37 @@ void main() {
       expect(tall, greaterThanOrEqualTo(5), reason: '세로로 긴 판이 모자라다');
     });
 
-    test('블랙홀은 15번부터 나온다', () {
-      // 잃을 것이 있는 요소는 규칙을 충분히 익힌 뒤에 꺼낸다.
-      for (final level in kLevels) {
-        final board = boardOf(level.number);
-        final holes = [
+    test('블랙홀은 뒤쪽 절반에서 시작해 끝까지 이어진다', () {
+      // **번호로 못박지 않는다.** 처음에는 "15번부터" 였는데 레벨을 사이에
+      // 끼워 넣자 도입 레벨이 밀리면서 깨졌다 — 지키려던 것은 번호가 아니라
+      // 순서다 (기획서 §4.4 (4)).
+      bool hasHole(int number) {
+        final board = boardOf(number);
+        return [
           for (var r = 0; r < board.rowCount; r++)
             for (var c = 0; c < board.colCount; c++)
               if (board.floors[r][c] == FloorType.blackHole) 1,
-        ].length;
+        ].isNotEmpty;
+      }
 
-        if (level.number < 15) {
-          expect(holes, 0, reason: '${level.number} 번에 블랙홀이 있다');
-        } else {
-          expect(holes, greaterThan(0), reason: '${level.number} 번에 블랙홀이 없다');
-        }
+      final numbers = kLevels.map((level) => level.number).toList();
+      final first = numbers.indexWhere(hasHole);
+
+      expect(first, isNonNegative, reason: '블랙홀이 나오는 레벨이 없다');
+      expect(
+        first,
+        greaterThanOrEqualTo(numbers.length ~/ 2),
+        reason: '블랙홀이 너무 일찍 나온다 (${first + 1}/${numbers.length} 번째)',
+      );
+
+      for (var i = 0; i < numbers.length; i++) {
+        expect(
+          hasHole(numbers[i]),
+          i >= first,
+          reason: i < first
+              ? '${numbers[i]} 번에 블랙홀이 있다 — 도입 전이다'
+              : '${numbers[i]} 번에 블랙홀이 없다 — 한 번 나온 뒤로는 빠지지 않는다',
+        );
       }
     });
 
@@ -118,9 +175,12 @@ void main() {
 
     test('뒤로 갈수록 대체로 길어진다', () {
       // **매 레벨 단조 증가는 요구하지 않는다.** 새 요소가 나오는 판은 일부러
-      // 짧게 만든다 — 규칙을 보여주는 것이 먼저다(15번이 그렇다).
-      final front = kLevels.take(10).map((l) => l.minMoves).reduce((a, b) => a + b);
-      final back = kLevels.skip(10).map((l) => l.minMoves).reduce((a, b) => a + b);
+      // 짧게 만든다 — 규칙을 보여주는 것이 먼저다(블랙홀 도입 레벨이 그렇다).
+      //
+      // 레벨 수를 박지 않고 절반으로 가른다. 개수가 늘어도 따라온다.
+      final half = kLevels.length ~/ 2;
+      final front = kLevels.take(half).map((l) => l.minMoves).reduce((a, b) => a + b);
+      final back = kLevels.skip(half).map((l) => l.minMoves).reduce((a, b) => a + b);
 
       expect(back, greaterThan(front));
     });

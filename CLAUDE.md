@@ -144,8 +144,8 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 is not a task from the list; ask what it should be. **The game is playable end to end on all
 three platforms:** level select → play → clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
-`docs/game-design.md` §4, **twenty levels** are ASCII constants whose `minMoves` a BFS solver in
-`test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
+`docs/game-design.md` §4, **twenty-five levels** are ASCII constants whose `minMoves` a BFS solver
+in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
 **Level design is a checked property, not taste** (`docs/game-design.md` §4.4). `test/feature/game/
 level_design.dart` exhaustively searches every level and `level_design_test.dart` asserts five
@@ -153,8 +153,23 @@ things: no board reachable from the start may be unclearable (there is no undo, 
 end ends the level while the screen says nothing — the old level 1 had six of them); removing any
 wall, edge wall, block, or black hole must change `minMoves`, or it was decoration; boards only
 grow and carry no padding — **cutting an empty edge row must change `minMoves`**, which caught
-half the first twenty (level 17 was 9×9 using a 4×8 corner); black holes appear only from level 15;
-and the back ten levels must total more moves than the front ten. **Boards are deliberately not all
+half the first twenty (level 17 was 9×9 using a 4×8 corner); black holes appear only in the back
+half and never stop once they start; and the back half must total more moves than the front. **None
+of those rules names a level number** — the first version said "from level 15" and broke the moment
+levels were inserted, because what mattered was the order, not the index.
+
+**Two motifs recur in the late levels** (`docs/game-design.md` §4.4-1) and each has its own test.
+*Footing*: the player sits in an edge-walled shaft with the goal mid-shaft, so it slides end to end
+and can never stop there — a companion must be dropped in to stand on. The test asserts the level
+is **unsolvable with the companions removed**, which is what separates a footing level from one
+where a block merely happens to be a brake. *Dumping*: companions blocking the route are slid into
+black holes, and the test asserts the shortest solution swallows at least two. **A sealed chamber is
+impossible** (nothing could enter or leave) and **a hole cannot be plugged** (§3.3 — holes are not
+consumed), so both ideas have to be expressed as "cannot stop where you need to" instead.
+
+**Rule (1) caps how many companions a dumping level can have.** With three, 90% of otherwise-valid
+boards contain a dump order that strands you, and a 150k-candidate search found none; two is the
+practical ceiling unless the no-dead-end rule changes. **Boards are deliberately not all
 square** — at least five are wider than tall and five taller than wide, because a long axis slides
 far and a short one hits the wall at once. **Maps are not hand-drawn**; a random search keeps only
 what passes those checks, and the test then pins it.

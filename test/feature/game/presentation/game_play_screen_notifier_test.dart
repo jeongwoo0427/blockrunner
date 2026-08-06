@@ -113,26 +113,26 @@ void main() {
   });
 
   test('블랙홀에 빠지면 소실 상태가 되고 이후 입력이 막힌다', () async {
-    // 블랙홀이 처음 나오는 레벨은 15 다. 왼쪽으로 밀면 (6,2) 의 블랙홀을
+    // 블랙홀이 처음 나오는 레벨은 18 이다. 왼쪽으로 밀면 (6,2) 의 블랙홀을
     // 지나가면서 빨려 들어간다.
-    await send(15, MoveRequested(Direction.left));
-    await send(15, AnimationCompleted());
-    final lost = read(15);
+    await send(18, MoveRequested(Direction.left));
+    await send(18, AnimationCompleted());
+    final lost = read(18);
 
     expect(lost.isPlayerLost, isTrue);
     expect(lost.board?.hasPlayer, isFalse);
     expect(lost.isCleared, isFalse);
 
-    await send(15, MoveRequested(Direction.left));
-    expect(read(15).moveCount, lost.moveCount, reason: '소실 상태에서는 입력이 막힌다');
+    await send(18, MoveRequested(Direction.left));
+    expect(read(18).moveCount, lost.moveCount, reason: '소실 상태에서는 입력이 막힌다');
   });
 
   test('다시하기가 초기 배치와 횟수 0 으로 되돌린다', () async {
-    await send(15, MoveRequested(Direction.left));
-    expect(read(15).isPlayerLost, isTrue);
+    await send(18, MoveRequested(Direction.left));
+    expect(read(18).isPlayerLost, isTrue);
 
-    await send(15, ResetRequested());
-    final state = read(15);
+    await send(18, ResetRequested());
+    final state = read(18);
 
     expect(state.board, state.map?.initialBoard);
     expect(state.moveCount, 0);
@@ -168,8 +168,8 @@ void main() {
     });
 
     test('블랙홀에 빠진 블록은 빠진 칸에 놓인 채 남는다', () async {
-      await send(15, MoveRequested(Direction.left));
-      final state = read(15);
+      await send(18, MoveRequested(Direction.left));
+      final state = read(18);
 
       // 판에서는 지워졌지만 연출용으로는 살아 있어야 한다. 그러지 않으면
       // 블랙홀까지 미끄러지는 장면 없이 제자리에서 사라진다.
@@ -184,28 +184,28 @@ void main() {
         reason: '연출 위치는 출발 칸이 아니라 빠진 블랙홀이어야 한다',
       );
 
-      await send(15, AnimationCompleted());
-      expect(read(15).fallingBlocks, isEmpty);
+      await send(18, AnimationCompleted());
+      expect(read(18).fallingBlocks, isEmpty);
     });
 
     test('다시하기는 재생 중인 연출을 끊는다', () async {
-      await send(15, MoveRequested(Direction.left));
-      expect(read(15).isAnimating, isTrue);
+      await send(18, MoveRequested(Direction.left));
+      expect(read(18).isAnimating, isTrue);
 
-      await send(15, ResetRequested());
-      final state = read(15);
+      await send(18, ResetRequested());
+      final state = read(18);
 
       expect(state.isAnimating, isFalse, reason: '다시하기는 즉시 반영이다');
       expect(state.fallingBlocks, isEmpty);
     });
 
     test('끊긴 뒤 늦게 도착한 완료 통지는 무시된다', () async {
-      await send(15, MoveRequested(Direction.left));
-      await send(15, ResetRequested());
+      await send(18, MoveRequested(Direction.left));
+      await send(18, ResetRequested());
       // 다시하기 직전에 걸려 있던 타이머가 뒤늦게 울린 상황.
-      await send(15, AnimationCompleted());
+      await send(18, AnimationCompleted());
 
-      final state = read(15);
+      final state = read(18);
       expect(state.board, state.map?.initialBoard);
       expect(state.moveCount, 0);
     });
@@ -245,10 +245,10 @@ void main() {
     });
 
     test('블랙홀에 빠져도 저장하지 않는다', () async {
-      await send(15, MoveRequested(Direction.left));
-      expect(read(15).isPlayerLost, isTrue);
+      await send(18, MoveRequested(Direction.left));
+      expect(read(18).isPlayerLost, isTrue);
 
-      expect(progress().getProgress(15), isNull);
+      expect(progress().getProgress(18), isNull);
     });
 
     test('플레이 화면과 진행도가 같은 usecase 인스턴스를 쓴다', () async {
@@ -333,11 +333,11 @@ void main() {
     });
 
     test('블랙홀에 빠져도 되돌리기로 복구된다', () async {
-      await move(15, Direction.left);
-      expect(read(15).isPlayerLost, isTrue);
+      await move(18, Direction.left);
+      expect(read(18).isPlayerLost, isTrue);
 
-      await send(15, UndoRequested());
-      final state = read(15);
+      await send(18, UndoRequested());
+      final state = read(18);
 
       expect(state.board?.hasPlayer, isTrue);
       expect(state.isPlayerLost, isFalse, reason: '되돌린 판에서 판정을 다시 내야 한다');

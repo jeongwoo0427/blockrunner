@@ -18,7 +18,7 @@ void main() {
     int highestUnlocked = 0,
   }) async {
     tester.view
-      ..physicalSize = const Size(390, 2400)
+      ..physicalSize = const Size(390, 3400)
       ..devicePixelRatio = 1;
     addTearDown(tester.view.reset);
 

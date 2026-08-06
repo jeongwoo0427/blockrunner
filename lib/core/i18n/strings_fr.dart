@@ -105,17 +105,22 @@ class StringsFr extends AppStrings {
     7: 'Deux murs',
     8: 'Porte étroite',
     9: 'Bifurcation',
-    10: 'Murs seuls',
-    11: 'Engrenage',
-    12: 'Les trois',
-    13: 'Voie étroite',
-    14: 'Dernier essai',
-    15: 'Trou noir',
-    16: 'Voie coupée',
-    17: 'Dégager la voie',
-    18: 'Double abîme',
-    19: 'Long chemin',
-    20: 'Dernière porte',
+    10: 'Marchepied',
+    11: 'Murs seuls',
+    12: 'Engrenage',
+    13: 'Le puits',
+    14: 'Les trois',
+    15: 'Voie étroite',
+    16: 'Deux appuis',
+    17: 'Dernier essai',
+    18: 'Trou noir',
+    19: 'Un par un',
+    20: 'Voie coupée',
+    21: 'Dégager la voie',
+    22: 'Double abîme',
+    23: 'Faire place',
+    24: 'Long chemin',
+    25: 'Dernière porte',
   };
 
   @override
@@ -129,7 +134,7 @@ class StringsFr extends AppStrings {
     5:
         'Le trait épais entre deux cases est une cloison.\n'
         'Il bloque le passage, mais les deux cases restent utilisables.',
-    15:
+    18:
         'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
         "Surveillez le trajet, pas seulement la case d'arrivée.",
   };

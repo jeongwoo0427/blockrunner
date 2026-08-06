@@ -108,17 +108,22 @@ class StringsEn extends AppStrings {
     7: 'Double Walls',
     8: 'Narrow Gate',
     9: 'The Fork',
-    10: 'Walls Only',
-    11: 'Interlock',
-    12: 'All Three',
-    13: 'Tight Path',
-    14: 'Rehearsal',
-    15: 'Black Hole',
-    16: 'Severed',
-    17: 'Clear the Way',
-    18: 'Twin Abyss',
-    19: 'The Long Way',
-    20: 'Last Gate',
+    10: 'Footing',
+    11: 'Walls Only',
+    12: 'Interlock',
+    13: 'Deep Shaft',
+    14: 'All Three',
+    15: 'Tight Path',
+    16: 'Two Footings',
+    17: 'Rehearsal',
+    18: 'Black Hole',
+    19: 'One by One',
+    20: 'Severed',
+    21: 'Clear the Way',
+    22: 'Twin Abyss',
+    23: 'Make Room',
+    24: 'The Long Way',
+    25: 'Last Gate',
   };
 
   @override
@@ -132,7 +137,7 @@ class StringsEn extends AppStrings {
     5:
         'The thick line between two tiles is a partition.\n'
         'It blocks passage only — both tiles are still usable.',
-    15:
+    18:
         'A black hole swallows any block that merely passes over it.\n'
         'Watch the path, not just the landing tile.',
   };

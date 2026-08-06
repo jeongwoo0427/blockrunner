@@ -39,7 +39,17 @@ class LevelAnalysis {
   bool get hasDeadEnd => deadEnds > 0;
 }
 
-LevelAnalysis analyzeLevel(BoardState initial) {
+/// 갈 수 있는 판이 [maxStates] 를 넘으면 탐색을 멈추고 `null` 을 돌려준다.
+///
+/// **레벨을 고를 때만 쓴다.** 동료 블록이 넷쯤 되면 판 하나의 상태 공간이
+/// 수백만으로 불어나, 후보를 수십만 개 훑는 탐색이 첫 판에서 멈춰 선다.
+/// 완성된 레벨은 상한 없이 검사한다 — 그때는 판이 스무 개뿐이다.
+LevelAnalysis? analyzeWithin(BoardState initial, int maxStates) =>
+    _analyze(initial, maxStates);
+
+LevelAnalysis analyzeLevel(BoardState initial) => _analyze(initial, null)!;
+
+LevelAnalysis? _analyze(BoardState initial, int? maxStates) {
   const applyMove = ApplyMoveUsecase();
 
   final states = <String, BoardState>{};
@@ -74,6 +84,7 @@ LevelAnalysis analyzeLevel(BoardState initial) {
       if (states.containsKey(movedKey)) continue;
 
       states[movedKey] = moved;
+      if (maxStates != null && states.length > maxStates) return null;
       queue.add(moved);
     }
 
@@ -302,3 +313,78 @@ BoardState? _trim(BoardState board, _Side side) {
     },
   );
 }
+
+/// 최단 해법을 지나는 동안 **블랙홀에 삼켜지는 일반 블록의 수**.
+///
+/// 최단 해법이 여럿이면 그중 가장 적게 잃는 쪽을 센다 — "안 버려도 풀린다" 를
+/// 잡아내야 하기 때문이다. 풀 수 없으면 `null`.
+///
+/// 동료 블록을 하나씩 블랙홀에 버려 길을 여는 레벨이 정말 그렇게 풀리는지
+/// 검사하는 데 쓴다. 판에 블랙홀과 블록이 함께 있다고 해서 버리는 판은 아니다.
+int? swallowedOnBestPath(BoardState initial) {
+  const applyMove = ApplyMoveUsecase();
+
+  int companionsIn(BoardState board) =>
+      board.blocks.where((block) => block.type == BlockType.normal).length;
+
+  final total = companionsIn(initial);
+
+  // **깊이별로 층을 나눠 탐색한다.** 한 판을 나중에 더 적게 잃고 다시 만나도
+  // 그것은 더 긴 해법이다 — 최단 해법 중에서만 고르려면 층을 섞으면 안 된다.
+  final seen = <String>{_key(initial)};
+  var frontier = {_key(initial): initial};
+  var loss = {_key(initial): 0};
+
+  while (frontier.isNotEmpty) {
+    int? cleared;
+    frontier.forEach((key, board) {
+      if (!board.isCleared) return;
+      final lost = loss[key]!;
+      if (cleared == null || lost < cleared!) cleared = lost;
+    });
+    if (cleared != null) return cleared;
+
+    final nextBoards = <String, BoardState>{};
+    final nextLoss = <String, int>{};
+
+    frontier.forEach((key, board) {
+      for (final direction in Direction.values) {
+        final result = applyMove(board, direction);
+        if (!result.moved) continue;
+
+        final moved = result.board;
+        if (!moved.hasPlayer) continue;
+
+        final movedKey = _key(moved);
+        if (seen.contains(movedKey)) continue;
+
+        final lost = total - companionsIn(moved);
+        if (nextLoss.containsKey(movedKey) && nextLoss[movedKey]! <= lost) {
+          continue;
+        }
+        nextBoards[movedKey] = moved;
+        nextLoss[movedKey] = lost;
+      }
+    });
+
+    seen.addAll(nextBoards.keys);
+    frontier = nextBoards;
+    loss = nextLoss;
+  }
+
+  return null;
+}
+
+/// 일반 블록을 전부 걷어낸 판.
+///
+/// "동료가 없으면 못 깬다" 를 검사하는 데 쓴다 — 발판형 레벨의 정의다
+/// (기획서 §4.4-1).
+BoardState withoutCompanions(BoardState board) => BoardState(
+  rowCount: board.rowCount,
+  colCount: board.colCount,
+  floors: board.floors,
+  blocks: board.blocks
+      .where((block) => block.type == BlockType.player)
+      .toList(),
+  walls: board.walls,
+);
