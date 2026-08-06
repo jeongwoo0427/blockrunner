@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/theme/data/light_theme.dart';
 import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
@@ -77,14 +78,18 @@ void main() {
     );
   });
 
-  testWidgets('카드도 각져 있다', (tester) async {
-    // 버튼·레벨 카드와 같은 모양 언어를 쓴다.
+  testWidgets('카드는 각지고 옅은 테두리를 갖는다', (tester) async {
+    // 버튼·레벨 카드와 같은 모양 언어를 쓰되, **카드에는 테두리가 있다** —
+    // 표면색 위에 표면색으로 떠 있어서 윤곽이 없으면 경계가 흐릿하다.
     await pump(tester, resultOverlay());
 
-    expect(
-      tester.widget<Card>(find.byType(Card)).shape,
-      isA<BeveledRectangleBorder>(),
-    );
+    final shape =
+        tester.widget<Card>(find.byType(Card)).shape
+            as BeveledRectangleBorder;
+
+    expect(shape.side.style, isNot(BorderStyle.none));
+    // 시커먼 선이면 창틀처럼 무거워진다.
+    expect(shape.side.color, lightTheme.colorScheme.outlineVariant);
   });
 
   testWidgets('블랙홀 결과에도 카드가 뜬다', (tester) async {

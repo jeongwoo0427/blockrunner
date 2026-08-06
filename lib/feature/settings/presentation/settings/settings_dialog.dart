@@ -34,24 +34,26 @@ class SettingsDialog extends StatelessWidget {
     BuildContext context, {
     required AppLocale current,
     required Future<bool> Function() onPickLanguage,
-  }) => showGeneralDialog<SettingsResult>(
-    context: context,
-    barrierDismissible: true,
-    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.black54,
-    // `OverlayCard` 와 같은 등장 연출을 쓴다 (13-game-feel §4).
-    transitionDuration: overlayEntranceDuration,
-    transitionBuilder: buildOverlayTransition,
-    pageBuilder: (context, _, _) =>
-        SettingsDialog(current: current, onPickLanguage: onPickLanguage),
-  );
+  }) =>
+      showGeneralDialog<SettingsResult>(
+        context: context,
+        barrierDismissible: true,
+        barrierLabel:
+            MaterialLocalizations.of(context).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        // `OverlayCard` 와 같은 등장 연출을 쓴다 (13-game-feel §4).
+        transitionDuration: overlayEntranceDuration,
+            transitionBuilder: buildOverlayTransition,
+        pageBuilder: (context, _, _) =>
+            SettingsDialog(current: current, onPickLanguage: onPickLanguage),
+      );
 
   @override
   Widget build(BuildContext context) {
     final strings = context.strings;
 
     return SimpleDialog(
-      shape: gameButtonShape(radius: gameCardBevel),
+      shape: gameCardShape(Theme.of(context).colorScheme),
       title: Text(strings.settings),
       children: [
         ListTile(
@@ -75,7 +77,8 @@ class SettingsDialog extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(strings.version, style: Theme.of(context).textTheme.bodySmall),
+              Text(strings.version,
+                  style: Theme.of(context).textTheme.bodySmall),
               Text(
                 AppConstants.appVersion,
                 style: Theme.of(context).textTheme.bodySmall,
@@ -101,7 +104,7 @@ Future<bool> confirmResetProgress(BuildContext context) async {
     transitionDuration: overlayEntranceDuration,
     transitionBuilder: buildOverlayTransition,
     pageBuilder: (context, _, _) => AlertDialog(
-      shape: gameButtonShape(radius: gameCardBevel),
+      shape: gameCardShape(Theme.of(context).colorScheme),
       title: Text(strings.resetProgress),
       content: Text(strings.resetProgressWarning),
       actions: [

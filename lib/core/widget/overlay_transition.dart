@@ -77,21 +77,28 @@ const double overlayStartScale = 0.82;
 double overlayScaleAt(double t) =>
     overlayStartScale + (1 - overlayStartScale) * t;
 
-/// `showGeneralDialog` 가 쓸 등장 연출.
+/// `showGeneralDialog` 가 쓸 등장·퇴장 연출.
 ///
-/// `OverlayCard` 와 **같은 곡선을 쓰게 하려고** 여기 둔다 — 두 곳에 흩어지면
-/// 한쪽만 손댔을 때 등장 방식이 갈린다.
+/// **판 위의 오버레이와 정확히 같은 것을 쓴다.** 예전에는 이쪽만 곡선을
+/// 통째로 적용해서, 카드가 배경과 동시에 뜨고 나갈 때도 튕겼다 — 튜토리얼과
+/// 나란히 놓고 보면 어색했다. 배경은 프레임워크가 `barrierColor` 로 고르게
+/// 옅어지게 하고, 카드만 [overlayCardAnimation] 을 따른다.
+///
+/// 나가는 시간은 들어오는 시간과 같다 — `showGeneralDialog` 는 그것만 따로
+/// 받지 않는다. 곡선과 차례가 맞으므로 눈에 띄는 차이는 아니다.
 Widget buildOverlayTransition(
   BuildContext context,
   Animation<double> animation,
   Animation<double> secondaryAnimation,
   Widget child,
 ) {
-  return AnimatedBuilder(
-    animation: animation,
-    builder: (context, _) => buildOverlayScale(
-      animation.value,
-      curve: overlayEnterCurve,
+  final card = overlayCardAnimation(animation);
+
+  return FadeTransition(
+    opacity: card,
+    child: ScaleTransition(
+      key: overlayCardKey,
+      scale: Tween<double>(begin: overlayStartScale, end: 1).animate(card),
       child: child,
     ),
   );

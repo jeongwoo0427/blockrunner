@@ -3,6 +3,7 @@ import 'package:blockrunner/core/di/core_providers.dart';
 import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/i18n/strings_catalog.dart';
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/level_select_root.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/widget/level_card.dart';
 import 'package:blockrunner/feature/settings/presentation/language_picker/language_picker_dialog.dart';
@@ -131,5 +132,56 @@ void main() {
 
     expect(container.read(localeNotifierProvider), AppLocale.ko);
     expect(find.text(stringsFor(AppLocale.ko).levelSelectTitle), findsOneWidget);
+  });
+
+  group('연출 (13-game-feel §4)', () {
+    /// 다이얼로그도 **판 위 오버레이와 같은 것**을 탄다. 예전에는 이쪽만
+    /// 곡선을 통째로 적용해서 카드가 배경과 동시에 뜨고 나갈 때도 튕겼다 —
+    /// 튜토리얼과 나란히 놓고 보면 어색했다.
+    double cardScale(WidgetTester tester) =>
+        tester.widget<ScaleTransition>(find.byKey(overlayCardKey)).scale.value;
+
+    testWidgets('열릴 때 카드가 배경보다 늦게 뜬다', (tester) async {
+      await tester.pumpWidget(await boot());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pump();
+      // 배경이 깔리는 구간에서는 카드가 아직 작다.
+      await tester.pump(overlayEntranceDuration ~/ 4);
+
+      expect(cardScale(tester), lessThan(1));
+    });
+
+    testWidgets('닫힐 때는 튕기지 않는다', (tester) async {
+      await tester.pumpWidget(await boot());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pumpAndSettle();
+      expect(cardScale(tester), closeTo(1, 0.001));
+
+      // 바깥을 눌러 닫는다.
+      await tester.tapAt(const Offset(10, 10));
+      await tester.pump();
+      await tester.pump(overlayEntranceDuration ~/ 3);
+
+      // 되튕김이 있으면 1을 넘어간다.
+      expect(cardScale(tester), lessThanOrEqualTo(1));
+    });
+
+    testWidgets('다이얼로그도 옅은 테두리를 갖는다', (tester) async {
+      await tester.pumpWidget(await boot());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byIcon(Icons.settings));
+      await tester.pumpAndSettle();
+
+      final shape =
+          tester.widget<SimpleDialog>(find.byType(SimpleDialog)).shape
+              as BeveledRectangleBorder;
+
+      expect(shape.side.style, isNot(BorderStyle.none));
+    });
   });
 }

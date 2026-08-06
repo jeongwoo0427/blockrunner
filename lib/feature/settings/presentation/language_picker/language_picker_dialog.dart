@@ -26,14 +26,14 @@ class LanguagePickerDialog extends StatelessWidget {
         barrierColor: Colors.black54,
         // `OverlayCard` 와 같은 등장 연출을 쓴다 (13-game-feel §4).
         transitionDuration: overlayEntranceDuration,
-        transitionBuilder: buildOverlayTransition,
+            transitionBuilder: buildOverlayTransition,
         pageBuilder: (context, _, _) => LanguagePickerDialog(current: current),
       );
 
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
-      shape: gameButtonShape(radius: gameCardBevel),
+      shape: gameCardShape(Theme.of(context).colorScheme),
       title: Text(context.strings.language),
       children: [
         for (final locale in AppLocale.values)

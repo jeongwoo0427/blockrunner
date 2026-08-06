@@ -2276,3 +2276,32 @@
 - **레벨 1·2 에서는 안 난다.** 레벨 2는 튜토리얼이 없어 종류가 `none` 으로 바뀌므로 정상 동작한다 — 사용자가 "두 스테이지쯤" 이라고 한 것이 정확히 이 지점이다
 - **첫 회귀 테스트는 버그를 재현하지 못했다.** 상태만 갈아끼웠더니 진행도가 1에 머물러 있어 통과해 버렸다. **다음 버튼을 눌러 닫는 경로를 그대로 타야** 진행도가 0으로 내려가 증상이 드러난다. 교란으로 확인하지 않았으면 "고쳤다" 고 잘못 보고했을 것이다
 - **화면이 안 보이는 상태를 상태값이 계속 참으로 들고 있으면 입력만 죽는다.** 오버레이를 연출로 감추는 순간부터 "보인다" 와 "막는다" 가 갈릴 수 있다는 것을 놓쳤다
+
+---
+
+## 2026-08-06 #83 — 카드 테두리, 그리고 설정 다이얼로그를 같은 연출로
+
+**요청**
+> 다이얼로그 테두리가 있으면 좋겠다. 너무 시커멓게 하지 말고. 어울리게. 그리고 설정 다이얼로그도 애니메이션 적용됐는데, 튜토리얼 다이얼로그랑 뭔가 달라. 자연스럽지 못한 느낌이야
+
+**한 일**
+- `gameCardShape(ColorScheme)` 신설 — 각진 모양 + `outlineVariant` 1.5px 테두리. 오버레이 카드와 설정·언어·확인 다이얼로그가 함께 쓴다
+- `buildOverlayTransition` 이 `overlayCardAnimation` 을 쓰도록 바꿈 — 판 위 오버레이와 **정확히 같은 구간·곡선**
+- 테스트 4건 추가 (429 → 432)
+
+**변경 파일**
+- `lib/core/widget/game_button.dart` — `gameCardShape`
+- `lib/core/widget/overlay_transition.dart` — 다이얼로그 연출
+- `lib/feature/game/presentation/game_play/widget/overlay_card.dart`, `lib/feature/settings/presentation/**` 다이얼로그 3곳
+- `test/feature/game/presentation/overlay_card_test.dart`, `test/feature/settings/language_picker_test.dart`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 432/432 통과
+- **교란 2종** — ① 테두리 제거 ② 다이얼로그를 예전 방식으로 되돌림
+
+**결정 / 메모**
+- **"뭔가 다르다" 의 원인이 셋이었다.** 설정 다이얼로그만 ① 카드가 배경과 **동시에** 떴고 ② 나갈 때도 `elasticOut` 이라 **튕겼으며** ③ 나가는 시간이 등장과 같았다. 앞의 둘을 고쳐 판 위 오버레이와 같은 함수를 쓰게 했다
+- **나가는 시간은 못 맞췄다.** `showGeneralDialog` 가 `reverseTransitionDuration` 을 받지 않는다. 곡선과 차례가 맞으므로 눈에 띄지는 않을 것이고, 그 한계를 주석에 적었다
+- **버튼과 카드의 모양 함수를 갈랐다.** `#69` 에서 버튼 테두리를 없앤 판단은 그대로다 — 버튼은 채움색만으로 배경과 갈리지만, **카드는 표면색 위에 표면색으로 떠 있어** 윤곽이 없으면 경계가 흐릿하다. 같은 함수에 인자를 붙이지 않고 이름을 갈랐다
+- `outlineVariant` 를 쓴 이유: 시커먼 선을 두르면 창틀처럼 무거워진다. 값이 아니라 테마 역할이라 다크에서도 산다

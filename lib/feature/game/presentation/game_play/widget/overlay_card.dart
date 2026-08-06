@@ -56,7 +56,7 @@ class OverlayCard extends StatelessWidget {
               elevation: 8,
               color: theme.colorScheme.surface,
               // 버튼·레벨 카드와 같은 모양 언어를 쓴다.
-              shape: gameButtonShape(radius: gameCardBevel),
+              shape: gameCardShape(theme.colorScheme),
                   child: Padding(
                     padding: const EdgeInsets.all(Spacing.lg),
                     // 내용만큼만 차지한다 — 요청의 핵심이다.

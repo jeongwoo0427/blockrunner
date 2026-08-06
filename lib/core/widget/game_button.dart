@@ -123,5 +123,16 @@ ShapeBorder gameButtonShape({double radius = 10}) =>
 /// 오버레이 카드·다이얼로그가 쓰는 크기.
 const double gameCardBevel = 20;
 
+/// 카드·다이얼로그의 모양. **버튼과 달리 테두리가 있다.**
+///
+/// 버튼은 채움색만으로도 배경과 갈리지만, 카드는 표면색 위에 표면색으로 떠
+/// 있어서 윤곽이 없으면 어디까지가 카드인지 흐릿하다.
+///
+/// 색은 `outlineVariant` — 시커먼 선을 두르면 창틀처럼 무거워진다.
+ShapeBorder gameCardShape(ColorScheme colors) => BeveledRectangleBorder(
+  borderRadius: BorderRadius.circular(gameCardBevel),
+  side: BorderSide(color: colors.outlineVariant, width: 1.5),
+);
+
 /// 누를 때의 반응 시간. 길면 눌린 느낌이 아니라 굼뜬 느낌이 된다.
 const Duration gameButtonPressDuration = Duration(milliseconds: 80);
