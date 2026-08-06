@@ -2,7 +2,9 @@ import 'dart:async';
 
 import 'package:blockrunner/core/config/app_constants.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
+import 'package:blockrunner/core/i18n/app_strings.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/core/widget/game_icon_button.dart';
 import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
@@ -13,6 +15,7 @@ import 'package:blockrunner/feature/game/presentation/game_play/swipe_direction.
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/game_hud.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
@@ -31,7 +34,7 @@ class GamePlayScreen extends StatefulWidget {
 }
 
 class _GamePlayScreenState extends State<GamePlayScreen>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   final FocusNode _focusNode = FocusNode(debugLabel: 'GamePlayKeyboard');
 
   /// 레벨이 바뀔 때 몸통이 밀려 넘어가는 연출.
@@ -43,6 +46,28 @@ class _GamePlayScreenState extends State<GamePlayScreen>
 
   /// 방금 전 레벨의 몸통. 넘어가는 동안만 들고 있다.
   Widget? _outgoingBody;
+
+  /// 오버레이가 뜨고 지는 진행도. 1 이면 완전히 떠 있다.
+  late final AnimationController _overlayFade;
+
+  /// 배경(스크림)의 짙기. **배율은 걸지 않는다.**
+  late final Animation<double> _scrimFade;
+
+  /// 카드의 진행도. 배경보다 늦게 뜨고 먼저 진다.
+  late final Animation<double> _cardFade;
+
+  /// 카드를 닫는 중인가.
+  ///
+  /// 상태가 아직 "결과 표시" 인데도 화면에서 먼저 걷어내야 하는 경우가 있다 —
+  /// 다음 레벨로 갈 때다. 연출을 다 보여준 뒤에 넘어가야 하므로, 그동안은
+  /// 이 값으로 오버레이를 감춘다.
+  bool _closing = false;
+
+  /// 연출이 끝나면 올려보낼 이벤트.
+  GamePlayScreenEvent? _afterClose;
+
+  /// 마지막으로 떠 있던 오버레이. 사라지는 동안 이것을 계속 그린다.
+  Widget? _lastOverlay;
 
   /// 마지막으로 그린 몸통 — 레벨이 바뀌면 이것이 [_outgoingBody] 가 된다.
   Widget? _lastBody;
@@ -63,12 +88,61 @@ class _GamePlayScreenState extends State<GamePlayScreen>
       vsync: this,
       duration: AppConstants.levelSlideDuration,
     );
+    _overlayFade = AnimationController(
+      vsync: this,
+      duration: overlayEntranceDuration,
+      reverseDuration: overlayExitDuration,
+      // 이미 떠 있는 채로 화면이 만들어지면(핫 리로드 등) 그대로 둔다.
+      value: _hasOverlay(widget.state) ? 1 : 0,
+    );
+    // 다 나가고 나면 붙잡고 있던 것을 놓는다. **이 통지가 없으면** 마지막
+    // 프레임 뒤로 다시 그릴 계기가 없어 투명한 카드가 트리에 남는다.
+    _overlayFade.addStatusListener((status) {
+      if (status != AnimationStatus.dismissed || !mounted) return;
+
+      final pending = _afterClose;
+      setState(() {
+        _lastOverlay = null;
+        _closing = false;
+        _afterClose = null;
+      });
+
+      // **연출이 끝난 뒤에 넘어간다.** 먼저 보내면 카드가 사라지는 장면이
+      // 페이지 전환에 잘려 나간다.
+      if (pending != null) widget.onEvent(pending);
+    });
+    _scrimFade = overlayScrimAnimation(_overlayFade);
+    _cardFade = overlayCardAnimation(_overlayFade);
+  }
+
+  /// 지금 오버레이가 떠 있어야 하는가. 어느 것인지는 보지 않는다.
+  bool _hasOverlay(GamePlayScreenState state) {
+    if (_closing) return false;
+
+    final level = state.level;
+    if (level == null) return false;
+
+    return (state.showsTutorial && level.hasTutorial) || _showsResult(state);
+  }
+
+  /// 카드를 닫고, 다 사라진 뒤에 [event] 를 올려보낸다.
+  ///
+  /// 요청한 차례가 이것이다 — 카드 사라짐 → 배경 걷힘 → 페이지 이동.
+  void _closeThen(GamePlayScreenEvent event) {
+    if (_closing) return;
+
+    setState(() {
+      _closing = true;
+      _afterClose = event;
+    });
+    _overlayFade.reverse();
   }
 
   @override
   void dispose() {
     _animationTimer?.cancel();
     _levelSlide.dispose();
+    _overlayFade.dispose();
     _focusNode.dispose();
     super.dispose();
   }
@@ -90,6 +164,7 @@ class _GamePlayScreenState extends State<GamePlayScreen>
     super.didUpdateWidget(oldWidget);
 
     _startLevelSlideIfNeeded(oldWidget);
+    _syncOverlay(oldWidget);
 
     if (!oldWidget.state.isAnimating && widget.state.isAnimating) {
       _startAnimationTimer();
@@ -104,6 +179,24 @@ class _GamePlayScreenState extends State<GamePlayScreen>
     // 포커스를 가져간 채로 두면 방향키가 먹지 않는다.
     if (_showsResult(oldWidget.state) && !_showsResult(widget.state)) {
       _focusNode.requestFocus();
+    }
+  }
+
+  /// 오버레이가 뜨거나 졌으면 그 연출을 재생한다.
+  void _syncOverlay(GamePlayScreen oldWidget) {
+    final before = _hasOverlay(oldWidget.state);
+    final after = _hasOverlay(widget.state);
+    if (before == after) return;
+
+    if (MediaQuery.disableAnimationsOf(context)) {
+      _overlayFade.value = after ? 1 : 0;
+      return;
+    }
+
+    if (after) {
+      _overlayFade.forward(from: 0);
+    } else {
+      _overlayFade.reverse();
     }
   }
 
@@ -156,6 +249,70 @@ class _GamePlayScreenState extends State<GamePlayScreen>
     return falling.any((block) => block.type == BlockType.player)
         ? AppConstants.moveWithPlayerFallDuration
         : AppConstants.moveWithFallDuration;
+  }
+
+  /// 지금 떠 있어야 할 오버레이. 없으면 `null`.
+  Widget? _overlayFor(
+    GamePlayScreenState state,
+    Level level,
+    AppStrings strings,
+  ) {
+    if (_closing) return null;
+
+    if (state.showsTutorial && level.hasTutorial) {
+      return TutorialOverlay(
+        title: strings.levelName(level.number),
+        body: strings.levelTutorial(level.number),
+        demo: level.demo,
+        // 조작은 첫 레벨에서만 알려준다.
+        showsControls: level.number == 1,
+        onDismiss: () => _sendAndRefocus(TutorialDismissed()),
+      );
+    }
+
+    if (_showsResult(state)) {
+      return ResultOverlay(
+        isCleared: state.isCleared,
+        moveCount: state.moveCount,
+        minMoves: level.minMoves,
+        stars: level.starsFor(state.moveCount),
+        hasNextLevel: state.hasNextLevel,
+        onReset: () => _sendAndRefocus(ResetRequested()),
+        onNextLevel: () => _closeThen(NextLevelRequested()),
+        onBackToLevelSelect: () =>
+            widget.onEvent(BackToLevelSelectRequested()),
+      );
+    }
+
+    return null;
+  }
+
+  /// 튜토리얼·결과 오버레이가 뜨고 지는 자리.
+  ///
+  /// **사라진 뒤에도 잠시 들고 있는다.** 조건부로 트리에서 빼버리면 퇴장 연출을
+  /// 재생할 틈이 없다 — 레벨 전환에서 이전 몸통을 붙잡아 두는 것과 같다.
+  ///
+  /// `AnimatedSwitcher` 를 쓰지 않는다. 두 번 시도해서 두 번 다 어긋났다 —
+  /// 들어오는 것과 나가는 것을 한 애니메이션이 몰아서 방향이 뒤집히고,
+  /// 나가는 쪽이 아예 재생되지 않는 경우도 있었다. 직접 들고 있는 편이 명확하다.
+  Widget _overlayLayer(Widget? overlay) {
+    if (overlay != null) _lastOverlay = overlay;
+
+    final shown = overlay ?? _lastOverlay;
+    // **다 나간 뒤에만 뺀다.** 값이 0 이라고 빼면 들어오는 첫 프레임에도
+    // 사라져서, 나타나는 순간이 한 박자 늦게 잡힌다.
+    if (shown == null) return const SizedBox.shrink();
+
+    return IgnorePointer(
+      // 사라지는 중인 카드의 버튼이 눌리면 두 번 누른 것처럼 동작한다.
+      ignoring: overlay == null,
+      // 배경은 **투명도만** 바뀐다. 배율은 카드 안에서만 걸린다.
+      child: FadeTransition(
+        key: overlayScrimKey,
+        opacity: _scrimFade,
+        child: OverlayCardAnimation(animation: _cardFade, child: shown),
+      ),
+    );
   }
 
   /// 판과 HUD — **레벨이 바뀔 때 이것만 밀려 넘어간다** (13-game-feel 이후).
@@ -356,31 +513,11 @@ class _GamePlayScreenState extends State<GamePlayScreen>
             child: Stack(
               children: [
                 _bodyLayer(_buildBody(state, board, level)),
-                if (state.showsTutorial && level.hasTutorial)
-                  Positioned.fill(
-                    child: TutorialOverlay(
-                      title: strings.levelName(level.number),
-                      body: strings.levelTutorial(level.number),
-                      demo: level.demo,
-                      // 조작은 첫 레벨에서만 알려준다.
-                      showsControls: level.number == 1,
-                      onDismiss: () => _sendAndRefocus(TutorialDismissed()),
-                    ),
-                  ),
-                if (_showsResult(state))
-                  Positioned.fill(
-                    child: ResultOverlay(
-                      isCleared: state.isCleared,
-                      moveCount: state.moveCount,
-                      minMoves: level.minMoves,
-                      stars: level.starsFor(state.moveCount),
-                      hasNextLevel: state.hasNextLevel,
-                      onReset: () => _sendAndRefocus(ResetRequested()),
-                      onNextLevel: () => widget.onEvent(NextLevelRequested()),
-                      onBackToLevelSelect: () =>
-                          widget.onEvent(BackToLevelSelectRequested()),
-                    ),
-                  ),
+                // 판 위에 뜨는 것은 **한 번에 하나뿐이다.** 하나로 몰아
+                // 두면 들어오고 나가는 연출이 같은 곳에서 관리된다.
+                Positioned.fill(
+                  child: _overlayLayer(_overlayFor(state, level, strings)),
+                ),
               ],
             ),
           ),

@@ -4,6 +4,7 @@ import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/strings_catalog.dart';
 import 'package:blockrunner/core/router/route_paths.dart';
 import 'package:blockrunner/core/router/router.dart';
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen.dart';
@@ -174,6 +175,11 @@ void main() {
       await tester.pump(const Duration(seconds: 2)); // 별 연출
 
       await tester.tap(find.text(stringsFor(AppLocale.ko).nextLevel));
+
+      // **곧바로 넘어가지 않는다.** 카드가 사라지고 배경이 걷힌 뒤에 간다
+      // — 그 순서가 요청이었다.
+      await tester.pump();
+      await tester.pump(overlayExitDuration);
       await tester.pump();
       await tester.pump(AppConstants.levelSlideDuration ~/ 2);
 

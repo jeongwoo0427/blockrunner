@@ -1,5 +1,11 @@
 import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/core/widget/overlay_transition.dart';
+import 'package:blockrunner/feature/game/data/map_blueprints.dart';
+import 'package:blockrunner/feature/game/data/map_parser.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_event.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
+import 'package:blockrunner/feature/level/data/level_data.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
@@ -88,64 +94,216 @@ void main() {
     expect(find.byType(Card), findsOneWidget);
   });
 
-  group('등장 (13-game-feel §4)', () {
-    /// 지금 그려진 카드의 배율.
-    ///
-    /// **키로 집는다.** 트리에 `Transform` 이 여럿이라 위치로 찾으면 엉뚱한
-    /// 것을 잡는다 — 실제로 `.first` 가 카드가 아니었다.
-    double scaleOf(WidgetTester tester) => tester
-        .widget<Transform>(find.byKey(overlayScaleKey))
-        .transform
-        .getMaxScaleOnAxis();
+  group('등장·퇴장', () {
+    // **연출은 화면이 몬다** — 사라지는 카드를 잠시 붙잡아 둘 수 있는 것은
+    // 카드 자신이 아니라 띄운 쪽이다. 그래서 여기서는 실제 화면을 태운다.
+    final map = const MapParser().parse(kMapBlueprints.first);
 
-    test('작게 시작해서 1로 끝난다', () {
-      // **곡선 자체를 검사한다.** 위젯으로 재면 프레임 타이밍에 걸린다 —
-      // `elasticOut` 은 t=0.1 에서 이미 1을 지나므로 작게 보이는 구간이
-      // 40ms 남짓이고, 첫 프레임이 그 안에 든다는 보장이 없다.
-      expect(overlayScaleAt(0), lessThan(0.9));
-      expect(overlayScaleAt(1), closeTo(1, 0.001));
-    });
-
-    testWidgets('도중에 1을 넘겼다 돌아온다', (tester) async {
-      // 넘기지 않으면 그냥 커지기만 한 것이고, 그건 튕김이 아니다.
+    Future<void> pumpScreen(WidgetTester tester, {required bool cleared}) {
       tester.view
         ..physicalSize = const Size(390, 844)
         ..devicePixelRatio = 1;
       addTearDown(tester.view.reset);
 
-      await tester.pumpWidget(withStrings(Stack(children: [resultOverlay()])));
+      return tester.pumpWidget(
+        withStrings(
+          GamePlayScreen(
+            state: GamePlayScreenState(
+              level: kLevels.first,
+              map: map,
+              board: map.initialBoard,
+              moveCount: 3,
+              isCleared: cleared,
+              hasNextLevel: true,
+            ),
+            onEvent: (GamePlayScreenEvent _) {},
+          ),
+        ),
+      );
+    }
+
+    /// **렌더된 위젯이 아니라 애니메이션 값을 읽는다.**
+    ///
+    /// `Transform` 이나 `Opacity` 를 트리에서 찾으면 어느 것이 연출의 것인지
+    /// 확신할 수 없다 — 실제로 엉뚱한 것을 잡아 몇 번 헤맸다.
+    ///
+    /// **키로 집는다.** `AnimatedScale` · `AnimatedOpacity` 가 안쪽에서 같은
+    /// 위젯을 만들어 트리에 열 개 넘게 있다 — 타입으로 찾으면 별의 것을 잡는다.
+    double cardScale(WidgetTester tester) =>
+        tester.widget<ScaleTransition>(find.byKey(overlayCardKey)).scale.value;
+
+    double cardFade(WidgetTester tester) => tester
+        .widget<FadeTransition>(
+          find
+              .ancestor(
+                of: find.byKey(overlayCardKey),
+                matching: find.byType(FadeTransition),
+              )
+              .first,
+        )
+        .opacity
+        .value;
+
+    double scrimFade(WidgetTester tester) =>
+        tester.widget<FadeTransition>(find.byKey(overlayScrimKey)).opacity.value;
+
+    test('작게 시작해서 1로 끝난다', () {
+      // **곡선 자체를 검사한다.** 위젯으로 재면 프레임 타이밍에 걸린다 —
+      // `elasticOut` 은 t=0.1 에서 이미 1을 지나므로 작게 보이는 구간이
+      // 40ms 남짓이고, 첫 프레임이 그 안에 든다는 보장이 없다.
+      expect(overlayScaleAt(overlayEnterCurve.transform(0)), lessThan(0.9));
+      expect(overlayScaleAt(overlayEnterCurve.transform(1)), closeTo(1, 0.001));
+    });
+
+    testWidgets('들어올 때 카드가 1을 넘겼다 돌아온다', (tester) async {
+      // 넘기지 않으면 그냥 커지기만 한 것이고, 그건 튕김이 아니다.
+      await pumpScreen(tester, cleared: false);
+      await pumpScreen(tester, cleared: true);
 
       var overshot = false;
-      for (var i = 0; i < 30; i++) {
-        await tester.pump(overlayEntranceDuration ~/ 30);
-        if (scaleOf(tester) > 1.01) overshot = true;
+      for (var i = 0; i < 40; i++) {
+        await tester.pump(overlayEntranceDuration ~/ 40);
+        if (find.byType(ScaleTransition).evaluate().isEmpty) continue;
+        if (cardScale(tester) > 1.01) overshot = true;
       }
 
       expect(overshot, isTrue);
-
       await tester.pumpAndSettle();
-      expect(scaleOf(tester), closeTo(1, 0.001));
+      expect(cardScale(tester), closeTo(1, 0.001));
     });
 
-    testWidgets('스크림도 함께 어두워진다', (tester) async {
-      // 배경만 즉시 깔리면 카드가 튀어나오기 전에 화면이 먼저 죽는다.
-      await tester.pumpWidget(withStrings(Stack(children: [resultOverlay()])));
+    testWidgets('배경이 먼저 깔리고 카드가 뒤따른다', (tester) async {
+      // 한꺼번에 뜨면 배경이 카드와 같은 물건처럼 보인다.
+      await pumpScreen(tester, cleared: false);
+      await pumpScreen(tester, cleared: true);
+      await tester.pump(overlayEntranceDuration ~/ 4);
 
-      Color scrim() => tester
-          .widget<ColoredBox>(
-            find
-                .descendant(
-                  of: find.byType(OverlayCard),
-                  matching: find.byType(ColoredBox),
-                )
-                .first,
+      expect(scrimFade(tester), greaterThan(0));
+      expect(
+        cardFade(tester),
+        lessThan(scrimFade(tester)),
+        reason: '배경이 앞선다',
+      );
+    });
+
+    testWidgets('배경에는 배율이 걸리지 않는다', (tester) async {
+      // 화면 전체를 덮는 것이 줄어들면 덮개가 아니라 또 하나의 카드로 보인다.
+      await pumpScreen(tester, cleared: true);
+      await tester.pumpAndSettle();
+
+      // 스크림과 카드 배율 사이에 다른 배율이 끼어 있으면 안 된다.
+      final between = find.ancestor(
+        of: find.byKey(overlayCardKey),
+        matching: find.byType(ScaleTransition),
+      );
+
+      expect(between, findsNothing);
+    });
+
+    testWidgets('사라질 때도 곧바로 없어지지 않는다', (tester) async {
+      // 요청의 핵심 — 나가는 것도 보여야 한다.
+      await pumpScreen(tester, cleared: true);
+      await tester.pumpAndSettle();
+      expect(find.byType(ResultOverlay), findsOneWidget);
+
+      await pumpScreen(tester, cleared: false);
+      await tester.pump(overlayExitDuration ~/ 2);
+
+      expect(find.byType(ResultOverlay), findsOneWidget, reason: '아직 나가는 중이다');
+      expect(cardScale(tester), lessThan(1), reason: '줄어들며 사라진다');
+      expect(cardFade(tester), lessThan(1));
+      expect(
+        scrimFade(tester),
+        1,
+        reason: '카드가 먼저 사라지고 배경은 그대로 있다',
+      );
+    });
+
+    testWidgets('카드가 먼저 사라지고 배경이 뒤따라 걷힌다', (tester) async {
+      // 요청한 차례 — 카드 사라짐 → 배경 걷힘.
+      await pumpScreen(tester, cleared: true);
+      await tester.pumpAndSettle();
+
+      await pumpScreen(tester, cleared: false);
+
+      // 카드가 다 사라질 때까지 배경은 그대로다.
+      await tester.pump(overlayExitDuration ~/ 2);
+      expect(cardFade(tester), lessThan(1));
+      expect(scrimFade(tester), 1);
+
+      // 그 뒤에 배경이 걷힌다.
+      await tester.pump(overlayExitDuration ~/ 2);
+      expect(cardFade(tester), 0);
+      expect(scrimFade(tester), lessThan(1));
+    });
+
+    testWidgets('다음 레벨은 카드가 사라진 뒤에 올라간다', (tester) async {
+      // 먼저 보내면 카드가 사라지는 장면이 페이지 전환에 잘려 나간다.
+      final events = <GamePlayScreenEvent>[];
+
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(
+        withStrings(
+          GamePlayScreen(
+            state: GamePlayScreenState(
+              level: kLevels.first,
+              map: map,
+              board: map.initialBoard,
+              moveCount: 3,
+              isCleared: true,
+              hasNextLevel: true,
+            ),
+            onEvent: events.add,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+      // 별 연출이 끝나야 다음 레벨이 열린다.
+      await tester.pump(const Duration(seconds: 2));
+
+      await tester.tap(find.text('다음 레벨'));
+      await tester.pump();
+
+      expect(events, isEmpty, reason: '아직 카드가 사라지는 중이다');
+
+      // 레벨 1은 블랙홀도 튜토리얼도 없어 `pumpAndSettle` 이 끝난다.
+      await tester.pumpAndSettle();
+
+      expect(events.whereType<NextLevelRequested>(), hasLength(1));
+    });
+
+    testWidgets('다 나가면 트리에서 빠진다', (tester) async {
+      await pumpScreen(tester, cleared: true);
+      await tester.pumpAndSettle();
+
+      await pumpScreen(tester, cleared: false);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ResultOverlay), findsNothing);
+    });
+
+    testWidgets('나가는 중에는 버튼이 눌리지 않는다', (tester) async {
+      // 이미 닫힌 카드의 버튼이 먹으면 두 번 눌린 것처럼 동작한다.
+      await pumpScreen(tester, cleared: true);
+      await tester.pumpAndSettle();
+
+      await pumpScreen(tester, cleared: false);
+      await tester.pump(overlayExitDuration ~/ 2);
+
+      final ignoring = tester
+          .widgetList<IgnorePointer>(
+            find.ancestor(
+              of: find.byType(ResultOverlay),
+              matching: find.byType(IgnorePointer),
+            ),
           )
-          .color;
+          .any((widget) => widget.ignoring);
 
-      final first = scrim().a;
-      await tester.pump(overlayEntranceDuration ~/ 2);
-
-      expect(scrim().a, greaterThan(first));
+      expect(ignoring, isTrue);
     });
   });
 

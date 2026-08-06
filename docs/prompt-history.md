@@ -2182,3 +2182,71 @@
 - **`late final ... = AnimationController(...)` 를 쓰지 않았다.** `#78` 에서 65개 테스트를 깨뜨린 그 함정이다 — 이번에는 처음부터 `initState` 에서 만들었다
 - **테스트가 트리 모양을 바꿔 스스로를 속일 뻔했다.** "다시 재생되지 않는다" 를 검사하면서 두 번째 pump 의 감싸는 위젯이 달라 `State` 가 새로 만들어졌고, 그래서 연출이 다시 돌았다. **감싸는 모양을 항상 같게 유지**하도록 헬퍼를 고쳤다
 - 위치와 투명도를 함께 움직인다 — 투명도만 바꾸면 그냥 켜지는 것처럼 보이고, 위치만 바꾸면 어디서 왔는지가 급하게 읽힌다
+
+---
+
+## 2026-08-06 #80 — 오버레이가 사라질 때도 연출
+
+**요청**
+> 커밋하고. 이번엔 튜토리얼이나 결과 다이얼로그 사라질때도 애니메이션 효과 적용해줘
+
+**한 일**
+- `#79`(카드 등장)를 커밋 (`3b7f380`), 카드 연출을 살짝 느리게(420ms/80ms)
+- `OverlayCard` 에서 등장 컨트롤러를 걷어내 다시 `StatelessWidget` 으로
+- 화면이 오버레이를 **하나로 몰아** 들어오고 나가는 것을 함께 관리
+- 나갈 때 200ms 동안 줄어들며 사라지고, 그동안 버튼이 눌리지 않는다
+- 테스트 5건 추가·이관 (422 → 425)
+
+**변경 파일**
+- `lib/core/widget/overlay_transition.dart` — 퇴장 시간·곡선, `overlayStartScale` 공개
+- `lib/feature/game/presentation/game_play/widget/overlay_card.dart` · `game_play_screen.dart`
+- `test/feature/game/presentation/overlay_card_test.dart`
+- `docs/architecture.md` §13
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 425/425 통과
+- **교란 3종** — ① 곧바로 없앰 ② 나갈 때도 등장 곡선 ③ 나가는 중 버튼 활성
+
+**결정 / 메모**
+- **이 작업에서 헤맨 시간이 대부분 "왜 안 되는지" 를 추측한 데 들어갔다.** 세 번의 잘못된 시도가 있었다
+  1. `AnimatedSwitcher` — 퇴장이 **아예 재생되지 않았다.** 프레임을 찍어 확인
+  2. 직접 붙잡되 `AnimationStatus` 로 방향을 갈랐다 — 상태가 프레임에 따라 흔들려 등장 곡선이 퇴장에 적용됐다. `elasticOut(0.5) == 1.0` 이라 **배율이 1로 보이는데 투명도만 줄어드는** 기묘한 증상이 났다
+  3. 결국 **`CurvedAnimation.reverseCurve`** — 프레임워크가 이미 갖고 있는 것이었다. 손으로 방향을 가르려 한 것이 처음부터 잘못이었다
+- **테스트도 두 번 잘못 짚었다.** 렌더된 `Transform`·`Opacity` 를 트리에서 찾다가 연출의 것인지 확신할 수 없었다. **`ScaleTransition.scale.value` 처럼 애니메이션 값을 직접 읽는 편이 명확하다**
+- **다 나간 뒤 놓아주려면 통지가 필요하다.** 컨트롤러가 0에 닿아도 다시 그릴 계기가 없어 투명한 카드가 트리에 남았다. `addStatusListener` 로 `dismissed` 를 받아 `setState` 한다
+- **`value == 0` 이라고 빼면 안 된다.** 들어오는 첫 프레임도 0이라 나타나는 순간이 한 박자 늦게 잡힌다
+- **컨트롤러가 둘이 되면서 `SingleTickerProviderStateMixin` 이 터졌다.** `TickerProviderStateMixin` 으로 바꿨다
+
+---
+
+## 2026-08-06 #81 — 배경은 투명도만, 그리고 연출 차례 맞추기
+
+**요청**
+> 다 좋은데 배경 오버레이컬러까지 줄어드네? 내가 원한건 카드만 적용인거고. (…) 완료 다이얼로그 > 다음 > 카드만 사라지기 > 배경도 투명해지며 사라지기(크기는 아님) > 페이지 이동 > 튜토리얼 표시 > 확인클릭 > 카드사라지기 (배경은 투명해지며 사라기지) > 플레이화면
+
+**한 일**
+- 배경(스크림)과 카드를 **다른 구간**으로 갈랐다 — `overlayScrimSplit = 0.45`
+  - 들어올 때: 배경 먼저 → 카드
+  - 나갈 때: 카드 먼저 → 배경
+- **배율은 카드에만.** `OverlayCard` 가 `OverlayCardAnimation`(InheritedWidget)으로 진행도를 받아 자기 카드에만 건다
+- **다음 레벨은 카드가 다 사라진 뒤에 올라간다** — 화면이 이벤트를 들고 있다가 퇴장 완료 시 올려보낸다
+- 등장 520ms · 퇴장 340ms 로 조정, 테스트 4건 추가 (425 → 428)
+
+**변경 파일**
+- `lib/core/widget/overlay_transition.dart` — 구간 분리, 스크림·카드 키
+- `lib/feature/game/presentation/game_play/widget/overlay_card.dart` — `OverlayCardAnimation`
+- `lib/feature/game/presentation/game_play/game_play_screen.dart` — `_closing` · `_afterClose`
+- `test/feature/game/presentation/overlay_card_test.dart` · `level_transition_test.dart`
+- `docs/architecture.md` §13
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 428/428 통과
+- **교란 3종** — ① 배경까지 배율 ② 한 구간으로 합침 ③ 다음 레벨을 곧바로 올려보냄
+
+**결정 / 메모**
+- **내가 "카드"와 "카드가 뜬 화면"을 같은 것으로 다뤘던 것이 실수였다.** 스크림과 카드는 한 위젯 안에 있지만 **다르게 움직여야 하는 두 가지**다. 배율을 바깥에 걸면 덮개까지 줄어든다
+- **생성자로 진행도를 넘기지 않고 `InheritedWidget` 을 썼다.** 카드를 만드는 것은 `ResultOverlay`·`TutorialOverlay` 인데 연출을 아는 것은 그 위의 화면이라, 두 오버레이가 값을 그저 통과시키기만 하는 인자를 갖게 하고 싶지 않았다. 없으면 "다 떠 있는 것" 으로 쳐서 위젯 단위 테스트는 그대로 산다
+- **이벤트를 붙잡았다 보내는 것은 화면의 일이다.** Screen 은 이벤트를 만들지 않고 전달만 하지만 **언제 전달할지**는 연출의 문제이고 그건 화면이 안다
+- **`find.byType` 으로는 못 찾는다.** `AnimatedScale`·`AnimatedOpacity` 가 안쪽에서 `ScaleTransition`·`FadeTransition` 을 만들어 트리에 11개·7개가 있었다. 별 연출의 것을 잡고 있었다 — 키를 달아 해결했다. **오늘만 세 번째로 "찾는 방법" 때문에 헤맸다**
