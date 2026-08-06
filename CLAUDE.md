@@ -290,4 +290,13 @@ fvm flutter test
 fvm flutter run
 ```
 
+**To try the web build, serve it — don't use `-d chrome`.** `flutter run -d chrome` launches
+Chrome against a throwaway `--user-data-dir` on a random port, so `SharedPreferences` (localStorage
+on web) starts empty every run: language, stars, unlocks and "tutorial seen" all look like they
+never saved. Nothing is wrong with the storage code. Use a stable origin and the user's own browser:
+
+```
+fvm flutter run -d web-server --web-port=8080   # then open http://localhost:8080
+```
+
 Verification default: `fvm flutter analyze && fvm flutter test` must pass before reporting a change as done.

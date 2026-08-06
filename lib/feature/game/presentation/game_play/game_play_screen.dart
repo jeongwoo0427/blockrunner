@@ -433,6 +433,11 @@ class _GamePlayScreenState extends State<GamePlayScreen>
           : KeyEventResult.ignored;
     }
 
+    if (_isConfirmKey(event.logicalKey)) {
+      _confirmOverlay();
+      return KeyEventResult.handled;
+    }
+
     final direction = _directionForKey(event.logicalKey);
     if (direction != null) {
       _requestMove(direction);
@@ -449,7 +454,33 @@ class _GamePlayScreenState extends State<GamePlayScreen>
   }
 
   bool _isHandledKey(LogicalKeyboardKey key) =>
-      _directionForKey(key) != null || key == LogicalKeyboardKey.keyR;
+      _directionForKey(key) != null ||
+      key == LogicalKeyboardKey.keyR ||
+      _isConfirmKey(key);
+
+  static bool _isConfirmKey(LogicalKeyboardKey key) =>
+      key == LogicalKeyboardKey.enter ||
+      key == LogicalKeyboardKey.numpadEnter ||
+      key == LogicalKeyboardKey.space;
+
+  /// 지금 떠 있는 카드의 **주 동작**을 대신 누른다.
+  ///
+  /// 클리어할 때마다 마우스로 손을 옮기게 되는 것이 불편해서 붙였는데, 결과
+  /// 카드만 이으면 곧바로 뜨는 튜토리얼에서 다시 손이 간다. **카드마다 확인
+  /// 버튼이 하나씩 있으므로** 지금 떠 있는 것의 그 버튼을 대신 누른다.
+  ///
+  /// 마지막 레벨의 결과 카드에는 "다음" 이 없다 — 그때는 아무 일도 하지 않는다.
+  /// 확인 키로 레벨 선택까지 나가버리면 되돌릴 수 없는 이동이 손가락에 걸린다.
+  void _confirmOverlay() {
+    switch (_overlayKind(widget.state)) {
+      case _OverlayKind.tutorial:
+        _sendAndRefocus(TutorialDismissed());
+      case _OverlayKind.result:
+        if (widget.state.hasNextLevel) _closeThen(NextLevelRequested());
+      case _OverlayKind.none:
+        break;
+    }
+  }
 
   Direction? _directionForKey(LogicalKeyboardKey key) => switch (key) {
     LogicalKeyboardKey.arrowUp || LogicalKeyboardKey.keyW => Direction.up,

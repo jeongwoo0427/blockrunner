@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/feature/game/data/map_blueprints.dart';
 import 'package:blockrunner/feature/game/data/map_parser.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
@@ -21,6 +22,8 @@ void main() {
     WidgetTester tester, {
     bool isCleared = false,
     bool isPlayerLost = false,
+    bool hasNextLevel = false,
+    bool showsTutorial = false,
   }) async {
     final events = <GamePlayScreenEvent>[];
 
@@ -33,12 +36,21 @@ void main() {
             board: map1.initialBoard,
             isCleared: isCleared,
             isPlayerLost: isPlayerLost,
+            hasNextLevel: hasNextLevel,
+            showsTutorial: showsTutorial,
           ),
           onEvent: events.add,
         ),
       ),
     );
-    await tester.pumpAndSettle();
+
+    // **튜토리얼이 뜨면 `pumpAndSettle` 이 끝나지 않는다** — 데모가 끝없이
+    // 반복한다. 오버레이 등장만 지나가면 되므로 정해진 시간만 흘린다.
+    if (showsTutorial) {
+      await tester.pump(overlayEntranceDuration);
+    } else {
+      await tester.pumpAndSettle();
+    }
 
     return events;
   }
@@ -167,6 +179,71 @@ void main() {
 
       await tester.sendKeyEvent(LogicalKeyboardKey.keyR);
       expect(events.whereType<ResetRequested>(), hasLength(1));
+    });
+  });
+
+  group('확인 키 (Enter · Space)', () {
+    testWidgets('결과 카드에서 엔터를 누르면 다음 레벨로 간다', (tester) async {
+      // 클리어할 때마다 마우스로 손을 옮기게 되는 것이 불편하다는 요청이다.
+      final events = await pump(tester, isCleared: true, hasNextLevel: true);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      // **곧바로 나가지 않는다.** 버튼을 누른 것과 똑같이 카드가 사라지고
+      // 배경이 걷힌 뒤에 간다.
+      expect(events.whereType<NextLevelRequested>(), isEmpty);
+      await tester.pumpAndSettle();
+
+      expect(events.whereType<NextLevelRequested>(), hasLength(1));
+    });
+
+    testWidgets('스페이스도 같다', (tester) async {
+      final events = await pump(tester, isCleared: true, hasNextLevel: true);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pumpAndSettle();
+
+      expect(events.whereType<NextLevelRequested>(), hasLength(1));
+    });
+
+    testWidgets('마지막 레벨에서는 아무 일도 하지 않는다', (tester) async {
+      // "다음" 이 없는 카드다. 확인 키로 레벨 선택까지 나가버리면 되돌릴 수
+      // 없는 이동이 손가락에 걸린다.
+      final events = await pump(tester, isCleared: true);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+
+      expect(events, isEmpty);
+    });
+
+    testWidgets('튜토리얼도 확인 키로 닫힌다', (tester) async {
+      // **결과 카드만 이으면 반쪽이다.** 다음 레벨에 튜토리얼이 있으면 곧바로
+      // 떠서 다시 마우스로 손이 간다.
+      final events = await pump(tester, showsTutorial: true);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+
+      expect(events.whereType<TutorialDismissed>(), hasLength(1));
+    });
+
+    testWidgets('판 위에서는 아무 일도 하지 않는다', (tester) async {
+      // 카드가 없을 때 확인 키가 무언가를 하면 실수로 눌렀을 때 판이 넘어간다.
+      final events = await pump(tester);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+
+      expect(events, isEmpty);
+    });
+
+    testWidgets('확인 키가 포커스를 뺏기지 않는다', (tester) async {
+      // 삼키지 않으면 스페이스가 기본 "버튼 누르기" 로 새어나가 포커스가
+      // 떠나고, 그 뒤로는 방향키가 죽는다 — 방향키에서 겪은 그 문제다.
+      final events = await pump(tester);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.sendKeyEvent(LogicalKeyboardKey.arrowRight);
+
+      expect(movesIn(events), [Direction.right]);
     });
   });
 }
