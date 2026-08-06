@@ -1,3 +1,4 @@
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/result_overlay.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
@@ -74,5 +75,66 @@ void main() {
 
     expect(find.byType(OverlayCard), findsOneWidget);
     expect(find.byType(Card), findsOneWidget);
+  });
+
+  group('등장 (13-game-feel §4)', () {
+    /// 지금 그려진 카드의 배율.
+    ///
+    /// **키로 집는다.** 트리에 `Transform` 이 여럿이라 위치로 찾으면 엉뚱한
+    /// 것을 잡는다 — 실제로 `.first` 가 카드가 아니었다.
+    double scaleOf(WidgetTester tester) => tester
+        .widget<Transform>(find.byKey(overlayScaleKey))
+        .transform
+        .getMaxScaleOnAxis();
+
+    test('작게 시작해서 1로 끝난다', () {
+      // **곡선 자체를 검사한다.** 위젯으로 재면 프레임 타이밍에 걸린다 —
+      // `elasticOut` 은 t=0.1 에서 이미 1을 지나므로 작게 보이는 구간이
+      // 40ms 남짓이고, 첫 프레임이 그 안에 든다는 보장이 없다.
+      expect(overlayScaleAt(0), lessThan(0.9));
+      expect(overlayScaleAt(1), closeTo(1, 0.001));
+    });
+
+    testWidgets('도중에 1을 넘겼다 돌아온다', (tester) async {
+      // 넘기지 않으면 그냥 커지기만 한 것이고, 그건 튕김이 아니다.
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      await tester.pumpWidget(withStrings(Stack(children: [resultOverlay()])));
+
+      var overshot = false;
+      for (var i = 0; i < 30; i++) {
+        await tester.pump(overlayEntranceDuration ~/ 30);
+        if (scaleOf(tester) > 1.01) overshot = true;
+      }
+
+      expect(overshot, isTrue);
+
+      await tester.pumpAndSettle();
+      expect(scaleOf(tester), closeTo(1, 0.001));
+    });
+
+    testWidgets('스크림도 함께 어두워진다', (tester) async {
+      // 배경만 즉시 깔리면 카드가 튀어나오기 전에 화면이 먼저 죽는다.
+      await tester.pumpWidget(withStrings(Stack(children: [resultOverlay()])));
+
+      Color scrim() => tester
+          .widget<ColoredBox>(
+            find
+                .descendant(
+                  of: find.byType(OverlayCard),
+                  matching: find.byType(ColoredBox),
+                )
+                .first,
+          )
+          .color;
+
+      final first = scrim().a;
+      await tester.pump(overlayEntranceDuration ~/ 2);
+
+      expect(scrim().a, greaterThan(first));
+    });
   });
 }

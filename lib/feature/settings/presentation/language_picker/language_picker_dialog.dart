@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:flutter/material.dart';
 
 /// 언어를 고르는 다이얼로그.
@@ -15,9 +16,17 @@ class LanguagePickerDialog extends StatelessWidget {
 
   /// 고른 언어를 돌려준다. 그냥 닫으면 `null`.
   static Future<AppLocale?> show(BuildContext context, AppLocale current) =>
-      showDialog<AppLocale>(
+      showGeneralDialog<AppLocale>(
         context: context,
-        builder: (context) => LanguagePickerDialog(current: current),
+        barrierDismissible: true,
+        barrierLabel: MaterialLocalizations.of(
+          context,
+        ).modalBarrierDismissLabel,
+        barrierColor: Colors.black54,
+        // `OverlayCard` 와 같은 등장 연출을 쓴다 (13-game-feel §4).
+        transitionDuration: overlayEntranceDuration,
+        transitionBuilder: buildOverlayTransition,
+        pageBuilder: (context, _, _) => LanguagePickerDialog(current: current),
       );
 
   @override

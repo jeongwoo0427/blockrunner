@@ -3,6 +3,7 @@ import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/core/widget/game_button.dart';
+import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:flutter/material.dart';
 
 /// 다이얼로그가 닫히며 돌려주는 요청.
@@ -33,9 +34,15 @@ class SettingsDialog extends StatelessWidget {
     BuildContext context, {
     required AppLocale current,
     required Future<bool> Function() onPickLanguage,
-  }) => showDialog<SettingsResult>(
+  }) => showGeneralDialog<SettingsResult>(
     context: context,
-    builder: (context) =>
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    // `OverlayCard` 와 같은 등장 연출을 쓴다 (13-game-feel §4).
+    transitionDuration: overlayEntranceDuration,
+    transitionBuilder: buildOverlayTransition,
+    pageBuilder: (context, _, _) =>
         SettingsDialog(current: current, onPickLanguage: onPickLanguage),
   );
 
@@ -85,9 +92,14 @@ class SettingsDialog extends StatelessWidget {
 Future<bool> confirmResetProgress(BuildContext context) async {
   final strings = context.strings;
 
-  final confirmed = await showDialog<bool>(
+  final confirmed = await showGeneralDialog<bool>(
     context: context,
-    builder: (context) => AlertDialog(
+    barrierDismissible: true,
+    barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
+    barrierColor: Colors.black54,
+    transitionDuration: overlayEntranceDuration,
+    transitionBuilder: buildOverlayTransition,
+    pageBuilder: (context, _, _) => AlertDialog(
       title: Text(strings.resetProgress),
       content: Text(strings.resetProgressWarning),
       actions: [

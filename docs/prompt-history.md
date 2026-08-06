@@ -1918,3 +1918,34 @@
 - **빈 별을 같은 색의 35% 로 그린다.** 카드가 채색되면서 `outlineVariant` 가 안 보이게 됐다 — 채움색이 바뀌면 그 위의 모든 것이 영향을 받는다
 - **`isSilhouette` 를 지운 것은 이번 변경이 만든 고아다.** 판을 가리기로 한 순간 실루엣을 그릴 일이 없어졌다. 시그니처의 `isUnlocked` 도 같이 사라졌다
 - **임시 갤러리를 9단계까지 기다리지 않고 지웠다.** `isSilhouette` 제거로 갤러리가 컴파일되지 않게 됐는데, **버릴 코드를 고치는 것은 낭비**다. 카드·버튼 모양이 이미 실제 앱에 들어갔으므로 갤러리의 일은 끝났다. 스캔 테스트의 "임시 화면이 아직 있다" 도 "남아 있지 않다" 로 뒤집었다
+
+---
+
+## 2026-08-06 #71 — 13-game-feel 4단계: 다이얼로그가 튕기듯 등장
+
+**요청**
+> 좋다 커밋하고 다음단계
+
+**한 일**
+- `#68`·`#69`·`#70`(1~3단계)을 커밋 (`b4a6172`)
+- `OverlayCard` 등장을 `0.82 → 1.0`, `elasticOut`, 420ms 로. 스크림도 같은 시간 동안 함께 어두워진다
+- 공유 연출을 `lib/core/widget/overlay_transition.dart` 로 분리하고 설정·언어·확인 다이얼로그가 `showGeneralDialog` 로 같은 커브를 타게 함
+- 테스트 3건 추가 (370 → 373)
+
+**변경 파일**
+- `lib/core/widget/overlay_transition.dart` (신규)
+- `lib/feature/game/presentation/game_play/widget/overlay_card.dart` — `StatelessWidget` → `StatefulWidget`
+- `lib/feature/settings/presentation/settings/settings_dialog.dart` · `language_picker_dialog.dart`
+- `test/feature/game/presentation/overlay_card_test.dart`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 373/373 통과
+- **교란 확인** — 곡선을 `easeOut` 으로 바꾸면 "도중에 1을 넘겼다 돌아온다" 가 실패한다
+
+**결정 / 메모**
+- **의존성 테스트가 순환을 잡았다.** 처음에 공유 상수·헬퍼를 `overlay_card.dart`(game)에 뒀더니 `settings → game` 이 생겼는데 **`game → level → settings` 가 이미 있어 순환**이었다. `core/widget/` 으로 옮겨 끊었다. `#67` 계획서에서 버튼을 `core` 에 둔 것과 정확히 같은 이유이며, **이번엔 문서가 아니라 테스트가 먼저 알려줬다**
+- **`TweenAnimationBuilder` 로는 등장이 재생되지 않았다.** 프레임을 찍어 보니 첫 프레임에 이미 끝값이었다. `AnimationController` 로 바꾸니 0에서 시작하는 것이 보장된다 — 이 프로젝트의 세 번째 컨트롤러다
+- **테스트가 "첫 프레임은 작다" 를 재려다 실패했다.** 곡선을 찍어 보니 `elasticOut` 은 **t=0.1 에서 이미 1.0** 을 지난다 — 작게 보이는 구간이 40ms 남짓이라 첫 프레임이 그 안에 든다는 보장이 없다. **곡선 자체는 순수 함수로, 튕김은 위젯 프레임으로** 나눠 검사하도록 고쳤다. 틀린 단언을 통과시키지 않고 무엇을 재려 했는지로 되돌아간 경우다
+- **`Transform` 을 위치로 찾다가 엉뚱한 것을 잡았다.** 트리에 여럿이라 `.first` 가 카드가 아니었다. `overlayScaleKey` 를 달아 지목하게 했다 — 위젯 내부 구조가 바뀌어도 안 깨진다
+- **`showDialog` → `showGeneralDialog`.** 커브를 넘기려면 `transitionBuilder` 가 필요한데 `showDialog` 는 받지 않는다. 배리어 색·닫힘 동작은 기본값과 같게 맞췄다
