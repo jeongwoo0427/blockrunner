@@ -1,5 +1,6 @@
 import 'package:blockrunner/core/i18n/app_locale.dart';
 import 'package:blockrunner/core/i18n/app_strings_scope.dart';
+import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/core/widget/overlay_transition.dart';
 import 'package:flutter/material.dart';
 
@@ -32,6 +33,7 @@ class LanguagePickerDialog extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SimpleDialog(
+      shape: gameButtonShape(radius: gameCardBevel),
       title: Text(context.strings.language),
       children: [
         for (final locale in AppLocale.values)

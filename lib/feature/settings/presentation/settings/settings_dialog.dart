@@ -51,6 +51,7 @@ class SettingsDialog extends StatelessWidget {
     final strings = context.strings;
 
     return SimpleDialog(
+      shape: gameButtonShape(radius: gameCardBevel),
       title: Text(strings.settings),
       children: [
         ListTile(
@@ -100,6 +101,7 @@ Future<bool> confirmResetProgress(BuildContext context) async {
     transitionDuration: overlayEntranceDuration,
     transitionBuilder: buildOverlayTransition,
     pageBuilder: (context, _, _) => AlertDialog(
+      shape: gameButtonShape(radius: gameCardBevel),
       title: Text(strings.resetProgress),
       content: Text(strings.resetProgressWarning),
       actions: [

@@ -40,6 +40,21 @@ class BoardMetrics {
     );
   }
 
+  /// **가로 폭을 꽉 채운다.** 높이는 판 비율대로 따라온다.
+  ///
+  /// [BoardMetrics.fit] 은 짧은 변에 맞추므로 1행짜리 가로로 긴 판을 주면
+  /// 높이에 눌려 아주 작아진다 — 6×6 과 8×8 의 외곽을 같게 하려고 그렇게
+  /// 만든 것이라 판을 그리는 데는 맞지만, **한 줄짜리 튜토리얼 데모에는
+  /// 맞지 않는다**(실제로 작고 왼쪽에 붙어 나왔다).
+  factory BoardMetrics.fitWidth({
+    required BoardState board,
+    required double width,
+  }) => BoardMetrics._(
+    cell: width / (board.colCount + 2 * Spacing.wallWidthRatio),
+    rowCount: board.rowCount,
+    colCount: board.colCount,
+  );
+
   /// 칸 하나의 한 변.
   final double cell;
 

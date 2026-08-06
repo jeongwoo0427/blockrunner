@@ -114,8 +114,14 @@ class _GameButtonState extends State<GameButton> {
 ///
 /// **테두리를 두지 않는다.** 모양은 깎인 모서리가 만들고, 구분은 채움색이 한다 —
 /// 선까지 두르면 요소마다 윤곽선이 겹쳐 화면이 복잡해진다.
-ShapeBorder gameButtonShape() =>
-    BeveledRectangleBorder(borderRadius: BorderRadius.circular(10));
+///
+/// [radius] 는 깎이는 정도다. **면이 커지면 같이 키운다** — 큰 카드에 작은
+/// 모서리를 쓰면 각진 느낌이 나지 않고 그냥 사각형으로 보인다.
+ShapeBorder gameButtonShape({double radius = 10}) =>
+    BeveledRectangleBorder(borderRadius: BorderRadius.circular(radius));
+
+/// 오버레이 카드·다이얼로그가 쓰는 크기.
+const double gameCardBevel = 20;
 
 /// 누를 때의 반응 시간. 길면 눌린 느낌이 아니라 굼뜬 느낌이 된다.
 const Duration gameButtonPressDuration = Duration(milliseconds: 80);

@@ -2,6 +2,8 @@ import 'package:blockrunner/core/i18n/app_strings_scope.dart';
 import 'package:blockrunner/core/theme/data/spacing.dart';
 import 'package:blockrunner/core/widget/game_button.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/overlay_card.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_demo_view.dart';
+import 'package:blockrunner/feature/level/domain/entity/tutorial_demo.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
@@ -20,7 +22,13 @@ class TutorialOverlay extends StatelessWidget {
     required this.body,
     required this.showsControls,
     required this.onDismiss,
+    this.demo,
   });
+
+  /// 문구 위에서 반복 재생할 장면 (13-game-feel §6).
+  ///
+  /// **말보다 먼저 보여준다.** 규칙을 글로 읽기 전에 움직임으로 한 번 본다.
+  final TutorialDemo? demo;
 
   /// 레벨 이름. 무엇을 배우는 판인지 한 마디로 알려준다.
   final String title;
@@ -51,6 +59,10 @@ class TutorialOverlay extends StatelessWidget {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          if (demo != null) ...[
+            TutorialDemoView(demo: demo!),
+            const SizedBox(height: Spacing.md),
+          ],
           Text(
             title,
             style: theme.textTheme.headlineSmall,

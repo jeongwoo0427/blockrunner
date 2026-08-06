@@ -1977,3 +1977,71 @@
 - **빈 별도 같은 리듬으로 등장한다.** 세 칸이 다 채워지는 리듬이 있어야 "3개 중 2개" 가 읽힌다
 - **교란 3이 통과해서 코드를 고쳤다.** `_finished` 에 `!isCleared ||` 를 넣어 뒀는데, 그 항을 지워도 어떤 화면도 달라지지 않았다 — **실패 카드에는 그 값이 여는 버튼 자체가 없기** 때문이다. 일어날 수 없는 상황을 처리하는 코드였으므로 걷어내고, 테스트는 실제로 지키는 것("실패 카드에는 별도 지연도 없다")으로 문구를 고쳤다
   - 교란이 통과했을 때 **테스트를 강화하는 것만이 답은 아니다.** 이번엔 코드 쪽이 불필요했다
+
+---
+
+## 2026-08-06 #73 — 13-game-feel 6단계: 튜토리얼 데모
+
+**요청**
+> 커밋하고 6단계 진행해줘
+
+**한 일**
+- `#72`(5단계)를 커밋 (`4fd3c93`)
+- `TutorialDemo` enum 신설(`level` 소유), `Level.hasTutorial`(bool) → `Level.demo`(enum?)
+- `TutorialDemoView` 신설(`game` 소유) — 1행 판 위에서 정해진 장면을 2.6초 주기로 반복
+- 튜토리얼 오버레이 **문구 위**에 붙임
+- 테스트 11건 추가 (378 → 389)
+
+**변경 파일**
+- `lib/feature/level/domain/entity/tutorial_demo.dart` (신규) · `level.dart` · `data/level_data.dart`
+- `lib/feature/game/presentation/game_play/widget/tutorial_demo_view.dart` (신규) · `tutorial_overlay.dart`
+- `lib/feature/game/presentation/game_play/game_play_screen.dart`
+- `test/feature/game/presentation/tutorial_demo_test.dart` (신규), `test/widget_test.dart`
+- `docs/game-design.md` §6.1
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 389/389 통과
+- **교란 2종** — ① 데모가 안 움직이게 ② 동작 줄이기를 무시
+
+**결정 / 메모**
+- **이동 엔진을 태우지 않았다.** 데모는 정해진 장면(`_Scene` + `_Actor`)이다. 엔진을 부르면 데모가 규칙의 **예시**가 아니라 규칙의 **두 번째 구현**이 되고, 그때부터 둘이 갈릴 수 있다
+- **`hasTutorial`(bool)이 `demo`(enum?)로 바뀌었다.** 있고 없고만으로는 무엇을 그릴지 정할 수 없다. `hasTutorial` 은 `demo != null` 로 남겨 호출부를 건드리지 않았다
+- **`TutorialDemo` 는 `level` 이 갖되 그림은 `game` 이 그린다.** enum 에는 판도 좌표도 없고 "무엇을 가르치는가" 라는 이름뿐이다 — 판을 담는 순간 `level → game` 순환이 되살아난다
+- **모든 장면이 1행이다.** 규칙 하나만 보여주면 되고, 한 줄이면 카드 안에서 크게 그릴 수 있다
+- **계획서가 예고한 `pumpAndSettle` 함정이 그대로 났다.** `widget_test` 의 "레벨 카드를 누르면…" 이 레벨 1의 튜토리얼을 띄우면서 영원히 안 끝났다. `pump` 로 바꾸고 이유를 주석에 남겼다. 블랙홀 회전 때와 같은 함정이라 **미리 적어둔 것이 값을 했다**
+- **"쓰이지 않는 데모가 있으면 만들 이유가 없다" 를 테스트로 뒀다.** enum 값과 레벨 데이터가 양방향으로 맞물리는지 본다
+
+---
+
+## 2026-08-06 #74 — 데모 크기·정렬 수정, 카드도 각지게
+
+**요청**
+> 다른건 좋은데. 데모 크기가 너무 작아. 왼쪽 위에 붙어있고. 이거 중앙에 맞추고 크기도 키워야해 그리고 카드도 각지게 만들어줘.
+
+**한 일**
+- `BoardMetrics.fitWidth` factory 신설 — 폭을 꽉 채우고 높이는 비율대로
+- `TutorialDemoView` 에서 `AspectRatio` 제거하고 `fitWidth` 사용
+- `gameButtonShape({radius})` 에 인자 부활, `gameCardBevel = 20` 신설
+- `OverlayCard` · `SimpleDialog` · `AlertDialog` 를 전부 각진 모양으로
+- 테스트 4건 추가 (389 → 393)
+
+**변경 파일**
+- `lib/feature/game/presentation/game_play/widget/board_metrics.dart` · `tutorial_demo_view.dart` · `overlay_card.dart`
+- `lib/core/widget/game_button.dart`
+- `lib/feature/settings/presentation/**` 다이얼로그 2종
+- `test/feature/game/presentation/tutorial_demo_test.dart` · `overlay_card_test.dart`
+
+**검증**
+- `fvm flutter analyze` → `No issues found!`
+- `fvm flutter test` → 393/393 통과
+- **교란 확인** — `fitWidth` → `fit` 되돌리기, 카드를 둥글게 되돌리기 각각 실패
+
+**결정 / 메모**
+- **원인은 `AspectRatio` 였다.** 그것이 높이를 폭÷5 로 묶어 버려서, 짧은 변에 맞추는 `BoardMetrics.fit` 이 그 높이에 눌렸다. 결과가 62px 짜리 판이 240px 상자 왼쪽에 붙은 그림이었다
+- **`fitWidth` 를 따로 만들었다.** `fit` 은 6×6 과 8×8 의 외곽을 같게 하려고 짧은 변에 맞추는 것이라 판을 그리는 데는 맞다. **한 줄짜리 데모에는 맞지 않는다** — 조건을 붙여 한 함수로 합치지 않고 이름을 달리했다
+- **테스트를 두 번 고쳤고, 두 번 다 "실패할 수 없는 테스트" 였다.**
+  1. 처음엔 `TutorialDemoView` 의 **바깥 상자 크기**를 쟀다. 부모가 240 으로 묶어 두므로 안쪽이 아무리 작아도 240 이 나온다 — 교란이 통과했다
+  2. 칸 크기로 바꿨더니 여전히 통과했다. **테스트 환경에서 높이가 무제한이라 `fit` 과 `fitWidth` 가 같은 값을 냈기** 때문이다. 실제로 깨졌던 조건은 "높이가 묶인 상자" 였으므로 그 조건으로 다시 짰고, 그제야 교란이 잡혔다
+  - 교훈: **교란이 통과하면 테스트가 실제 상황을 재현하고 있는지부터 본다.** 단언을 강화하기 전에 조건이 맞는지 확인해야 한다
+- **`gameButtonShape` 가 인자를 되찾았다.** `#69` 에서 테두리 색 인자를 없앤 것과는 다른 종류다 — 색은 갈리면 안 되지만 **깎이는 정도는 면 크기에 따라 달라야 한다.** 큰 카드에 10px 모서리를 쓰면 각진 느낌이 나지 않는다

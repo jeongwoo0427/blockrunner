@@ -76,7 +76,10 @@ void main() {
 
     // 진행도가 비었으므로 1번만 열려 있다.
     await tester.tap(find.byType(LevelCard).first);
-    await tester.pumpAndSettle();
+    // **`pumpAndSettle` 을 쓰지 않는다.** 레벨 1은 튜토리얼이 뜨고 그 안의
+    // 데모가 끝없이 반복하므로 영원히 끝나지 않는다 (13-game-feel §6).
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 500));
 
     expect(find.text('레벨 1 · 미끄러지기'), findsOneWidget);
     expect(find.byType(BoardView), findsOneWidget);

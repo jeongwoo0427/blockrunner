@@ -269,6 +269,7 @@ class _GamePlayScreenState extends State<GamePlayScreen> {
                     child: TutorialOverlay(
                       title: strings.levelName(level.number),
                       body: strings.levelTutorial(level.number),
+                      demo: level.demo,
                       // 조작은 첫 레벨에서만 알려준다.
                       showsControls: level.number == 1,
                       onDismiss: () => _sendAndRefocus(TutorialDismissed()),

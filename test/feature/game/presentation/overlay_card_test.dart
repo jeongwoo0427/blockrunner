@@ -71,6 +71,16 @@ void main() {
     );
   });
 
+  testWidgets('카드도 각져 있다', (tester) async {
+    // 버튼·레벨 카드와 같은 모양 언어를 쓴다.
+    await pump(tester, resultOverlay());
+
+    expect(
+      tester.widget<Card>(find.byType(Card)).shape,
+      isA<BeveledRectangleBorder>(),
+    );
+  });
+
   testWidgets('블랙홀 결과에도 카드가 뜬다', (tester) async {
     await pump(tester, resultOverlay(isCleared: false));
 

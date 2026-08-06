@@ -1,5 +1,7 @@
 import 'dart:math';
 
+import 'package:blockrunner/feature/level/domain/entity/tutorial_demo.dart';
+
 /// 레벨 한 판의 **메타데이터**. 판(맵) 자체는 담지 않는다.
 ///
 /// 맵을 여기 품으면 레벨 목록만 그리면 되는 level feature 가 판 모델 전체를
@@ -9,7 +11,7 @@ class Level {
   const Level({
     required this.number,
     required this.minMoves,
-    this.hasTutorial = false,
+    this.demo,
   });
 
   /// 1부터 시작하는 레벨 번호. 순차 해금과 맵 조회의 키다.
@@ -22,15 +24,20 @@ class Level {
   /// 실제 맵과 일치하는지는 테스트의 완전 탐색이 검증한다.
   final int minMoves;
 
-  /// 이 레벨이 처음 나오는 규칙을 가르치는가 (기획서 §6.1).
+  /// 이 레벨이 처음 가르치는 규칙 (기획서 §6.1). 없으면 안내가 붙지 않는다.
   ///
-  /// **문구가 아니라 참/거짓만 갖는다.** 문구는 언어마다 다르지만
+  /// **문구가 아니라 무엇을 가르치는지만 갖는다.** 문구는 언어마다 다르지만
   /// "어느 레벨이 무언가를 가르치는가" 는 레벨 데이터의 성질이라 번역과 함께
   /// 움직여서는 안 된다 — 번역이 비면 튜토리얼이 조용히 사라진다 (11-i18n §4).
   /// 문구 자체는 `AppStrings.levelTutorial` 에 있다.
   ///
+  /// `13` 에서 `bool` 이 이 enum 으로 바뀌었다. 안내 위에 그 규칙을 보여주는
+  /// 데모가 붙으면서, 있고 없고만으로는 무엇을 그릴지 정할 수 없어졌다.
+  ///
   /// **이름도 여기 없다.** 모든 레벨이 이름을 가지므로 번호만으로 찾을 수 있다.
-  final bool hasTutorial;
+  final TutorialDemo? demo;
+
+  bool get hasTutorial => demo != null;
 
   /// [moveCount] 수로 클리어했을 때의 별점 1~3 (기획서 §5.2).
   ///

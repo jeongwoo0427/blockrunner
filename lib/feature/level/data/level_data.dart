@@ -1,4 +1,5 @@
 import 'package:blockrunner/feature/level/domain/entity/level.dart';
+import 'package:blockrunner/feature/level/domain/entity/tutorial_demo.dart';
 
 /// 레벨 메타데이터 상수.
 ///
@@ -10,15 +11,15 @@ import 'package:blockrunner/feature/level/domain/entity/level.dart';
 ///
 /// **이름과 안내 문구는 여기 없다** (11-i18n). 언어마다 다르므로
 /// `lib/core/i18n/strings_*.dart` 에 있고, 이 목록은 번호로 이어질 뿐이다.
-/// `hasTutorial` 만 남는다 — 어느 레벨이 무언가를 가르치는지는 번역이 아니라
+/// `demo` 만 남는다 — 어느 레벨이 **무엇을** 가르치는지는 번역이 아니라
 /// 레벨 설계의 문제다. 이미 배운 것을 되풀이하면 읽지 않게 되므로 처음 나오는
 /// 규칙에만 붙인다.
 const List<Level> kLevels = [
-  Level(number: 1, minMoves: 1, hasTutorial: true),
+  Level(number: 1, minMoves: 1, demo: TutorialDemo.slide),
   Level(number: 2, minMoves: 2),
-  Level(number: 3, minMoves: 2, hasTutorial: true),
+  Level(number: 3, minMoves: 2, demo: TutorialDemo.blockBrake),
   Level(number: 4, minMoves: 3),
-  Level(number: 5, minMoves: 3, hasTutorial: true),
+  Level(number: 5, minMoves: 3, demo: TutorialDemo.blackHole),
   Level(number: 6, minMoves: 2),
-  Level(number: 7, minMoves: 2, hasTutorial: true),
+  Level(number: 7, minMoves: 2, demo: TutorialDemo.edgeWall),
 ];
