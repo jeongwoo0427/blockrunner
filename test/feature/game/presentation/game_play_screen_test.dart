@@ -83,7 +83,7 @@ void main() {
     await pumpScreen(tester, stateOf());
 
     expect(find.text('클리어!'), findsNothing);
-    expect(find.text('블랙홀에 빠졌다'), findsNothing);
+    expect(find.text(ko.fellIntoBlackHole), findsNothing);
   });
 
   testWidgets('클리어하면 이동 횟수와 함께 결과가 뜬다', (tester) async {
@@ -104,7 +104,7 @@ void main() {
   testWidgets('플레이어가 빠지면 다시하기를 유도한다', (tester) async {
     await pumpScreen(tester, stateOf(isPlayerLost: true));
 
-    expect(find.text('블랙홀에 빠졌다'), findsOneWidget);
+    expect(find.text(ko.fellIntoBlackHole), findsOneWidget);
     // HUD 의 것과 오버레이의 것, 둘 다 있어야 한다.
     expect(find.text('다시하기'), findsNWidgets(2));
     expect(find.text('다음 레벨'), findsNothing);
@@ -132,8 +132,8 @@ void main() {
 
       expect(find.byType(TutorialOverlay), findsOneWidget);
       expect(find.text(ko.levelName(1)), findsOneWidget);
-      expect(find.textContaining('미끄러진다'), findsOneWidget);
-      expect(find.text('시작'), findsOneWidget);
+      expect(find.textContaining('미끄러집'), findsOneWidget);
+      expect(find.text(ko.start), findsOneWidget);
     });
 
     testWidgets('평소에는 뜨지 않는다', (tester) async {
@@ -381,7 +381,7 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('레벨을 불러오지 못했다'), findsOneWidget);
+    expect(find.textContaining(ko.levelLoadFailed), findsOneWidget);
     expect(find.textContaining('레벨 99 이 없다'), findsOneWidget);
     expect(find.byType(BlockTile), findsNothing);
   });

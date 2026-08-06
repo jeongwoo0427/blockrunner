@@ -130,7 +130,7 @@ class StringsEn extends AppStrings {
         'One input slides every block at once.\n'
         'Other blocks can bring the player to a stop too.',
     5:
-        'The thick line between two tiles is an edge wall.\n'
+        'The thick line between two tiles is a partition.\n'
         'It blocks passage only — both tiles are still usable.',
     15:
         'A black hole swallows any block that merely passes over it.\n'

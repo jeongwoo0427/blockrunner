@@ -12,10 +12,10 @@ class StringsKo extends AppStrings {
 
   @override
   String get resetProgressWarning =>
-      '별점과 최고 기록이 모두 사라진다. 되돌릴 수 없다.';
+      '별점과 최고 기록이 모두 사라집니다. 되돌릴 수 없습니다.';
 
   @override
-  String get resetProgressDone => '진행도를 초기화했다';
+  String get resetProgressDone => '진행도를 초기화했습니다';
 
   @override
   String get cancel => '취소';
@@ -33,7 +33,7 @@ class StringsKo extends AppStrings {
   String get levelSelectTitle => '레벨 선택';
 
   @override
-  String get levelListLoadFailed => '레벨 목록을 불러오지 못했다.';
+  String get levelListLoadFailed => '레벨 목록을 불러오지 못했습니다.';
 
   @override
   String get locked => '잠김';
@@ -45,10 +45,10 @@ class StringsKo extends AppStrings {
   String movesLabel(int moves) => '$moves수';
 
   @override
-  String unlockHint(int requiredLevel) => '$requiredLevel번 레벨을 클리어하면 열린다';
+  String unlockHint(int requiredLevel) => '$requiredLevel번 레벨을 클리어하면 열립니다';
 
   @override
-  String get levelLoadFailed => '레벨을 불러오지 못했다.';
+  String get levelLoadFailed => '레벨을 불러오지 못했습니다.';
 
   @override
   String get backToLevelSelect => '레벨 선택으로';
@@ -66,10 +66,10 @@ class StringsKo extends AppStrings {
   String get cleared => '클리어!';
 
   @override
-  String get fellIntoBlackHole => '블랙홀에 빠졌다';
+  String get fellIntoBlackHole => '블랙홀에 빠졌습니다';
 
   @override
-  String get retryHint => '처음부터 다시 해보자';
+  String get retryHint => '처음부터 다시 해보세요';
 
   @override
   String clearedSummary(int moves, int minMoves) => '$moves수 / 최소 $minMoves수';
@@ -84,30 +84,30 @@ class StringsKo extends AppStrings {
   String get start => '시작';
 
   @override
-  String get swipeHint => '쓸어넘겨 블록을 민다';
+  String get swipeHint => '쓸어넘겨 블록을 미세요';
 
   @override
-  String get keyboardHint => '방향키나 WASD 로 블록을 민다';
+  String get keyboardHint => '방향키나 WASD 로 블록을 미세요';
 
   @override
   Map<int, String> get levelNames => const {
     1: '미끄러지기',
-    2: '두 번의 방향',
-    3: '블록을 밟고',
-    4: '벽에 기대어',
-    5: '보이지 않는 턱',
+    2: '두 번 꺾기',
+    3: '블록 브레이크',
+    4: '칸 벽',
+    5: '경계 벽',
     6: '벽과 블록',
-    7: '두 겹의 벽',
+    7: '두 가지 벽',
     8: '좁은 문',
     9: '갈림길',
-    10: '벽만으로',
-    11: '맞물리다',
-    12: '셋이 모이다',
+    10: '벽뿐인 길',
+    11: '맞물린 블록',
+    12: '세 가지 요소',
     13: '좁은 길',
-    14: '마지막 준비',
+    14: '마지막 연습',
     15: '블랙홀',
     16: '끊어진 길',
-    17: '길을 치우다',
+    17: '길 치우기',
     18: '두 개의 심연',
     19: '먼 길',
     20: '마지막 관문',
@@ -116,16 +116,16 @@ class StringsKo extends AppStrings {
   @override
   Map<int, String> get levelTutorials => const {
     1:
-        '블록은 벽이나 판 끝에 닿을 때까지 미끄러진다.\n'
-        '플레이어를 목표 칸에 정확히 멈춰 세우면 클리어다.',
+        '블록은 벽이나 판 끝에 닿을 때까지 미끄러집니다.\n'
+        '플레이어를 목표 칸에 정확히 멈춰 세우면 클리어입니다.',
     3:
-        '방향을 입력하면 모든 블록이 함께 미끄러진다.\n'
-        '다른 블록도 플레이어를 멈춰 세우는 브레이크가 된다.',
+        '방향을 입력하면 모든 블록이 함께 미끄러집니다.\n'
+        '다른 블록도 플레이어를 멈춰 세우는 브레이크가 됩니다.',
     5:
-        '칸 사이의 굵은 선은 경계 벽이다.\n'
-        '통행만 막을 뿐, 벽 양쪽 칸에는 모두 설 수 있다.',
+        '칸 사이의 굵은 선이 경계 벽입니다.\n'
+        '통행만 막을 뿐, 벽 양쪽 칸에는 모두 설 수 있습니다.',
     15:
-        '블랙홀은 지나가기만 해도 블록을 삼킨다.\n'
-        '멈추는 자리가 아니라 지나는 길을 살펴야 한다.',
+        '블랙홀은 지나가기만 해도 블록을 삼킵니다.\n'
+        '멈추는 자리가 아니라 지나는 길을 살펴야 합니다.',
   };
 }

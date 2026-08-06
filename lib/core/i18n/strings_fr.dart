@@ -73,7 +73,7 @@ class StringsFr extends AppStrings {
   String get fellIntoBlackHole => 'Aspiré par un trou noir';
 
   @override
-  String get retryHint => 'Recommence depuis le début';
+  String get retryHint => 'Recommencez depuis le début';
 
   @override
   String clearedSummary(int moves, int minMoves) =>
@@ -89,7 +89,7 @@ class StringsFr extends AppStrings {
   String get start => 'Commencer';
 
   @override
-  String get swipeHint => 'Balaie pour pousser les blocs';
+  String get swipeHint => 'Balayez pour pousser les blocs';
 
   @override
   String get keyboardHint => 'Flèches ou WASD pour pousser les blocs';
@@ -99,17 +99,17 @@ class StringsFr extends AppStrings {
     1: 'Glisser',
     2: 'Deux virages',
     3: 'Bloc-frein',
-    4: 'Contre le mur',
-    5: 'Seuil caché',
+    4: 'Mur de case',
+    5: 'Cloison',
     6: 'Mur et bloc',
-    7: 'Double mur',
+    7: 'Deux murs',
     8: 'Porte étroite',
     9: 'Bifurcation',
     10: 'Murs seuls',
     11: 'Engrenage',
     12: 'Les trois',
     13: 'Voie étroite',
-    14: 'Répétition',
+    14: 'Dernier essai',
     15: 'Trou noir',
     16: 'Voie coupée',
     17: 'Dégager la voie',
@@ -122,15 +122,15 @@ class StringsFr extends AppStrings {
   Map<int, String> get levelTutorials => const {
     1:
         "Les blocs glissent jusqu'à un mur ou au bord du plateau.\n"
-        'Arrête le joueur exactement sur la case objectif pour réussir.',
+        'Arrêtez le joueur exactement sur la case objectif pour réussir.',
     3:
         'Une seule commande fait glisser tous les blocs à la fois.\n'
         'Les autres blocs peuvent aussi arrêter le joueur.',
     5:
-        'Le trait épais entre deux cases est un mur de bordure.\n'
+        'Le trait épais entre deux cases est une cloison.\n'
         'Il bloque le passage, mais les deux cases restent utilisables.',
     15:
         'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
-        "Surveille le trajet, pas seulement la case d'arrivée.",
+        "Surveillez le trajet, pas seulement la case d'arrivée.",
   };
 }

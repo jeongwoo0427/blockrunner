@@ -222,6 +222,12 @@ together a missing translation would silently delete a tutorial. The text is in 
 by level number, and those maps are the one place with no compile-time check — a parity test pins
 their keys to `kLevels`.
 
+**UI copy is polite in every language and a test enforces it** — Korean 존댓말, Japanese です・ます,
+French *vous*. Three of the five had drifted to plain form before anyone read a screen end to end.
+`i18n_tone_test` checks sentence endings, so a new string in the old register fails the build rather
+than shipping. **Level names name the thing** (`블랙홀`, `경계 벽`) rather than describing it
+(`보이지 않는 턱`) — the user picked the black-hole level's name as the model.
+
 **Parser errors, asserts and `debugMessage` stay Korean.** A level author reads those, not a
 player. `no_hardcoded_korean_test` encodes that boundary by scanning only `presentation/` and
 `level_data.dart`.

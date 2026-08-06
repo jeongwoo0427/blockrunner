@@ -14,10 +14,10 @@ class StringsJa extends AppStrings {
 
   @override
   String get resetProgressWarning =>
-      '星と自己ベストがすべて消える。元に戻せない。';
+      '星と自己ベストがすべて消えます。元に戻せません。';
 
   @override
-  String get resetProgressDone => '進行状況をリセットした';
+  String get resetProgressDone => '進行状況をリセットしました';
 
   @override
   String get cancel => 'キャンセル';
@@ -35,7 +35,7 @@ class StringsJa extends AppStrings {
   String get levelSelectTitle => 'レベル選択';
 
   @override
-  String get levelListLoadFailed => 'レベル一覧を読み込めなかった。';
+  String get levelListLoadFailed => 'レベル一覧を読み込めませんでした。';
 
   @override
   String get locked => 'ロック中';
@@ -47,10 +47,10 @@ class StringsJa extends AppStrings {
   String movesLabel(int moves) => '$moves手';
 
   @override
-  String unlockHint(int requiredLevel) => 'レベル$requiredLevelをクリアすると開く';
+  String unlockHint(int requiredLevel) => 'レベル$requiredLevelをクリアすると開きます';
 
   @override
-  String get levelLoadFailed => 'レベルを読み込めなかった。';
+  String get levelLoadFailed => 'レベルを読み込めませんでした。';
 
   @override
   String get backToLevelSelect => 'レベル選択へ';
@@ -68,10 +68,10 @@ class StringsJa extends AppStrings {
   String get cleared => 'クリア！';
 
   @override
-  String get fellIntoBlackHole => 'ブラックホールに落ちた';
+  String get fellIntoBlackHole => 'ブラックホールに落ちました';
 
   @override
-  String get retryHint => '最初からやり直そう';
+  String get retryHint => '最初からやり直しましょう';
 
   @override
   String clearedSummary(int moves, int minMoves) => '$moves手 / 最少$minMoves手';
@@ -86,27 +86,27 @@ class StringsJa extends AppStrings {
   String get start => 'はじめる';
 
   @override
-  String get swipeHint => 'スワイプでブロックを動かす';
+  String get swipeHint => 'スワイプでブロックを動かします';
 
   @override
-  String get keyboardHint => '矢印キーかWASDでブロックを動かす';
+  String get keyboardHint => '矢印キーかWASDでブロックを動かします';
 
   @override
   Map<int, String> get levelNames => const {
     1: 'すべる',
-    2: '二度の方向',
+    2: '二回曲がる',
     3: 'ブロック止め',
-    4: '壁に寄せて',
-    5: '見えない段差',
+    4: 'マスの壁',
+    5: '境界の壁',
     6: '壁とブロック',
-    7: '二重の壁',
+    7: '二種類の壁',
     8: '狭い門',
     9: '分かれ道',
-    10: '壁だけで',
+    10: '壁だけの道',
     11: 'かみ合う',
     12: '三つの要素',
     13: '細い道',
-    14: '総仕上げ',
+    14: '最後の練習',
     15: 'ブラックホール',
     16: '途切れた道',
     17: '道を空ける',
@@ -118,16 +118,16 @@ class StringsJa extends AppStrings {
   @override
   Map<int, String> get levelTutorials => const {
     1:
-        'ブロックは壁か盤の端に当たるまで滑り続ける。\n'
-        'プレイヤーをゴールのマスにぴたりと止めればクリアだ。',
+        'ブロックは壁か盤の端に当たるまで滑り続けます。\n'
+        'プレイヤーをゴールのマスにぴたりと止めればクリアです。',
     3:
-        '方向を入力すると、すべてのブロックが一緒に滑る。\n'
-        '他のブロックもプレイヤーを止める壁になる。',
+        '方向を入力すると、すべてのブロックが一緒に滑ります。\n'
+        '他のブロックもプレイヤーを止める壁になります。',
     5:
-        'マスとマスの間の太い線は境界壁だ。\n'
-        '通行を遮るだけで、両側のマスには止まれる。',
+        'マスとマスの間の太い線が境界の壁です。\n'
+        '通行を遮るだけで、両側のマスには止まれます。',
     15:
-        'ブラックホールは通り過ぎるだけでブロックを飲み込む。\n'
-        '止まる場所ではなく、通る道を見よう。',
+        'ブラックホールは通り過ぎるだけでブロックを飲み込みます。\n'
+        '止まる場所ではなく、通る道を見ましょう。',
   };
 }

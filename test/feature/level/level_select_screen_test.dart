@@ -134,7 +134,7 @@ void main() {
       ),
     );
 
-    expect(find.textContaining('레벨 목록을 불러오지 못했다'), findsOneWidget);
+    expect(find.textContaining(ko.levelListLoadFailed), findsOneWidget);
     expect(find.byType(LevelCard), findsNothing);
   });
 
