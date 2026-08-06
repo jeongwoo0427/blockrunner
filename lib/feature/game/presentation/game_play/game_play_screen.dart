@@ -93,7 +93,7 @@ class _GamePlayScreenState extends State<GamePlayScreen>
       duration: overlayEntranceDuration,
       reverseDuration: overlayExitDuration,
       // 이미 떠 있는 채로 화면이 만들어지면(핫 리로드 등) 그대로 둔다.
-      value: _hasOverlay(widget.state) ? 1 : 0,
+      value: _overlayKind(widget.state) == _OverlayKind.none ? 0 : 1,
     );
     // 다 나가고 나면 붙잡고 있던 것을 놓는다. **이 통지가 없으면** 마지막
     // 프레임 뒤로 다시 그릴 계기가 없어 투명한 카드가 트리에 남는다.
@@ -116,13 +116,22 @@ class _GamePlayScreenState extends State<GamePlayScreen>
   }
 
   /// 지금 오버레이가 떠 있어야 하는가. 어느 것인지는 보지 않는다.
-  bool _hasOverlay(GamePlayScreenState state) {
-    if (_closing) return false;
+  /// 지금 떠 있어야 하는 오버레이의 **종류**.
+  ///
+  /// **"있다/없다" 로는 부족하다.** 결과 카드를 닫고 다음 레벨로 가면 곧바로
+  /// 튜토리얼이 뜨는데, 둘 다 "있다" 라서 등장 연출이 시작되지 않았다.
+  /// 그러면 화면에는 아무것도 없는데 `showsTutorial` 은 참이라 **입력이
+  /// 영영 막힌다** — 실제로 레벨 3에서 그랬다.
+  _OverlayKind _overlayKind(GamePlayScreenState state) {
+    if (_closing) return _OverlayKind.none;
 
     final level = state.level;
-    if (level == null) return false;
+    if (level == null) return _OverlayKind.none;
 
-    return (state.showsTutorial && level.hasTutorial) || _showsResult(state);
+    if (state.showsTutorial && level.hasTutorial) return _OverlayKind.tutorial;
+    if (_showsResult(state)) return _OverlayKind.result;
+
+    return _OverlayKind.none;
   }
 
   /// 카드를 닫고, 다 사라진 뒤에 [event] 를 올려보낸다.
@@ -184,19 +193,20 @@ class _GamePlayScreenState extends State<GamePlayScreen>
 
   /// 오버레이가 뜨거나 졌으면 그 연출을 재생한다.
   void _syncOverlay(GamePlayScreen oldWidget) {
-    final before = _hasOverlay(oldWidget.state);
-    final after = _hasOverlay(widget.state);
+    final before = _overlayKind(oldWidget.state);
+    final after = _overlayKind(widget.state);
     if (before == after) return;
 
     if (MediaQuery.disableAnimationsOf(context)) {
-      _overlayFade.value = after ? 1 : 0;
+      _overlayFade.value = after == _OverlayKind.none ? 0 : 1;
       return;
     }
 
-    if (after) {
-      _overlayFade.forward(from: 0);
-    } else {
+    if (after == _OverlayKind.none) {
       _overlayFade.reverse();
+    } else {
+      // 종류가 바뀌기만 해도 처음부터 다시 띄운다.
+      _overlayFade.forward(from: 0);
     }
   }
 
@@ -546,3 +556,6 @@ class _ErrorBody extends StatelessWidget {
     );
   }
 }
+
+/// 판 위에 뜰 수 있는 것. **어느 것인지가 등장 연출을 다시 시작할지 정한다.**
+enum _OverlayKind { none, tutorial, result }

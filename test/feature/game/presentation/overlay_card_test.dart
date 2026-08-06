@@ -276,6 +276,59 @@ void main() {
       expect(events.whereType<NextLevelRequested>(), hasLength(1));
     });
 
+    testWidgets('다음을 눌러 넘어간 레벨의 튜토리얼이 뜬다', (tester) async {
+      // **레벨 3에서 실제로 났던 버그다.** 결과 카드를 닫고 다음 레벨로 가면
+      // 곧바로 튜토리얼이 뜨는데, 둘 다 "오버레이 있음" 이라 등장 연출이
+      // 시작되지 않았다. 화면에는 아무것도 없는데 `showsTutorial` 은 참이라
+      // **입력이 영영 막혔다.**
+      //
+      // 재현하려면 **다음 버튼을 눌러 닫는 경로**를 그대로 타야 한다 —
+      // 상태만 갈아끼우면 진행도가 1 에 머물러 있어 버그가 드러나지 않는다.
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      Future<void> pumpState(GamePlayScreenState state) => tester.pumpWidget(
+        withStrings(
+          GamePlayScreen(state: state, onEvent: (GamePlayScreenEvent _) {}),
+        ),
+      );
+
+      // 레벨 2를 깬 상태 — 결과 카드가 떠 있다.
+      await pumpState(
+        GamePlayScreenState(
+          level: kLevels[1],
+          map: map,
+          board: map.initialBoard,
+          moveCount: 3,
+          isCleared: true,
+          hasNextLevel: true,
+        ),
+      );
+      await tester.pumpAndSettle();
+      await tester.pump(const Duration(seconds: 2)); // 별 연출
+
+      await tester.tap(find.text('다음 레벨'));
+      await tester.pumpAndSettle();
+
+      // 이제 다음 레벨(3번)로 넘어간다 — 이 레벨은 튜토리얼을 갖는다.
+      await pumpState(
+        GamePlayScreenState(
+          level: kLevels[2],
+          map: map,
+          board: map.initialBoard,
+          showsTutorial: true,
+        ),
+      );
+      await tester.pump();
+      await tester.pump(overlayEntranceDuration);
+
+      expect(find.byType(TutorialOverlay), findsOneWidget);
+      expect(scrimFade(tester), greaterThan(0), reason: '보이지 않으면 입력만 막힌다');
+      expect(cardFade(tester), greaterThan(0));
+    });
+
     testWidgets('다 나가면 트리에서 빠진다', (tester) async {
       await pumpScreen(tester, cleared: true);
       await tester.pumpAndSettle();
