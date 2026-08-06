@@ -214,6 +214,21 @@ their keys to `kLevels`.
 player. `no_hardcoded_korean_test` encodes that boundary by scanning only `presentation/` and
 `level_data.dart`.
 
+**The UI has a shape language and it is enforced by code, not by memory.** `gameButtonShape()` in
+`lib/core/widget/` is the single definition of the beveled corner that buttons, level cards, overlay
+cards and dialogs all wear; there are **no borders** anywhere, so fill colour carries every
+distinction. A source-scan test fails if a Material `FilledButton`/`OutlinedButton`/`TextButton`/
+`IconButton` reappears in `lib/`. Level cards encode exactly three states in colour — locked
+(`surfaceContainerHighest`, board hidden entirely), playable (`primary`), cleared (`tertiary`) — and
+star count is carried by the star row, not by the fill.
+
+**There are five animation controllers and each one broke `06`'s "implicit animations only" rule for
+a stated reason**: black-hole rotation and the tutorial demo never end, the overlay entrance needs a
+guaranteed first frame (`TweenAnimationBuilder` renders its end value immediately), and the bump
+must replay on an unchanged value. **A running controller makes `pumpAndSettle` hang forever** —
+level 1 has no black hole but does have a tutorial demo, so widget tests that reach a board or a
+tutorial must `pump` instead.
+
 **Layout is verified, not assumed** (`docs/tasks/completed/10-responsive.md`). `test/responsive_test.dart`
 renders both screens across five languages, three window sizes, a width sweep and text scale ×2, and
 fails on any overflow. Two of that doc's completion criteria turned out to be *false* when finally

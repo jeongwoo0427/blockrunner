@@ -4,9 +4,12 @@ abstract class AppConstants {
 
   /// 스플래시가 머무는 시간 (12-ui-polish §1).
   ///
-  /// 블록 슬라이드 0.6초 + 제목 페이드인 0.4초 뒤 잠시 머문다. 누르면
-  /// 즉시 넘어가므로 두 번째 실행부터 기다릴 필요는 없다.
-  static const Duration splashDuration = Duration(milliseconds: 1800);
+  /// 블록 슬라이드 1.1초 + 제목 페이드인 0.5초 뒤 잠시 머문다.
+  ///
+  /// **처음 0.6초였는데 눈으로 따라가기 전에 끝났다** (13-game-feel §1).
+  /// 길게 둘 수 있는 것은 누르면 즉시 넘어가기 때문이다 — 두 번째 실행부터는
+  /// 기다릴 이유가 없다.
+  static const Duration splashDuration = Duration(milliseconds: 2800);
 
   /// 화면에 보여줄 앱 버전 (12-ui-polish §3).
   ///
