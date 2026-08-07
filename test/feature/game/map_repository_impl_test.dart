@@ -32,8 +32,8 @@ void main() {
   test('파싱 결과를 캐시해 매번 다시 만들지 않는다', () {
     final repository = MapRepositoryImpl();
 
-    expect(repository.getAllMaps(), same(repository.getAllMaps()));
     expect(repository.getMap(1), same(repository.getMap(1)));
+    expect(repository.getAllMaps().first, same(repository.getMap(1)));
   });
 
   test('잘못된 맵 데이터는 접근 시점에 터진다', () {
@@ -47,5 +47,22 @@ void main() {
       () => repository.getAllMaps(),
       throwsCode(FailureCode.invalidMapData),
     );
+  });
+
+  test('맵 하나가 잘못돼도 다른 레벨은 열린다', () {
+    // 전부 한꺼번에 파싱하면 9번의 오타 하나가 1번까지 막는다. 맵을 고치는
+    // 중에 나머지 레벨을 못 켜면 무엇이 잘못됐는지 보이지 않는다.
+    final repository = MapRepositoryImpl(
+      blueprints: const [
+        MapBlueprint(
+          levelNumber: 1,
+          rows: ['+-+-+', '|@ G|', '+-+-+'],
+        ),
+        MapBlueprint(levelNumber: 2, rows: ['@...']),
+      ],
+    );
+
+    expect(repository.getMap(1).levelNumber, 1);
+    expect(() => repository.getMap(2), throwsCode(FailureCode.invalidMapData));
   });
 }
