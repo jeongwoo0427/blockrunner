@@ -1,24 +1,17 @@
 # BlockRunner
 
-격자 위에서 **모든 블록이 한꺼번에 미끄러지는** 퍼즐 게임.
-웹 · 모바일 · 데스크탑을 하나의 Flutter 코드베이스로 지원한다.
+격자 위에서 **모든 블록이 한꺼번에 미끄러지는** 퍼즐 게임입니다.
+웹 · 모바일 · 데스크탑을 **하나의 Flutter 코드베이스**로 지원합니다.
 
-> **현재 상태: 플레이 가능.** 20개 레벨(2×4 ~ 10×10)을 스와이프 · 방향키 · WASD · 마우스 드래그로 풀 수 있다.
-> 이동 규칙 엔진은 단위 테스트로 고정되어 있고, 각 레벨의 최소 이동 횟수는 완전 탐색 솔버가 검증한다.
-> 레벨 선택 → 플레이 → 클리어 → 다음 레벨까지 이어진다. 별점과 최고 기록은 기기에 저장되고
-> 레벨은 순차 해금된다. **한국어 · 영어 · 일본어 · 중국어 · 프랑스어**를 지원하고,
-> 작은 폰부터 데스크탑 창까지 5개 언어 · 큰 글꼴에서 레이아웃이 깨지지 않는 것을 테스트가 검사한다.
-> 남은 것은 레벨 추가다.
-> 진행 상황은 [`docs/tasks/README.md`](docs/tasks/README.md) 참고.
+25개 레벨 · 5개 언어 · 게임 엔진 없이 순수 Flutter · **전 과정 AI 페어 프로그래밍**
 
 ---
 
-## 게임 소개
+## 어떤 게임인가요
 
-방향을 한 번 입력하면 플레이어 블록과 모든 일반 블록이 **동시에** 그 방향으로 끝까지 미끄러진다.
-벽 · 맵 경계 · 다른 블록을 만나면 그 직전에 멈춘다.
-
-**플레이어 블록을 목표 지점에 정확히 멈춰 세우면 클리어.**
+방향을 한 번 입력하면 플레이어 블록과 모든 일반 블록이 **동시에** 그 방향으로 끝까지 미끄러집니다.
+벽 · 맵 경계 · 다른 블록을 만나면 그 직전에 멈춥니다.
+**플레이어 블록을 목표 지점에 정확히 멈춰 세우면 클리어입니다.**
 
 ```
        0  1  2  3  4  5              1수: ↓          2수: →
@@ -27,252 +20,180 @@
    2 | .  O  .  .  .  .          (4,1) 에 정지       목표 칸에 정지
    3 | .  .  .  .  .  .                              → 클리어
    4 | .  .  G  #  .  .
-   5 | .  .  .  .  .  .          @ 플레이어  O 블록  # 칸 벽  G 목표  X 블랙홀
+   5 | .  .  .  .  .  .          @ 플레이어  O 블록  # 벽  G 목표  X 블랙홀
 ```
 
-벽은 두 종류다.
+2048의 "전체 슬라이드" 조작에 소코반식 "목표 도달" 승리 조건을 결합했습니다.
+2048과 달리 **블록은 합쳐지지 않습니다.**
 
-- **칸 벽** `#` — 칸 하나를 통째로 차지한다. 지날 수도 설 수도 없다.
-- **경계 벽** `|` `-` — 칸 **사이**를 막는다. **양쪽 칸은 멀쩡히 살아 있다.**
-
-경계 벽이 있어야 목표 바로 뒤를 막으면서도 그 칸을 퍼즐에 계속 쓸 수 있다.
-칸 벽만으로는 브레이크를 하나 놓을 때마다 칸 하나를 버려야 한다.
-
-2048의 "전체 슬라이드" 조작에 소코반식 "목표 도달" 승리 조건을 결합했다.
-2048과 달리 **블록은 합쳐지지 않는다.**
-
-### 설계 의도
-
-- **목표 칸을 지나가는 것만으로는 클리어되지 않는다.** 반드시 그 칸에 *멈춰야* 한다.
-  목표와 같은 행/열에서 밀기만 하면 되는 게임은 퍼즐이 아니다.
-  벽 · 일반 블록 · 맵 경계는 전부 플레이어를 원하는 지점에 세우기 위한 **브레이크**다.
-- **실패가 없다.** 이동 횟수 제한도, 게임 오버 화면도 없다.
-  다시하기는 언제나 열려 있고, 도전 욕구는 *최소 이동 횟수 기준 별점*이 만든다.
-- **되돌리기가 없다.** 무를 수 있으면 아무 방향이나 눌러보는 것이 최적 전략이 되어 퍼즐이
-  성립하지 않는다. 실수를 되돌리는 수단은 다시하기뿐이고, 그래서 블랙홀이 실제 위협이 된다.
-- **블랙홀은 지나가기만 해도 빨려 들어간다.** 멈춰야만 빠지는 규칙이면 블랙홀은 무해한 장식이 된다.
-
-전체 규칙과 결정 근거는 [`docs/game-design.md`](docs/game-design.md)에 있다.
-
----
-
-## 구조 및 기술
-
-### 기술 스택
+### 조작
 
 | | |
 |---|---|
-| 프레임워크 | Flutter **3.44.8** (FVM으로 고정) / Dart SDK `^3.12.2` |
-| 상태관리 · DI | `flutter_riverpod` 3.0.3 |
-| 라우팅 | `go_router` ^14.6.1 |
-| 로컬 저장 | `shared_preferences` ^2.5.3 |
-| 다국어 | **직접 구현** — `intl` · `flutter_localizations` 등 미사용 |
-| 렌더링 | **`CustomPainter` + `AnimationController`** |
-| 코드 생성 | 없음 — freezed / json_serializable / build_runner 미사용 |
+| PC · 노트북 | **방향키** 또는 **WASD**, 마우스로 판을 끌어도 됩니다 |
+| 스마트폰 · 태블릿 | 판 위를 **스와이프** |
+| 다시하기 | 화면의 다시하기 버튼 또는 **`R`** |
+| 다음 레벨 | 클리어 후 **`Enter`** |
 
-**게임 엔진(Flame 등)을 쓰지 않는다.** 순수 Flutter 프레임워크로만 구현한다.
-격자 퍼즐은 물리 엔진도 스프라이트 배칭도 필요 없고, 엔진을 얹으면 오히려 레이아웃 · 라우팅 · 상태관리가 Flutter 쪽과 이중화된다.
-
-### 아키텍처
-
-Clean Architecture, **feature-first**. 의존 방향은 항상 도메인을 향한다.
-
-```
-lib/
-├── core/            DI · 라우팅 · 테마 · 에러 · 공용 위젯
-└── feature/
-    ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
-    ├── level/       레벨 메타데이터(번호 · 최소 이동 횟수) · 레벨 선택
-    ├── progress/    클리어 · 별점 · 최고 기록 저장
-    ├── settings/    언어 · 진행도 초기화 · 버전
-    └── splash/      시작 화면
-```
-
-**feature 의존은 되돌아오는 간선 없이 한 방향으로만 흐른다.**
-
-```
-game → level        최소 이동 횟수 · 안내 유무
-game → progress     클리어 기록 저장
-level → progress    레벨 선택 화면의 별점 · 해금
-level → settings    레벨 선택 화면에서 설정을 엶
-progress → (없음)
-settings → (없음)
-splash → (없음)
-```
-
-**레벨 카드의 미니 보드는 `level` 이 만들지 않고 함수로 받는다.** 판은 `game` 이 갖고 있어서 직접 그리면 순환이 된다. 조립은 두 feature를 다 아는 라우터가 한다.
-
-`level`은 판을 모르고 `progress`는 아무것도 모른다. 맵을 `Level`에 품게 하거나 진행도 저장에
-`Level`을 넘기면 곧바로 순환이 생긴다 — 실제로 두 번 겪고 두 번 끊었다.
-
-각 feature는 `domain / data / presentation` 3계층으로 나뉘고, 화면 하나는 다음 파일들로 구성된다.
-
-```
-<screen>_root.dart              ConsumerStatefulWidget — 상태 구독, 네비게이션
-<screen>_screen.dart            StatefulWidget — 그리기만. Riverpod을 모른다
-<screen>_screen_notifier.dart   Notifier<State> = ViewModel
-<screen>_screen_state.dart      @immutable + copyWith
-<screen>_screen_event.dart      sealed class
-widget/                         화면 전용 위젯
-```
-
-호출 사슬은 `Notifier → Usecase → Repository(추상) → RepositoryImpl` 이다.
-
-**서버 API가 없으므로 datasource 계층을 두지 않는다.** 맵 데이터는 전부 상수이고, `RepositoryImpl`이 이를 직접 보유한다.
-
-### 다국어
-
-**한국어 · 영어 · 일본어 · 중국어 간체 · 프랑스어.** 다국어 라이브러리를 쓰지 않는다 — 문자열은 손으로 쓴 Dart 상수이고 코드 생성도 `.arb`도 없다.
-
-```
-lib/core/i18n/
-├── app_locale.dart       지원 언어 + 기기 로케일 해석
-├── app_strings.dart      추상 클래스 — 문구 목록
-├── strings_ko.dart       언어별 구현 5벌
-└── app_strings_scope.dart   InheritedWidget → context.strings
-```
-
-문구를 **추상 멤버**로 선언하는 것이 요점이다. 키를 빠뜨리면 컴파일이 깨진다 — `Map`이면 오타가 런타임 빈 문자열이 되고, 그건 그 언어를 읽는 사람만 볼 수 있다.
-값이 끼어드는 문구는 값이 아니라 **함수**라서, 영어의 `1 move` / `2 moves` 같은 복수형 분기를 각 언어가 자기 파일 안에서 처리한다.
-
-언어는 **기기 설정을 따르되 앱 안에서 바꿀 수 있고**, 고른 것은 기기에 저장된다.
-**파서 오류·`assert`·`debugMessage`는 번역하지 않는다** — 그것을 읽는 사람은 플레이어가 아니라 레벨을 만드는 사람이다.
-
-폴더 구조 · 네이밍 · DI 규약 전문은 [`docs/architecture.md`](docs/architecture.md)에 있다.
+**되돌리기는 없습니다.** 블랙홀에 빠지면 다시하기뿐입니다 — 그래서 블랙홀이 실제 위협이 됩니다.
 
 ---
 
-## 설치 및 실행
+## 실행하기
 
-### 사전 준비
+**Flutter 를 몰라도, 설치하지 않아도 실행할 수 있습니다.** 아래 두 방법 중 하나를 고르시면 됩니다.
 
-Flutter 버전이 [FVM](https://fvm.app)으로 3.44.8에 고정되어 있다 (`.fvmrc`).
+### 방법 1. Docker — 준비물이 Docker 하나뿐 (권장)
 
-```bash
-# FVM 설치 (없다면)
-brew tap leoafarias/fvm && brew install fvm
+Flutter 설치가 필요 없습니다. 컨테이너 **안에서** 알아서 내려받아 빌드합니다.
 
-# 저장소에 지정된 Flutter 버전 내려받기
-fvm install
-```
+**준비물**: [Docker Desktop](https://www.docker.com/products/docker-desktop/) (Mac · Windows · Linux 공통, 설치 후 실행해 두세요)
 
-FVM을 쓰지 않아도 되지만, 그 경우 로컬 Flutter가 3.44.8인지 직접 확인해야 한다.
-아래 명령에서 `fvm` 접두사만 빼면 된다.
-
-### 의존성 설치
-
-```bash
-fvm flutter pub get
-```
-
-### 실행
-
-```bash
-fvm flutter devices          # 사용 가능한 기기 확인
-
-fvm flutter run -d web-server --web-port=8080   # 웹 → http://localhost:8080
-fvm flutter run -d macos     # macOS
-fvm flutter run              # 연결된 모바일 기기 / 에뮬레이터
-```
-
-Windows · Linux · Android · iOS 프로젝트도 모두 생성되어 있다.
-
-**웹은 `-d chrome` 을 쓰지 않는다.** `flutter run -d chrome` 은 매번 임시 `--user-data-dir` 로
-크롬을 새로 띄우고 포트도 매번 달라져서, `SharedPreferences`(웹에서는 localStorage) 가 늘 비어 있다.
-언어 · 별점 · 해금 · "튜토리얼 봤음" 이 전부 저장이 안 되는 것처럼 보이는데 저장 코드는 멀쩡하다.
-**출처(origin)를 고정**하고 평소 쓰는 브라우저로 열어야 한다.
-
-### 검증
-
-작업을 끝냈다고 보고하기 전에 아래 두 명령이 통과해야 한다.
-
-```bash
-fvm flutter analyze          # analysis_options.yaml (flutter_lints)
-fvm flutter test
-```
-
-### 빌드
-
-```bash
-fvm flutter build web --release --wasm --no-web-resources-cdn
-fvm flutter build apk
-fvm flutter build macos
-```
-
-웹 플래그 두 개는 **`Dockerfile` 과 같은 값이어야 한다.** 한쪽만 바꾸면 로컬에서 확인한 것과
-배포된 것이 달라진다.
-
-- `--wasm` 은 dart2wasm(skwasm)과 dart2js(canvaskit)을 **모두** 빌드한다. WasmGC 를 지원하는
-  브라우저는 `main.dart.wasm` 을, 아니면 `main.dart.js` 를 받는다 (그래서 `build/web` 전체를 서빙한다).
-- `--no-web-resources-cdn` 은 엔진 산출물(`skwasm.wasm` 등)을 gstatic CDN 대신 같은 출처에서
-  받게 한다. 서드파티 의존이 사라지고, **같은 출처로 와야 nginx 의 gzip 대상이 된다.**
-  CDN 으로 되돌리려면 이 플래그만 빼면 된다.
-
----
-
-## 배포
-
-Docker 이미지 하나로 서빙한다. 컨테이너 안에서 Flutter 를 얕은 클론해 빌드하고(`Dockerfile`
-1단계), 산출물만 `nginx:1.21.1-alpine` 로 옮긴다(2단계). **빌드 머신에 Flutter 가 없어도 된다.**
-
-```
-[리버스 프록시 (TLS 종단)]  →  호스트:7001  →  컨테이너 nginx :80
-```
-
-**앞단 리버스 프록시 설정은 이 저장소에 두지 않는다.** 도메인 · 인증서 경로 · 서버 설정 위치는
-배포 환경마다 다르고, 저장소에 적을 성격의 정보가 아니다. 아래 §"앞단 프록시" 에 **환경과
-무관하게 지켜야 하는 조건**만 적는다.
-
-### 갱신 배포
+내려받은 저장소 폴더에서:
 
 ```bash
 docker compose up -d --build
 ```
 
-`--build` 가 없으면 기존 이미지를 재사용해 **변경사항이 반영되지 않는다.**
-첫 배포나 문제 확인 시에는 `-d` 를 빼고 로그를 보는 편이 낫다.
+브라우저에서 **http://localhost:7001** 을 열면 게임이 뜹니다.
 
-배포 후 압축이 실제로 걸렸는지 한 번 확인할 것:
+> ⏱ **첫 실행은 10분 안팎 걸립니다.** 컨테이너가 Flutter SDK 를 통째로 내려받아 빌드하기 때문입니다.
+> 진행 상황을 보고 싶으시면 `-d` 를 빼고 `docker compose up --build` 로 실행하세요.
+> 두 번째부터는 즉시 뜹니다.
+
+끝낼 때는 `docker compose down` 입니다.
+
+### 방법 2. Flutter 로 직접 실행 — 모든 플랫폼
+
+기기(맥 앱 · 윈도우 앱 · 안드로이드 · iOS)로 직접 띄워 보시려면 이쪽입니다.
+
+**준비물**: Flutter **3.44.8**
+
+<details>
+<summary>Flutter 가 없다면 (클릭)</summary>
+
+버전이 저장소에 고정되어 있어서(`.fvmrc`), 버전 관리 도구인 [FVM](https://fvm.app) 을 쓰는 것이 가장 간단합니다.
 
 ```bash
-curl -sI -H "Accept-Encoding: gzip" http://localhost:7001/main.dart.wasm   # 컨테이너 직접
-curl -sI -H "Accept-Encoding: gzip" https://<도메인>/main.dart.wasm        # 프록시 너머
+# macOS
+brew tap leoafarias/fvm && brew install fvm
+
+# Windows
+choco install fvm
+
+fvm install        # 저장소에 지정된 3.44.8 을 내려받습니다
 ```
 
-→ `Content-Type: application/wasm` 과 `Content-Encoding: gzip` 이 함께 나와야 한다.
-컨테이너에서는 나오는데 프록시 너머에서 `Content-Encoding` 이 사라졌다면, 앞단에
-`proxy_set_header Accept-Encoding "";` 가 있는지 확인할 것 — **그 줄이 있으면 컨테이너가
-압축을 못 한다.**
+FVM 없이 [Flutter 를 직접 설치](https://docs.flutter.dev/get-started/install)하셔도 됩니다.
+그 경우 아래 명령에서 앞의 `fvm` 만 빼시면 됩니다.
 
-압축이 걸리면 첫 로딩에서 실제로 받는 것이 절반 이하가 된다 (실측).
+</details>
 
-| 브라우저 | 받는 것 | 압축 전 → 후 |
+```bash
+fvm flutter pub get     # 의존성 내려받기 (한 번만)
+```
+
+| 어디서 볼까 | 명령 | 참고 |
 |---|---|---|
-| WasmGC 지원 | `main.dart.wasm` | 2,187K → **807K** |
-| | `skwasm.wasm` | 3,497K → **1,499K** |
-| 그 외 | `main.dart.js` | 2,535K → **752K** |
-| | `canvaskit.wasm` | 7,060K → **2,835K** |
+| **웹 브라우저** (가장 쉬움) | `fvm flutter run -d web-server --web-port=8080` | → http://localhost:8080 |
+| **macOS 앱** | `fvm flutter run -d macos` | Xcode 가 필요합니다 |
+| **Windows 앱** | `fvm flutter run -d windows` | Visual Studio (C++ 데스크탑 워크로드)가 필요합니다 |
+| **Linux 앱** | `fvm flutter run -d linux` | |
+| **안드로이드 폰** | `fvm flutter run` | USB 로 연결하거나 에뮬레이터를 켜 두세요 |
+| **아이폰** | `fvm flutter run` | Xcode 와 서명 설정이 필요합니다 |
 
-### 앞단 프록시 — 지켜야 하는 조건 세 가지
+기기가 잡히는지 먼저 확인하시려면 `fvm flutter devices` 입니다.
+안드로이드 폰에 설치 파일로 넣고 싶으시면 `fvm flutter build apk` 을 쓰세요.
 
-**설정 자체는 저장소에 없다.** 어떤 프록시를 쓰든 아래만 지키면 된다.
+> 💡 **웹은 `-d chrome` 을 쓰지 마세요.** 매번 빈 임시 브라우저로 열려서 언어 · 별점 · 해금이
+> 저장되지 않는 것처럼 보입니다. 위 표의 `web-server` 명령으로 띄우고 평소 쓰시는 브라우저로 열면 됩니다.
 
-1. **`Content-Type` 과 `Content-Encoding` 을 그대로 통과시킬 것.** `.wasm` MIME 과 gzip 은 전부
-   컨테이너 안 `nginx.conf` 가 처리한다. 앞단은 손대지 않고 넘기기만 하면 된다.
-2. **`Accept-Encoding` 을 지우지 말 것.** nginx 기준으로 `proxy_set_header Accept-Encoding "";`
-   가 있으면 컨테이너가 압축할 기회를 잃어 위 표의 이득이 통째로 사라진다.
-3. **TLS 는 앞단에서 끝낼 것.** 컨테이너는 평문 :80 만 연다.
+### 코드 검사와 테스트
 
-인증서를 certbot 의 nginx 플러그인으로 발급한다면 **서버 블록보다 인증서가 먼저**여야 한다 —
-`listen 443 ssl` 은 인증서 파일이 없으면 nginx 가 아예 뜨지 않는다. 그리고 설치까지 맡기는
-`certbot --nginx` 대신 **`certbot certonly --nginx`** 를 쓰는 편이 낫다. 설치를 맡기면 certbot 이
-프록시 설정 파일을 직접 고치는데, 여러 사이트가 한 파일에 들어 있으면 그것까지 건드린다.
+```bash
+fvm flutter analyze     # 정적 분석
+fvm flutter test        # 44개 파일 · 580여 건
+```
 
-### 검증 없이 넘기기 쉬운 것
+Flutter 를 설치하지 않으셨다면 Docker 로도 돌릴 수 있습니다.
 
-`nginx.conf` 의 `.mjs` 처리를 빼면 **화면이 흰 채로 멈춘다.** 이 nginx 버전의 `mime.types` 에
-`.mjs` 매핑이 없어 `application/octet-stream` 으로 나가고, ES 모듈은 MIME 을 엄격히 검사해
-로드를 거부한다. 콘솔에만 나오고 화면에는 아무 말도 안 나오므로 원인을 찾기 어렵다.
+```bash
+docker build --target build-env -t blockrunner-build .
+docker run --rm blockrunner-build sh -c "cd /app && flutter analyze && flutter test"
+```
+
+---
+
+## 기술
+
+| | |
+|---|---|
+| 프레임워크 | Flutter **3.44.8** / Dart `^3.12.2` |
+| 상태관리 · DI | `flutter_riverpod` 3.0.3 |
+| 라우팅 | `go_router` ^14.6.1 |
+| 로컬 저장 | `shared_preferences` ^2.5.3 |
+| 렌더링 · 연출 | `CustomPainter` + 암시적 애니메이션 |
+| 다국어 | 직접 구현 (ko · en · ja · zh · fr) |
+
+**의존성이 셋뿐입니다.** 쓰지 **않기로** 한 것들이 이 프로젝트의 성격을 더 잘 보여줍니다.
+
+- **게임 엔진(Flame 등) 없음** — 격자 퍼즐에 물리 엔진은 필요 없고, 엔진을 얹으면 레이아웃 ·
+  라우팅 · 상태관리가 Flutter 쪽과 이중화됩니다.
+- **다국어 라이브러리 없음** — 문구를 추상 클래스의 **멤버**로 선언해서, 번역을 빠뜨리면
+  런타임 빈 문자열이 아니라 **컴파일 에러**가 납니다.
+- **코드 생성 없음** — freezed · build_runner 를 쓰지 않습니다. 엔티티는 손으로 씁니다.
+
+### 아키텍처
+
+Clean Architecture · **feature-first** 입니다. 의존은 한 방향으로만 흐르고 **되돌아오는 간선이 없습니다.**
+
+```
+lib/
+├── core/            DI · 라우팅 · 테마 · 다국어 · 공용 위젯
+└── feature/
+    ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
+    ├── level/       레벨 메타데이터 · 레벨 선택 화면
+    ├── progress/    클리어 · 별점 · 최고 기록 저장
+    ├── settings/    언어 · 진행도 초기화
+    └── splash/      시작 화면
+
+game → level → progress → (없음)
+```
+
+화면 하나는 `Root`(상태 구독 · 화면 이동) / `Screen`(그리기만) / `Notifier`(ViewModel) /
+`State` / `Event` 로 나뉘고, 호출은 `Notifier → Usecase → Repository` 로 흐릅니다.
+서버가 없으므로 datasource 계층을 두지 않았고, 맵은 전부 상수입니다.
+
+**`level` 은 판을 모르고 `progress` 는 아무것도 모릅니다.** 맵을 `Level` 에 품게 하면 곧바로
+순환이 생깁니다 — 실제로 두 번 겪고 두 번 끊었으며, 지금은 **테스트가 그 간선을 지킵니다.**
+
+규약 전문은 [`docs/architecture.md`](docs/architecture.md) 에 있습니다.
+
+---
+
+## 개발 방식 — AI 페어 프로그래밍
+
+**코드는 전부 Claude Code 가 썼습니다.** 사람은 규칙과 제품 결정을 내리고 에이전트가 구현합니다.
+Andrej Karpathy 가 이름 붙인 *바이브 코딩* 이지만, 이 프로젝트가 실제로 푼 문제는 따로 있습니다 —
+**세션마다 컨텍스트가 초기화되는데 어떻게 일관된 코드베이스를 쌓는가** 입니다.
+
+답은 **저장소를 기억으로 쓰는 것**이었습니다.
+
+| | |
+|---|---|
+| [`CLAUDE.md`](CLAUDE.md) | 매 세션 자동으로 읽히는 **상시 컨텍스트**입니다. 행동 규칙과 이미 내린 결정, 그리고 *그 이유*를 담습니다 |
+| [`docs/tasks/`](docs/tasks/README.md) | 기능을 **작업 문서 15종**으로 쪼갰습니다. 한 요청에 한 작업만 하고, 끝나면 결과를 적어 `completed/` 로 옮깁니다 |
+| [`docs/game-design.md`](docs/game-design.md) | **게임 규칙의 단일 출처**입니다. 규칙이 바뀌면 코드보다 **먼저** 이 문서를 고칩니다 |
+| [`docs/prompt-history.md`](docs/prompt-history.md) | 요청 **100여 건**의 전문과 결정 근거입니다. diff 로는 복원할 수 없는 "왜" 가 남습니다 |
+
+**규칙은 문서만이 아니라 테스트가 강제합니다.** 코드 7,800줄에 테스트 7,800줄로 거의 1:1 입니다.
+
+- 이동 엔진은 Flutter 를 import 하지 않는 순수 Dart 라 화면 없이 전부 검증됩니다.
+- **레벨 설계까지 검사합니다.** 완전 탐색으로 *막다른 판이 없는지*(되돌리기가 없으므로 한 번
+  잘못 밀어 못 깨게 되면 화면은 아무 말도 하지 않습니다), *모든 벽과 블록이 최소 이동 횟수를
+  바꾸는지*(아니면 장식입니다)를 봅니다. **맵은 손으로 그리지 않고 무작위 탐색으로 만들어
+  이 검사를 통과한 것만 남깁니다.**
+- 레이아웃도 5개 언어 × 3개 창 크기 × 글꼴 배율 ×2 로 렌더링해 **넘치면 실패**시킵니다.
 
 ---
 
@@ -280,20 +201,9 @@ curl -sI -H "Accept-Encoding: gzip" https://<도메인>/main.dart.wasm        # 
 
 | 문서 | 내용 |
 |---|---|
-| [`docs/game-design.md`](docs/game-design.md) | **게임 규칙의 단일 출처.** 이동 알고리즘, 맵 요소, 클리어 · 되돌리기 규칙, 검산 트레이스 |
-| [`docs/architecture.md`](docs/architecture.md) | 폴더 구조, DI · MVVM · repository 규약, 네이밍 |
-| [`docs/tasks/`](docs/tasks/README.md) | 기능별 할 일 문서 11종과 진행 현황표 |
+| [`docs/game-design.md`](docs/game-design.md) | 게임 규칙의 단일 출처. 이동 알고리즘 · 맵 요소 · 별점 |
+| [`docs/architecture.md`](docs/architecture.md) | 폴더 구조 · DI · MVVM · 네이밍 규약 |
+| [`docs/tasks/`](docs/tasks/README.md) | 작업 문서 15종과 진행 현황표 |
 | [`docs/prompt-history.md`](docs/prompt-history.md) | AI 작업 요청 내역과 결정 근거 |
+| [`docs/deployment.md`](docs/deployment.md) | Docker · nginx 배포와 함정 |
 | [`CLAUDE.md`](CLAUDE.md) | AI 코딩 에이전트용 행동 규칙 |
-
-규칙이 바뀌면 코드보다 **먼저** `docs/game-design.md`를 고친다.
-
----
-
-## 개발 순서
-
-[`docs/tasks/README.md`](docs/tasks/README.md)의 순서를 따른다.
-
-**이동 규칙 엔진(`02`)을 화면(`04`)보다 먼저 만든다.** 이 게임의 난이도는 전부 이동 규칙에 있고,
-규칙은 Flutter 없이 순수 Dart 단위 테스트로 완전히 검증할 수 있다.
-UI를 먼저 만들면 규칙 버그를 화면으로 눈 디버깅하게 된다.

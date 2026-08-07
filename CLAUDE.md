@@ -357,12 +357,15 @@ docker run --rm blockrunner-build sh -c "cd /app && flutter analyze && flutter t
 
 **The web build ships as a Docker image** — a reverse proxy terminates TLS and forwards to
 `host:7001` → container nginx :80. `docker compose up -d --build` redeploys; without `--build` the
-old image is reused and nothing changes. Notes are in `README.md` §배포.
+old image is reused and nothing changes. Notes are in `docs/deployment.md` — `README.md` only links
+it, because that file is the submission front door and 90 lines of nginx lore drowned it. **The same
+command is also the README's recommended way to *run* the game**, since it is the only path that
+needs no Flutter install; don't break it while tuning deployment.
 
 **The proxy config, the domain, and the certificate paths are deliberately not in this repo** —
 this is a public repository, and that is deployment-environment information, not project
-information. `README.md` states only the conditions any proxy must satisfy. Don't "helpfully" add
-a concrete server block, hostname, or cert path back into a tracked file.
+information. `docs/deployment.md` states only the conditions any proxy must satisfy. Don't
+"helpfully" add a concrete server block, hostname, or cert path back into a tracked file.
 
 **The Flutter version lives in two places** — `.fvmrc` and the `Dockerfile`'s `git clone --branch`.
 Move them together or what passed locally breaks in the deployed build, and the cause will look
