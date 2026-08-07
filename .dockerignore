@@ -1,0 +1,29 @@
+# 빌드 컨텍스트에서 제외 (도커 빌드 속도/이미지 크기)
+
+# 빌드 산출물 - 컨테이너 안에서 새로 만든다
+build/
+.dart_tool/
+.fvm/
+
+# 웹 빌드에 불필요
+.git/
+docs/
+.idea/
+.vscode/
+
+# 다른 플랫폼의 스캐폴드 - 웹 빌드가 쓰지 않는다
+android/
+ios/
+linux/
+macos/
+windows/
+
+# test/ 는 **일부러 남긴다.** 웹 빌드는 쓰지 않지만, 이 서버에 flutter 가 없어서
+# `analyze && test` 를 빌드 스테이지 이미지 안에서 돌리는 것이 유일한 검증 경로다
+# (README 의 "배포" 절 참고). 최종 이미지에는 어차피 build/web 만 들어간다.
+
+# OS/에디터 부산물
+.DS_Store
+**/.DS_Store
+*.iml
+*.log

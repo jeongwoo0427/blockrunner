@@ -142,7 +142,8 @@ Rules changed? Edit `docs/game-design.md` before touching code.
 
 **Every task doc is done — `docs/tasks/` holds only `README.md` and `completed/`.** The next request
 is not a task from the list; ask what it should be. **The game is playable end to end on all
-three platforms:** level select → play → clear → next level, with progress saved. The
+three platforms and the web build is live** (see **Deployment** below): level select → play →
+clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
 `docs/game-design.md` §4, **twenty-five levels** are ASCII constants whose `minMoves` a BFS solver
 in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
@@ -333,3 +334,34 @@ fvm flutter run -d web-server --web-port=8080   # then open http://localhost:808
 ```
 
 Verification default: `fvm flutter analyze && fvm flutter test` must pass before reporting a change as done.
+
+**If the machine has no Flutter, run them inside the build stage instead** — the deploy image
+(below) already contains the pinned SDK, so there is no excuse to skip verification:
+
+```
+docker build --target build-env -t blockrunner-build .
+docker run --rm blockrunner-build sh -c "cd /app && flutter analyze && flutter test"
+```
+
+### Deployment
+
+**The web build ships as a Docker image** — a reverse proxy terminates TLS and forwards to
+`host:7001` → container nginx :80. `docker compose up -d --build` redeploys; without `--build` the
+old image is reused and nothing changes. Notes are in `README.md` §배포.
+
+**The proxy config, the domain, and the certificate paths are deliberately not in this repo** —
+this is a public repository, and that is deployment-environment information, not project
+information. `README.md` states only the conditions any proxy must satisfy. Don't "helpfully" add
+a concrete server block, hostname, or cert path back into a tracked file.
+
+**The Flutter version lives in two places** — `.fvmrc` and the `Dockerfile`'s `git clone --branch`.
+Move them together or what passed locally breaks in the deployed build, and the cause will look
+like it is in the code.
+
+**Three settings in `nginx.conf` are load-bearing, not boilerplate.** `.mjs` must be served as
+`text/javascript` (this nginx's `mime.types` has no mapping, ES modules refuse a wrong MIME, and the
+page then hangs on a *blank screen* with the reason only in the console); the fix must be
+`default_type`, never a `types { }` block, which replaces the parent mapping wholesale and breaks
+CSS/JS too; and `--no-web-resources-cdn` in the Dockerfile is what makes the engine payload
+same-origin and therefore gzippable. Do not add `proxy_set_header Accept-Encoding "";` to the host
+block — it silently disables the container's gzip.

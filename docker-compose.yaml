@@ -1,0 +1,10 @@
+services:
+  blockrunner:
+    container_name: "blockrunner"
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    # 앞단 리버스 프록시가 이 포트로 넘긴다. TLS 는 앞단에서 끝나고 여기는 평문이다.
+    ports:
+      - "7001:80"
+    restart: always

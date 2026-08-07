@@ -23,6 +23,7 @@
 | 11 | [11-i18n.md](completed/11-i18n.md) | 다국어 (ko·en·ja·zh·fr) | ✅ 완료 | 00, 08 |
 | 12 | [12-ui-polish.md](completed/12-ui-polish.md) | UI 디테일 — 스플래시 · 그리드 · 블랙홀 · 다이얼로그 | ✅ 완료 | 10, 11 |
 | 13 | [13-game-feel.md](completed/13-game-feel.md) | 게임다운 손맛 — 버튼 · 카드 · 별 연출 · 튜토리얼 데모 · 쫀득거림 | ✅ 완료 | 12 |
+| 14 | [14-web-deploy.md](completed/14-web-deploy.md) | 웹 개시 — Docker 이미지 · nginx 서빙 | ✅ 완료 | — |
 
 상태값: `대기` / `진행중` / `완료` / `보류`
 
