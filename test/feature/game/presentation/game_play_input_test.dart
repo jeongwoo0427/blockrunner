@@ -205,6 +205,19 @@ void main() {
       expect(events.whereType<NextLevelRequested>(), hasLength(1));
     });
 
+    testWidgets('블랙홀에 빠진 카드에서는 다음으로 넘어가지 않고 다시하기가 나간다', (tester) async {
+      // **깨지 못한 판에서 넘어갈 수 있으면 안 된다** (기획서 §5.3).
+      // 다음 레벨이 있다는 것만 보고 넘겨서 실제로 그렇게 됐던 자리다 —
+      // 이 카드에는 "다음" 버튼이 아예 없고 주 동작이 다시하기다.
+      final events = await pump(tester, isPlayerLost: true, hasNextLevel: true);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+
+      expect(events.whereType<NextLevelRequested>(), isEmpty);
+      expect(events.whereType<ResetRequested>(), hasLength(1));
+    });
+
     testWidgets('마지막 레벨에서는 아무 일도 하지 않는다', (tester) async {
       // "다음" 이 없는 카드다. 확인 키로 레벨 선택까지 나가버리면 되돌릴 수
       // 없는 이동이 손가락에 걸린다.

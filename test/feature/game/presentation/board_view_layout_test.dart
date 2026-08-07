@@ -68,6 +68,28 @@ void main() {
     expect(rendered.width, lessThanOrEqualTo(AppConstants.maxBoardExtent));
   });
 
+  testWidgets('판 아래에 그림자가 깔려 떠 있어 보인다', (tester) async {
+    await pumpBoard(tester, board, const Size(400, 900));
+
+    final decoration =
+        tester
+                .widget<DecoratedBox>(
+                  find.ancestor(
+                    of: find.byType(CustomPaint),
+                    matching: find.byType(DecoratedBox),
+                  ),
+                )
+                .decoration
+            as BoxDecoration;
+
+    // **빛이 위에서 온다.** 사방으로 퍼지면 떠 있는 것이 아니라 빛나는 것으로
+    // 읽히므로 아래로만 민다.
+    final shadow = decoration.boxShadow!.single;
+    expect(shadow.blurRadius, greaterThan(0));
+    expect(shadow.offset.dy, greaterThan(0));
+    expect(shadow.offset.dx, 0);
+  });
+
   testWidgets('정사각이 아닌 판도 셀은 정사각이다', (tester) async {
     // 2행 6열. 셀이 정사각이면 그려진 영역은 가로세로 비가 3:1 이어야 한다.
     final wide = const MapParser()

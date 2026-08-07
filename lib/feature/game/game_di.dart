@@ -26,6 +26,7 @@ final gameUsecasesProvider = Provider(
     mapRepository: ref.read(mapRepositoryProvider),
     levelRepository: ref.read(levelRepositoryProvider),
     tutorialRepository: ref.read(tutorialRepositoryProvider),
+    progressRepository: ref.read(progressRepositoryProvider),
     // 컨테이너를 거쳐 꺼낸다. 스트림을 들고 있어 인스턴스가 하나여야 한다.
     saveClearResult: ref.read(progressUsecasesProvider).saveClearResult,
   ),

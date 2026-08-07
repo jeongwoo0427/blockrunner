@@ -22,6 +22,7 @@ class GamePlayScreenState {
     this.isPlayerLost = false,
     this.hasNextLevel = false,
     this.showsTutorial = false,
+    this.isLocked = false,
     this.bump = const Bump.none(),
     this.failure,
   });
@@ -75,6 +76,13 @@ class GamePlayScreenState {
   /// 파생값이 아니다 — "이미 봤는지" 는 저장소가 알고, 닫는 것은 사용자다.
   final bool showsTutorial;
 
+  /// 아직 해금되지 않은 레벨로 들어왔다 (기획서 §5.3).
+  ///
+  /// **이때는 판을 아예 만들지 않는다** — [board] 도 [level] 도 null 이다.
+  /// 웹에서 주소로 직접 들어오는 길이 열려 있는데, 그리고 나서 되돌리면
+  /// 잠긴 판이 한 프레임이라도 보인다. 목록으로 돌려보내는 것은 Root 가 한다.
+  final bool isLocked;
+
   /// 마지막 무효 입력 (13-game-feel §7).
   final Bump bump;
 
@@ -106,6 +114,7 @@ class GamePlayScreenState {
     bool? isPlayerLost,
     bool? hasNextLevel,
     bool? showsTutorial,
+    bool? isLocked,
     Bump? bump,
     Failure? Function()? failure,
   }) {
@@ -122,6 +131,7 @@ class GamePlayScreenState {
       isPlayerLost: isPlayerLost ?? this.isPlayerLost,
       hasNextLevel: hasNextLevel ?? this.hasNextLevel,
       showsTutorial: showsTutorial ?? this.showsTutorial,
+      isLocked: isLocked ?? this.isLocked,
       bump: bump ?? this.bump,
       failure: failure != null ? failure() : this.failure,
     );

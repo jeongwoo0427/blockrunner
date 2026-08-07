@@ -7,6 +7,8 @@ import 'package:blockrunner/feature/level/domain/usecase/level_usecases/get_all_
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases/get_level_usecase.dart';
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases/has_seen_tutorial_usecase.dart';
 import 'package:blockrunner/feature/level/domain/usecase/level_usecases/mark_tutorial_seen_usecase.dart';
+import 'package:blockrunner/feature/progress/domain/repository/progress_repository.dart';
+import 'package:blockrunner/feature/progress/domain/usecase/progress_usecases/get_highest_unlocked_level_usecase.dart';
 import 'package:blockrunner/feature/progress/domain/usecase/progress_usecases/save_clear_result_usecase.dart';
 
 /// 플레이 화면이 쓰는 usecase 묶음 (docs/architecture.md §6).
@@ -22,6 +24,7 @@ class GameUsecases {
     required this.applyMove,
     required this.hasSeenTutorial,
     required this.markTutorialSeen,
+    required this.getHighestUnlockedLevel,
     required this.saveClearResult,
   });
 
@@ -34,6 +37,7 @@ class GameUsecases {
     required MapRepository mapRepository,
     required LevelRepository levelRepository,
     required TutorialRepository tutorialRepository,
+    required ProgressRepository progressRepository,
     required SaveClearResultUsecase saveClearResult,
   }) => GameUsecases(
     getMap: GetMapUsecase(repository: mapRepository),
@@ -42,6 +46,9 @@ class GameUsecases {
     applyMove: const ApplyMoveUsecase(),
     hasSeenTutorial: HasSeenTutorialUsecase(repository: tutorialRepository),
     markTutorialSeen: MarkTutorialSeenUsecase(repository: tutorialRepository),
+    getHighestUnlockedLevel: GetHighestUnlockedLevelUsecase(
+      repository: progressRepository,
+    ),
     saveClearResult: saveClearResult,
   );
 
@@ -56,6 +63,10 @@ class GameUsecases {
 
   final HasSeenTutorialUsecase hasSeenTutorial;
   final MarkTutorialSeenUsecase markTutorialSeen;
+
+  /// **잠긴 레벨을 열지 못하게 막는 데 쓴다** (기획서 §5.3). 웹에서는 주소로
+  /// 레벨 번호를 직접 칠 수 있어, 화면으로 들어오는 길만 막아서는 부족하다.
+  final GetHighestUnlockedLevelUsecase getHighestUnlockedLevel;
 
   /// 클리어 기록을 저장하고 흘려보낸다. **인스턴스를 공유한다** — 위 factory 주석 참고.
   final SaveClearResultUsecase saveClearResult;

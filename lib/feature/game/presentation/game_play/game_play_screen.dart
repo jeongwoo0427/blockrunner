@@ -471,12 +471,21 @@ class _GamePlayScreenState extends State<GamePlayScreen>
   ///
   /// 마지막 레벨의 결과 카드에는 "다음" 이 없다 — 그때는 아무 일도 하지 않는다.
   /// 확인 키로 레벨 선택까지 나가버리면 되돌릴 수 없는 이동이 손가락에 걸린다.
+  ///
+  /// **깨지 못한 판에서는 절대 넘어가지 않는다** (기획서 §5.3). 블랙홀에 빠진
+  /// 카드에는 "다음" 버튼이 아예 없고 주 동작이 다시하기인데, 여기서 그것을
+  /// 보지 않고 `hasNextLevel` 만 보다가 **클리어하지 않고도 다음 레벨로
+  /// 넘어갈 수 있었다.** 카드에 없는 동작을 키가 대신 눌러서는 안 된다.
   void _confirmOverlay() {
     switch (_overlayKind(widget.state)) {
       case _OverlayKind.tutorial:
         _sendAndRefocus(TutorialDismissed());
       case _OverlayKind.result:
-        if (widget.state.hasNextLevel) _closeThen(NextLevelRequested());
+        if (!widget.state.isCleared) {
+          _sendAndRefocus(ResetRequested());
+        } else if (widget.state.hasNextLevel) {
+          _closeThen(NextLevelRequested());
+        }
       case _OverlayKind.none:
         break;
     }

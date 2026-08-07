@@ -35,6 +35,12 @@ class BoardColors extends ThemeExtension<BoardColors> {
   /// 블랙홀 (바닥 표시)
   final Color blackHole;
 
+  /// 판 아래에 깔리는 그림자. **판이 화면 위에 떠 있어 보이게 한다.**
+  ///
+  /// 반투명이라 화면 바탕 위에 얹힌다. 라이트와 다크가 같은 값일 수 없다 —
+  /// 어두운 바탕에서는 검은 그림자가 보이지 않아 더 짙게 깔아야 한다.
+  final Color shadow;
+
   const BoardColors({
     required this.background,
     required this.gridLine,
@@ -43,6 +49,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     required this.playerBlock,
     required this.goal,
     required this.blackHole,
+    required this.shadow,
   });
 
   static const light = BoardColors(
@@ -55,6 +62,9 @@ class BoardColors extends ThemeExtension<BoardColors> {
     playerBlock: Color(0xFF2E63E8),
     goal: Color(0xFF7BA5F5),
     blackHole: Color(0xFF1E2430),
+    // 순수 검정이 아니라 판·벽과 같은 남색 계열이다. 회색 그림자는 화면에서
+    // 때가 탄 것처럼 보인다.
+    shadow: Color(0x261E2430),
   );
 
   static const dark = BoardColors(
@@ -65,6 +75,8 @@ class BoardColors extends ThemeExtension<BoardColors> {
     playerBlock: Color(0xFF74A2FF),
     goal: Color(0xFF35538F),
     blackHole: Color(0xFF0B0E14),
+    // 다크에서는 더 짙다. 옅게 두면 어두운 바탕에 묻혀 그림자가 없는 것과 같다.
+    shadow: Color(0x66000000),
   );
 
   @override
@@ -76,6 +88,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     Color? playerBlock,
     Color? goal,
     Color? blackHole,
+    Color? shadow,
   }) {
     return BoardColors(
       background: background ?? this.background,
@@ -85,6 +98,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
       playerBlock: playerBlock ?? this.playerBlock,
       goal: goal ?? this.goal,
       blackHole: blackHole ?? this.blackHole,
+      shadow: shadow ?? this.shadow,
     );
   }
 
@@ -99,6 +113,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
       playerBlock: Color.lerp(playerBlock, other.playerBlock, t)!,
       goal: Color.lerp(goal, other.goal, t)!,
       blackHole: Color.lerp(blackHole, other.blackHole, t)!,
+      shadow: Color.lerp(shadow, other.shadow, t)!,
     );
   }
 }

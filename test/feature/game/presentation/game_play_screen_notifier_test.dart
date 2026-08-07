@@ -21,21 +21,41 @@ void main() {
   //
   // 기본은 **전부 본 상태**다. 튜토리얼이 떠 있으면 입력이 막히는데(기획서 §6.1),
   // 이동을 검사하는 테스트들이 매번 그것부터 닫아야 하면 본론이 흐려진다.
+  final tutorialsSeen = {
+    for (final level in kLevels) 'tutorial_seen_${level.number}': true,
+  };
   Future<void> boot({Map<String, Object>? preferences}) async {
-    SharedPreferences.setMockInitialValues(
-      preferences ??
-          {for (final level in kLevels) 'tutorial_seen_${level.number}': true},
-    );
+    SharedPreferences.setMockInitialValues(preferences ?? tutorialsSeen);
     final prefs = await SharedPreferences.getInstance();
     container = ProviderContainer(
       overrides: [sharedPreferencesProvider.overrideWithValue(prefs)],
     );
   }
 
-  /// 튜토리얼을 아직 아무것도 보지 않은 상태로 다시 띄운다.
-  Future<void> bootFresh() => boot(preferences: const {});
+  /// 모든 레벨을 여는 기록. 잠긴 레벨은 판을 만들지 않으므로(기획서 §5.3)
+  /// 이것이 없으면 2번 이후를 쓰는 검사들이 전부 빈 상태를 보게 된다.
+  ///
+  /// **기록은 딱 하나만 심는다** — `highestUnlockedLevel` 은 클리어한 최대
+  /// 번호 + 1 이라 마지막 바로 앞 레벨 하나면 전부 열린다. 레벨마다 심으면
+  /// "클리어하지 않으면 저장하지 않는다" 를 보는 검사가 자기 기록과 남의
+  /// 것을 구분할 수 없다. 999수는 실제 클리어가 언제나 진다.
+  final allUnlocked = {
+    'progress_v1_level_${kLevels[kLevels.length - 2].number}':
+        '{"bestMoveCount":999,"stars":1}',
+  };
 
-  setUp(() => boot());
+  /// 기본 부팅 — 튜토리얼을 다 봤고 모든 레벨이 열려 있다.
+  Future<void> bootUnlocked() =>
+      boot(preferences: {...tutorialsSeen, ...allUnlocked});
+
+  /// 진행도가 빈 상태 — **1번만 열려 있다.** 해금 자체를 보는 검사용이다.
+  Future<void> bootWithoutProgress() => boot(preferences: tutorialsSeen);
+
+  /// 튜토리얼을 아직 아무것도 보지 않은 상태. 판은 열어 둔다 — 여기서 보려는
+  /// 것은 안내이지 해금이 아니다.
+  Future<void> bootFresh() => boot(preferences: allUnlocked);
+
+  setUp(() => bootUnlocked());
   tearDown(() => container.dispose());
 
   GamePlayScreenState read(int levelNumber) =>
@@ -58,6 +78,29 @@ void main() {
   test('마지막 레벨은 hasNextLevel 이 false 다', () {
     // 레벨을 추가해도 따라오도록 번호를 박아두지 않는다.
     expect(read(kLevels.last.number).hasNextLevel, isFalse);
+  });
+
+  group('해금 (기획서 §5.3)', () {
+    test('잠긴 레벨은 판을 만들지도 않는다', () async {
+      // 웹에서는 주소로 레벨 번호를 직접 칠 수 있다. 화면으로 들어오는 길만
+      // 막아서는 부족하고, 그려 놓고 되돌리면 잠긴 판이 한 프레임 보인다.
+      await bootWithoutProgress();
+
+      final state = read(kLevels.last.number);
+
+      expect(state.isLocked, isTrue);
+      expect(state.board, isNull, reason: '잠긴 판은 만들기 전에 막는다');
+      expect(state.level, isNull);
+      expect(state.failure, isNull, reason: '오류가 아니라 잠긴 것이다');
+    });
+
+    test('열려 있는 레벨은 잠기지 않는다', () async {
+      await bootWithoutProgress();
+
+      // 1번은 진행도가 없어도 언제나 열려 있다.
+      expect(read(1).isLocked, isFalse);
+      expect(read(1).board, isNotNull);
+    });
   });
 
   test('없는 레벨은 throw 하지 않고 failure 로 담긴다', () {
@@ -230,11 +273,14 @@ void main() {
     test('클리어하지 않으면 아무것도 저장하지 않는다', () async {
       await send(2, MoveRequested(Direction.up));
 
-      expect(progress().getAllProgress(), isEmpty);
-      expect(progress().highestUnlockedLevel, 1);
+      // 판을 열어두려고 심어 둔 기록이 하나 있으므로 전체가 비었는지는 볼 수
+      // 없다. **이 레벨의 기록**이 생기지 않았는지를 본다.
+      expect(progress().getProgress(2), isNull);
     });
 
     test('클리어하면 다음 레벨이 열린다', () async {
+      // 해금 자체를 보는 검사라 진행도가 비어 있어야 한다.
+      await bootWithoutProgress();
       expect(progress().highestUnlockedLevel, 1);
 
       await send(1, MoveRequested(Direction.right));

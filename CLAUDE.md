@@ -254,7 +254,17 @@ cards and dialogs all wear; there are **no borders** anywhere, so fill colour ca
 distinction. A source-scan test fails if a Material `FilledButton`/`OutlinedButton`/`TextButton`/
 `IconButton` reappears in `lib/`. Level cards encode exactly three states in colour — locked
 (`surfaceContainerHighest`, board hidden entirely), playable (`primary`), cleared (`tertiary`) — and
-star count is carried by the star row, not by the fill.
+star count is carried by the star row, not by the fill. **The play board casts a shadow** —
+`BoardColors.shadow`, sized off the cell so it scales with the board; that is the one place depth
+is expressed, and it is the board only, not the cards.
+
+**The confirm key presses the button the visible card actually has** (`docs/game-design.md` §5.3):
+"다음" on a clear, "다시하기" on a black-hole loss, "시작" on a tutorial. Reading `hasNextLevel`
+alone let Enter advance out of a level that was never cleared — a test pins that a lost board
+cannot advance. **A locked level cannot be opened by any route** (§5.3): the play Notifier checks
+`getHighestUnlockedLevel` and returns a bare locked state — no level, no board — and the Root
+bounces to level select, because on web the URL takes a raw level number. Level metadata is looked
+up *before* the lock check, or a nonexistent level reads as "locked" instead of an error.
 
 **The UI palette and the board are seeded separately, and `tertiary` is hand-picked.**
 `BaseTheme.seed` drives every Material role; the board keeps its own `BoardColors`. They used to be

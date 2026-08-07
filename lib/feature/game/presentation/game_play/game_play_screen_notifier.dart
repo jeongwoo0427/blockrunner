@@ -23,7 +23,19 @@ class GamePlayScreenNotifier extends Notifier<GamePlayScreenState> {
   GamePlayScreenState build() {
     try {
       // 메타데이터(level)와 판(map)은 각자의 feature 가 소유하며 번호로 이어진다.
+      //
+      // **레벨 조회가 잠금 검사보다 먼저다.** 없는 번호는 잠긴 것이 아니라
+      // 오류이고(`levelNotFound`), 순서를 뒤집으면 999 번이 "잠김" 이 된다.
       final level = _usecases.getLevel(levelNumber);
+
+      // **잠긴 레벨은 판을 만들지도 않는다** (기획서 §5.3). 웹에서는 주소로
+      // 레벨 번호를 직접 칠 수 있어 화면으로 들어오는 길만 막아서는 부족하고,
+      // 그려 놓고 되돌리면 잠긴 판이 한 프레임 보인다. 목록으로 돌려보내는
+      // 것은 Root 의 몫이다.
+      if (levelNumber > _usecases.getHighestUnlockedLevel()) {
+        return const GamePlayScreenState(isLocked: true);
+      }
+
       final map = _usecases.getMap(levelNumber);
       return GamePlayScreenState(
         level: level,

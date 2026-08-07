@@ -12,6 +12,7 @@ import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen
 import 'package:blockrunner/feature/game/presentation/game_play/game_play_screen_state.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:blockrunner/feature/level/data/level_data.dart';
+import 'package:blockrunner/feature/level/presentation/level_select/level_select_screen.dart';
 import 'package:blockrunner/feature/level/presentation/level_select/widget/level_card.dart';
 import 'package:blockrunner/main.dart';
 import 'package:flutter/material.dart';
@@ -134,7 +135,7 @@ void main() {
   });
 
   group('라우팅', () {
-    Future<void> bootToLevel1(WidgetTester tester) async {
+    Future<void> bootToLevelSelect(WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({
         'settings_v1_locale': 'ko',
         for (final level in kLevels) 'tutorial_seen_${level.number}': true,
@@ -150,10 +151,29 @@ void main() {
       );
       await tester.pump(AppConstants.splashDuration);
       await tester.pumpAndSettle();
+    }
+
+    Future<void> bootToLevel1(WidgetTester tester) async {
+      await bootToLevelSelect(tester);
 
       await tester.tap(find.byType(LevelCard).first);
       await tester.pumpAndSettle();
     }
+
+    testWidgets('주소로 잠긴 레벨을 열면 목록으로 돌려보낸다', (tester) async {
+      // **웹에서는 주소를 직접 칠 수 있다** (기획서 §5.3). 카드를 잠가 두는
+      // 것만으로는 부족하고, 라우터는 번호를 그대로 받는다.
+      await bootToLevelSelect(tester);
+
+      router.go(
+        '${RoutePaths.gamePlay}'
+        '?${RoutePaths.levelQueryKey}=${kLevels.last.number}',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(GamePlayScreen), findsNothing, reason: '판이 열리면 안 된다');
+      expect(find.byType(LevelSelectScreen), findsOneWidget);
+    });
 
     testWidgets('레벨 선택에서 들어올 때는 페이지가 새로 열린다', (tester) async {
       // 그래야 머티리얼 전환이 그대로 난다.
