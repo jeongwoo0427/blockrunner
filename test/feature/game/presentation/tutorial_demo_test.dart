@@ -1,3 +1,5 @@
+import 'package:blockrunner/feature/game/domain/entity/position.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/black_hole_painter.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_demo_view.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/tutorial_overlay.dart';
@@ -59,20 +61,35 @@ void main() {
       expect(find.byType(BlockTile), findsNWidgets(2));
     });
 
-    testWidgets('블랙홀 장면은 블록이 사라진다', (tester) async {
+    testWidgets('블랙홀 장면은 블록과 구멍이 함께 사라진다', (tester) async {
       await pumpDemo(tester, TutorialDemo.blackHole);
 
       double scale() => tester
           .widget<AnimatedScale>(find.byType(AnimatedScale).first)
           .scale;
 
+      BlackHolePainter hole() =>
+          tester
+                  .widget<CustomPaint>(
+                    find.byWidgetPredicate(
+                      (w) => w is CustomPaint && w.painter is BlackHolePainter,
+                    ),
+                  )
+                  .painter
+              as BlackHolePainter;
+
       expect(scale(), 1);
+      expect(hole().vanishProgress, 0);
+      // 사라질 구멍을 판에서 다시 찾지 않고 블록이 멈추는 자리로 안다.
+      expect(hole().vanishing, {const Position(0, 2)});
 
       // 도착 지점을 지나면 빨려 들어간다.
       await tester.pump(TutorialDemoView.cycle ~/ 2);
       await tester.pump(TutorialDemoView.cycle ~/ 4);
 
+      // **구멍이 남으면 규칙의 절반만 가르치는 셈이다** (기획서 §3.3).
       expect(scale(), 0);
+      expect(hole().vanishProgress, 1);
     });
   });
 

@@ -73,7 +73,9 @@ void main() {
     const footing = [8, 10];
 
     /// 버리기형 — 최단 해법이 동료를 블랙홀에 버리는 레벨들.
-    const dumping = [14, 18];
+    ///
+    /// **둘이었다가 하나가 됐다** — 18번을 사용자가 들어냈다.
+    const dumping = [14];
 
     for (final number in footing) {
       test('$number 번은 동료 없이는 풀 수 없다', () {

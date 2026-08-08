@@ -108,9 +108,6 @@ class StringsKo extends AppStrings {
     15: '끊어진 길',
     16: '길 치우기',
     17: '두 개의 심연',
-    18: '길을 비우다',
-    19: '먼 길',
-    20: '마지막 관문',
   };
 
   @override

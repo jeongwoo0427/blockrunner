@@ -20,7 +20,9 @@ void main() {
 
     expect(level.number, 3);
     expect(level.hasTutorial, isTrue);
-    expect(level.minMoves, 2);
+    // **최단 수를 숫자로 박지 않는다.** 맵을 고칠 때마다 이 테스트까지 끌려온다.
+    // 선언값이 실제 맵과 맞는지는 `map_and_level_data_test` 가 완전 탐색으로 본다.
+    expect(level.minMoves, kLevels[2].minMoves);
   });
 
   test('없는 번호는 levelNotFound 로 터진다', () {

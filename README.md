@@ -3,7 +3,7 @@
 격자 위에서 **모든 블록이 한꺼번에 미끄러지는** 퍼즐 게임입니다.
 웹 · 모바일 · 데스크탑을 **하나의 Flutter 코드베이스**로 지원합니다.
 
-20개 레벨 · 5개 언어 · 게임 엔진 없이 순수 Flutter · **전 과정 AI 페어 프로그래밍**
+17개 레벨 · 5개 언어 · 게임 엔진 없이 순수 Flutter · **전 과정 AI 페어 프로그래밍**
 
 ### ▶ [blockrunner.izvillain.com](https://blockrunner.izvillain.com) 에서 바로 해보실 수 있습니다
 

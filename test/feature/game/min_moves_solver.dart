@@ -8,7 +8,12 @@ import 'package:blockrunner/feature/game/domain/usecase/game_usecases/apply_move
 /// **테스트 전용이다.** 레벨 데이터의 `minMoves` 가 손으로 센 값이라 틀리기 쉬운데,
 /// 틀리면 별점 기준이 조용히 어긋나고 클리어 불가능한 레벨이 배포될 수 있다.
 /// 상태 공간이 작아(6×6, 블록 2~3개) 완전 탐색이 실용적이다.
-int? solveMinMoves(BoardState initial, {int maxMoves = 12}) {
+///
+/// **[maxMoves] 는 12 였다.** 판이 커지면서 20수를 넘는 레벨이 생겼고, 그러면
+/// 이 함수가 `null` 을 돌려주는데 호출부는 그것을 "클리어 불가능한 맵" 으로 읽는다.
+/// 실제로는 **탐색을 그만둔 것**이라 진단이 정반대로 나온다. 상한은 폭주를 막는
+/// 안전장치이지 규칙이 아니므로, 지금 가장 긴 레벨(21수)보다 넉넉히 잡는다.
+int? solveMinMoves(BoardState initial, {int maxMoves = 30}) {
   const applyMove = ApplyMoveUsecase();
 
   if (initial.isCleared) return 0;

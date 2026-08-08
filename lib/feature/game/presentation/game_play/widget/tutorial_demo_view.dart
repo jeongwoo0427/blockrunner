@@ -102,13 +102,26 @@ class _TutorialDemoViewState extends State<TutorialDemoView>
                   ),
                   if (scene.hasBlackHole)
                     Positioned.fill(
-                      child: CustomPaint(
-                        painter: BlackHolePainter(
-                          board: scene.board,
-                          colors: colors,
-                          cell: metrics.cell,
-                          origin: metrics.origin,
-                          turns: t,
+                      // **구멍도 블록과 함께 사라진다** (기획서 §3.3). 데모가
+                      // 빨려 들어가는 것만 보여주면 규칙의 절반만 가르치는 셈이다.
+                      // 블록 쪽 `AnimatedScale` 과 같은 시간·같은 커브를 쓴다.
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween<double>(
+                          begin: 0,
+                          end: _isGone(progress) ? 1 : 0,
+                        ),
+                        duration: _vanishDuration,
+                        curve: Curves.easeIn,
+                        builder: (context, vanish, _) => CustomPaint(
+                          painter: BlackHolePainter(
+                            board: scene.board,
+                            colors: colors,
+                            cell: metrics.cell,
+                            origin: metrics.origin,
+                            turns: t,
+                            vanishing: scene.swallowedHoles,
+                            vanishProgress: vanish,
+                          ),
                         ),
                       ),
                     ),
@@ -133,12 +146,17 @@ class _TutorialDemoViewState extends State<TutorialDemoView>
     return Curves.easeOut.transform((t - from) / (to - from));
   }
 
+  /// 빨려 들어가는 것이 사라져 있을 때인가. **블록과 구멍이 이 값을 함께 본다.**
+  static bool _isGone(double progress) => progress > 0.92;
+
+  static const Duration _vanishDuration = Duration(milliseconds: 220);
+
   Widget _actorTile(_Actor actor, double progress, BoardMetrics metrics) {
     final col = actor.from.col + (actor.to.col - actor.from.col) * progress;
     final row = actor.from.row + (actor.to.row - actor.from.row) * progress;
 
     // 빨려 들어가는 블록은 도착과 함께 사라진다.
-    final gone = actor.vanishes && progress > 0.92;
+    final gone = actor.vanishes && _isGone(progress);
 
     return Positioned(
       left: metrics.margin + col * metrics.cell,
@@ -147,7 +165,7 @@ class _TutorialDemoViewState extends State<TutorialDemoView>
       height: metrics.cell,
       child: AnimatedScale(
         scale: gone ? 0 : 1,
-        duration: const Duration(milliseconds: 220),
+        duration: _vanishDuration,
         curve: Curves.easeIn,
         child: BlockTile(type: actor.type, size: metrics.cell),
       ),
@@ -164,6 +182,15 @@ class _Scene {
 
   bool get hasBlackHole =>
       board.floors.any((row) => row.contains(FloorType.blackHole));
+
+  /// 이 장면에서 블록을 삼키는 구멍. 삼킨 구멍은 블록과 함께 사라진다(기획서 §3.3).
+  ///
+  /// 빨려 들어가는 블록이 멈추는 자리가 곧 그 구멍이다 — 판 위에서 구멍을 다시
+  /// 찾지 않는다.
+  Set<Position> get swallowedHoles => {
+    for (final actor in actors)
+      if (actor.vanishes) actor.to,
+  };
 }
 
 class _Actor {

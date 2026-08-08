@@ -110,9 +110,6 @@ class StringsJa extends AppStrings {
     15: '途切れた道',
     16: '道を空ける',
     17: '二つの深淵',
-    18: '押し出す',
-    19: '長い道',
-    20: '最後の関門',
   };
 
   @override

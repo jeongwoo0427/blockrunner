@@ -113,9 +113,6 @@ class StringsFr extends AppStrings {
     15: 'Voie coupée',
     16: 'Dégager la voie',
     17: 'Double abîme',
-    18: 'Faire place',
-    19: 'Long chemin',
-    20: 'Dernière porte',
   };
 
   @override

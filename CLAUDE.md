@@ -145,29 +145,39 @@ is not a task from the list; ask what it should be. **The game is playable end t
 three platforms and the web build is live** (see **Deployment** below): level select → play →
 clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
-`docs/game-design.md` §4, **twenty levels** are ASCII constants whose `minMoves` a BFS solver
+`docs/game-design.md` §4, **seventeen levels** are ASCII constants whose `minMoves` a BFS solver
 in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
 **There were twenty-five until #119**, when the user played through and cut five as unfun (old
 4 · 6 · 12 · 14 · 16), pulling every later number forward. **Nothing was renumbered by hand** — the
 `levelNumber:` fields and the i18n `levelNames` / `levelTutorials` maps were remapped together, and
 the storage prefixes were bumped (`progress_v2_level_`, `tutorial_seen_v2_`) so an existing player's
-stars don't land on a different board than the one they earned them on. If you cut a level again,
-that key bump is part of the job.
+stars don't land on a different board than the one they earned them on.
 
-**In progress, and the reason the suite is red: levels 1–10 are mid-redesign** (they were 1–11 and
-13 before the renumbering). The user began redrawing those maps by hand (#97) and stopped partway;
-the state is committed as-is. Measured in #119: **`+517 -43` — 43 failures out of 560** — declared
-`minMoves` disagreeing with the real shortest solution, decorative elements, padding rows, and a
-board-size curve that dips (`10 → 16 → 9 → 15 → 16 → 12 → 16 → 21 → 25 → 25`). **Levels 11–20 all
-pass.** The breakdown is `level_design_test` 19, `map_and_level_data_test` 10,
+**#129 cut three more (18 · 19 · 20) and did not bump the keys** — they were the last three, so every
+surviving level kept its number and its map, and a saved star still refers to the board that earned
+it. The records for the deleted three are simply never read again. **Cutting from the end is the
+cheap case; cutting from the middle is what forces a key bump.**
+
+**In progress, and the reason the suite is red: the maps are being redrawn by hand.** The user
+started in #97 and is still going, level by level; the state is committed as-is. Measured in #129:
+**`+512 -35` — 35 failures out of 547**. The breakdown is `level_design_test` 21,
 `game_play_screen_notifier_test` 10, `level_select_screen_notifier_test` 2, `bump_test` 1,
 `level_transition_test` 1. Those last 14 are
 widget tests that know levels 1 and 2 by shape, so they move when the maps settle — they are
 not a regression.
 
+**`minMoves` is no longer among the failures.** #128 re-derived all twenty from the maps with the
+exhaustive solver and wrote them back, which closed 30 tests including all of
+`map_and_level_data_test`. **Do that again after a batch of map edits** rather than by hand —
+`analyzeLevel` in `test/feature/game/level_design.dart` runs all twenty in about five seconds.
+What remains is genuine level design: decorative elements on 12 levels, dead ends on 14 and 15, a
+padding row on 3, the board-size curve, the wide/tall ratio, black holes stopping before the end,
+level 18 no longer being a dumping level, and **level 1 taking 5 moves when the first level is
+supposed to fall within 2**.
+
 **`flutter test` prints `+passed -failed`, not a total.** #98 read `+528` as "528 tests" and the
-figure was repeated for three sessions; the suite is 560. Add the two numbers. Do not assume a red suite is something you broke, and **do not report a change as
+figure was repeated for three sessions; the suite is 563. Add the two numbers. Do not assume a red suite is something you broke, and **do not report a change as
 verified against a green run until these land**; check whether the failures are the known set.
 `level_design_test` stops at the first violation per level, so fixing one reveals the next — this
 is a loop, not a single pass. **README leans on the test suite as a selling point and the project

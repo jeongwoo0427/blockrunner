@@ -111,9 +111,6 @@ class StringsZh extends AppStrings {
     15: '断路',
     16: '清出通路',
     17: '双重深渊',
-    18: '腾出通路',
-    19: '长路',
-    20: '最后关卡',
   };
 
   @override

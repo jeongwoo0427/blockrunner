@@ -116,9 +116,6 @@ class StringsEn extends AppStrings {
     15: 'Severed',
     16: 'Clear the Way',
     17: 'Twin Abyss',
-    18: 'Make Room',
-    19: 'The Long Way',
-    20: 'Last Gate',
   };
 
   @override
