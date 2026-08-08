@@ -385,6 +385,20 @@ this is a public repository, and that is deployment-environment information, not
 information. `docs/deployment.md` states only the conditions any proxy must satisfy. Don't
 "helpfully" add a concrete server block, hostname, or cert path back into a tracked file.
 
+**`web/index.html` is not scaffold anymore — it carries the boot loading screen.** Flutter puts
+nothing in `<body>` until the first frame, so the several seconds spent downloading the engine wasm
+were a blank white page. The file now holds a progress bar with an English `Loading… 63%` and an
+inline script that wraps `window.fetch` to fill it. **It deliberately carries no logo and no block
+animation** — the Flutter splash plays that a moment later, and drawing it twice reads as a rewind;
+this screen only says how much has arrived. Its one string is English because `AppStrings` does not
+exist yet and a second language list here would drift from the real one.
+**That script must stay ahead of the `flutter_bootstrap.js` tag** or it misses
+the engine's first fetch and the percentage silently sits at zero. `test/web/boot_loader_test.dart`
+scans the file for all of this — don't regenerate `web/` with `flutter create` and don't reorder the
+two scripts. The percentage needs the total size: `Content-Length` when the response is not
+compressed, and a `Range: bytes=0-0` probe when gzip removes it (206 responses are never gzipped).
+Both paths are pinned by that test.
+
 **The Flutter version lives in two places** — `.fvmrc` and the `Dockerfile`'s `git clone --branch`.
 Move them together or what passed locally breaks in the deployed build, and the cause will look
 like it is in the code.

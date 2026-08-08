@@ -47,6 +47,17 @@ curl -sI -H "Accept-Encoding: gzip" https://<도메인>/main.dart.wasm        # 
 ```
 
 → `Content-Type: application/wasm` 과 `Content-Encoding: gzip` 이 함께 나와야 한다.
+
+**헤더만 보지 말고 한 번은 실제로 받아 볼 것.** `-I` 는 HEAD 라 서버·프록시에 따라 본문
+요청과 다르게 답할 수 있고, `Vary: Accept-Encoding` 은 gzip 이 **꺼져 있어도** 나올 수 있어
+"압축되고 있다" 로 잘못 읽힌다. 전송된 바이트 수가 유일하게 분명한 답이다.
+
+```bash
+curl -s -H "Accept-Encoding: gzip" -o /dev/null -w '%{size_download}\n' \
+     https://<도메인>/main.dart.wasm
+```
+
+→ 아래 표의 **압축 후** 값이 나와야 한다. 압축 전 값이 그대로 나오면 압축이 안 걸린 것이다.
 컨테이너에서는 나오는데 프록시 너머에서 `Content-Encoding` 이 사라졌다면, 앞단에
 `proxy_set_header Accept-Encoding "";` 가 있는지 확인할 것 — **그 줄이 있으면 컨테이너가
 압축을 못 한다.**
@@ -71,6 +82,10 @@ curl -sI -H "Accept-Encoding: gzip" https://<도메인>/main.dart.wasm        # 
 2. **`Accept-Encoding` 을 지우지 말 것.** nginx 기준으로 `proxy_set_header Accept-Encoding "";`
    가 있으면 컨테이너가 압축할 기회를 잃어 위 표의 이득이 통째로 사라진다.
 3. **TLS 는 앞단에서 끝낼 것.** 컨테이너는 평문 :80 만 연다.
+4. **`Range` 요청을 막지 말 것.** 부팅 로딩 화면(`web/index.html`)이 내려받기 퍼센트를 이걸로
+   구한다. gzip 이 걸리면 nginx 는 `Content-Length` 를 떼고 chunked 로 보내 전체 크기를 알 길이
+   없어지는데, **206 응답은 압축되지 않으므로** `Range: bytes=0-0` 한 번이면 원본 크기를
+   돌려준다. 막히면 앱은 정상 동작하되 퍼센트가 "받은 용량(MB)" 표시로 내려앉는다.
 
 인증서를 certbot 의 nginx 플러그인으로 발급한다면 **서버 블록보다 인증서가 먼저**여야 한다 —
 `listen 443 ssl` 은 인증서 파일이 없으면 nginx 가 아예 뜨지 않는다. 그리고 설치까지 맡기는
