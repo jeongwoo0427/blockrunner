@@ -222,10 +222,13 @@ void main() {
       final fallen = state.fallingBlocks.single;
       expect(fallen.isPlayer, isTrue);
       expect(
-        state.board?.floorAt(fallen.position),
+        state.map?.initialBoard.floorAt(fallen.position),
         FloorType.blackHole,
         reason: '연출 위치는 출발 칸이 아니라 빠진 블랙홀이어야 한다',
       );
+      // 구멍은 블록을 삼키며 이미 사라졌다 (기획서 §3.3). 낙하가 끝날 때까지
+      // 그것을 그려 주는 것은 `fallingBlocks` 이고, 판에는 남지 않는다.
+      expect(state.board?.floorAt(fallen.position), FloorType.empty);
 
       await send(18, AnimationCompleted());
       expect(read(18).fallingBlocks, isEmpty);

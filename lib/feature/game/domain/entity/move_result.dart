@@ -24,6 +24,9 @@ class MoveResult {
   final Map<int, Position> from;
 
   /// blockId → 도착 위치. 블랙홀에 빠진 블록은 **사라진 칸(블랙홀 위치)** 이 담긴다.
+  ///
+  /// 그 칸이 곧 **함께 사라진 구멍의 자리**이기도 하다(기획서 §3.3). 화면이
+  /// 낙하 연출 동안 구멍을 계속 그리는 데 이 값을 쓰므로, 따로 담지 않는다.
   final Map<int, Position> to;
 
   /// 블랙홀에 빠져 사라진 blockId 목록. [board] 에는 남아있지 않다.

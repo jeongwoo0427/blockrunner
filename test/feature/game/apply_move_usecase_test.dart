@@ -1,3 +1,4 @@
+import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
 import 'package:blockrunner/feature/game/domain/entity/move_result.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
@@ -249,17 +250,19 @@ void main() {
   });
 
   group('블랙홀', () {
-    test('기획서 §4.2 — 플레이어가 지나가다 빠진다', () {
+    test('기획서 §4.2 — 플레이어가 지나가다 빠지고 구멍도 사라진다', () {
       final result = expectMove(
         before: ['.O.X.@'],
         direction: Direction.left,
-        after: ['O..X..'],
+        // 블랙홀이 블록을 삼키면 함께 사라진다 (기획서 §3.3).
+        after: ['O.....'],
       );
 
       expect(result.board.hasPlayer, isFalse);
       expect(result.board.isCleared, isFalse);
       expect(result.fellIntoBlackHole, hasLength(1));
       // 낙하 연출이 "어디서 사라졌는지" 를 알아야 하므로 도착 위치는 블랙홀 칸이다.
+      // 그 칸이 곧 사라진 구멍의 자리이기도 해서 화면이 그동안 구멍을 그린다.
       expect(result.to[result.fellIntoBlackHole.single], const Position(0, 3));
     });
 
@@ -267,22 +270,55 @@ void main() {
       final result = expectMove(
         before: ['@#O.X.'],
         direction: Direction.right,
-        after: ['@#..X.'],
+        after: ['@#....'],
       );
 
       expect(result.board.hasPlayer, isTrue);
       expect(result.fellIntoBlackHole, [1], reason: '행 우선 순서로 @ 가 0, O 가 1');
     });
 
-    test('블랙홀은 소모되지 않는다 — 두 블록이 연달아 빠진다', () {
+    test('구멍은 블록 하나만 삼키고, 같은 수에서 곧바로 사라진다', () {
+      // 앞선 `O` 가 삼켜지며 구멍이 없어지므로, 뒤의 `O` 는 빈 자리가 된 그곳을
+      // 지나 판 끝에 선다. **한 수에 블록 둘을 잃지 않는다** (기획서 §3.3).
       final result = expectMove(
         before: ['OO.X..'],
         direction: Direction.right,
-        after: ['...X..'],
+        after: ['.....O'],
       );
 
-      expect(result.fellIntoBlackHole, hasLength(2));
-      expect(result.board.blocks, isEmpty);
+      expect(result.fellIntoBlackHole, hasLength(1));
+      expect(result.board.blocks, hasLength(1));
+    });
+
+    test('플레이어가 빠져도 구멍이 사라진다', () {
+      // 동료는 판 끝에 붙어 있어 움직이지 못한다 — 구멍이 사라지는 것만 본다.
+      final result = expectMove(
+        before: ['@.X.O'],
+        direction: Direction.right,
+        after: ['....O'],
+      );
+
+      expect(result.board.hasPlayer, isFalse);
+      expect(
+        result.board.floorAt(const Position(0, 2)),
+        FloorType.empty,
+        reason: '플레이어라고 구멍이 남지는 않는다',
+      );
+    });
+
+    test('원래 판은 그대로다 — 다시하기가 구멍을 되살린다', () {
+      // `floors` 는 레벨 내내 공유되는 인스턴스다. 제자리에서 고치면 초기 판까지
+      // 바뀌어 다시하기가 구멍 없는 판을 돌려준다.
+      final initial = parseBoard(const ['O.@X..']);
+      final result = applyMove(initial, Direction.right);
+
+      expect(result.board.floorAt(const Position(0, 3)), FloorType.empty);
+      expect(
+        initial.floorAt(const Position(0, 3)),
+        FloorType.blackHole,
+        reason: '입력으로 받은 판이 함께 바뀌면 안 된다',
+      );
+      expect(formatBoard(initial), const ['O.@X..']);
     });
 
     test('블랙홀 앞에서 멈추면 빠지지 않는다', () {

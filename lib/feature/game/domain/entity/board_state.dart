@@ -74,11 +74,31 @@ class BoardState {
     return player != null && floorAt(player.position) == FloorType.goal;
   }
 
-  /// 바닥과 벽은 그대로 두고 블록만 교체한 새 보드.
-  BoardState withBlocks(List<Block> blocks) => BoardState(
+  /// 블록을 교체한 새 보드. [consumedBlackHoles] 의 칸은 빈 칸이 된다.
+  ///
+  /// 블랙홀은 블록 하나를 삼키면 함께 사라진다(기획서 §3.3). 바닥이 바뀌는 것은
+  /// 이 경우뿐이라, 삼킨 구멍이 없으면 [floors] 를 **그대로 공유**한다.
+  ///
+  /// **제자리에서 고치지 않는다.** [floors] 는 레벨 내내 공유되는 인스턴스이므로
+  /// 한 칸이라도 직접 바꾸면 `GameMap.initialBoard` 까지 바뀌어 **다시하기가
+  /// 구멍 없는 판을 돌려준다.** 되돌리기 스택의 옛 판도 같이 망가진다.
+  BoardState withBlocks(
+    List<Block> blocks, {
+    Set<Position> consumedBlackHoles = const {},
+  }) => BoardState(
     rowCount: rowCount,
     colCount: colCount,
-    floors: floors,
+    floors: consumedBlackHoles.isEmpty
+        ? floors
+        : [
+            for (var row = 0; row < rowCount; row++)
+              [
+                for (var col = 0; col < colCount; col++)
+                  consumedBlackHoles.contains(Position(row, col))
+                      ? FloorType.empty
+                      : floors[row][col],
+              ],
+          ],
     blocks: blocks,
     walls: walls,
   );

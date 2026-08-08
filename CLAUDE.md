@@ -190,8 +190,10 @@ and can never stop there — a companion must be dropped in to stand on. The tes
 is **unsolvable with the companions removed**, which is what separates a footing level from one
 where a block merely happens to be a brake. *Dumping*: companions blocking the route are slid into
 black holes, and the test asserts the shortest solution swallows at least two. **A sealed chamber is
-impossible** (nothing could enter or leave) and **a hole cannot be plugged** (§3.3 — holes are not
-consumed), so both ideas have to be expressed as "cannot stop where you need to" instead.
+impossible** (nothing could enter or leave), so footing has to be expressed as "cannot stop where you
+need to" instead. **Dumping trades one companion for one hole**: since #123 a hole is consumed by the
+first block that falls in (§3.3), so dumping clears the blocker *and* makes that square safe — the
+count of companions against the count of holes is what sets the difficulty.
 
 **Rule (1) caps how many companions a dumping level can have.** With three, 90% of otherwise-valid
 boards contain a dump order that strands you, and a 150k-candidate search found none; two is the

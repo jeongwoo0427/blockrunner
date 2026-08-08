@@ -20,7 +20,13 @@ abstract class AppConstants {
   static const String appVersion = '1.0.0';
 
   static const int _moveMs = 150;
-  static const int _fallMs = 120;
+
+  /// 일반 블록이 블랙홀로 빨려 들어가는 시간.
+  ///
+  /// **0.12초였는데 너무 빨랐다.** 블록이 있었는지도 모르게 사라져서, 무엇이
+  /// 왜 없어졌는지 눈으로 따라갈 수가 없었다. 블랙홀이 소모되도록 바뀐 뒤로는
+  /// (기획서 §3.3) 이 순간에 **블록과 구멍이 함께** 사라지므로 더 볼 것이 생겼다.
+  static const int _fallMs = 520;
 
   /// 플레이어가 블랙홀에 빨려 들어가는 시간 (12-ui-polish §5.3).
   ///

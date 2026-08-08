@@ -5,6 +5,7 @@ import 'package:blockrunner/feature/game/domain/entity/block.dart';
 import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/direction.dart';
+import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/black_hole_painter.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_metrics.dart';
@@ -91,9 +92,36 @@ class _BoardViewState extends State<BoardView> with TickerProviderStateMixin {
     duration: AppConstants.bumpDuration,
   );
 
-  /// 판에 블랙홀이 있는가. 바닥은 레벨 내내 바뀌지 않는다.
+  /// 블록을 삼키느라 판에서는 이미 사라졌지만 아직 그려야 하는 구멍.
+  ///
+  /// 빠지는 블록이 멈춘 자리가 곧 그 구멍의 자리다(`MoveResult.to`). 낙하가 끝나면
+  /// 화면이 `fallingBlocks` 를 비우고, 그때 구멍도 함께 사라진다 — 그것이
+  /// "블록이 다 들어간 뒤에 구멍이 사라진다" 의 전부다.
+  Set<Position> get _vanishingHoles => {
+    for (final block in widget.fallingBlocks) block.position,
+  };
+
+  /// 판에 그릴 블랙홀이 하나라도 있는가. 사라지는 중인 것도 센다.
   bool get _hasBlackHole =>
-      widget.board.floors.any((row) => row.contains(FloorType.blackHole));
+      widget.board.floors.any((row) => row.contains(FloorType.blackHole)) ||
+      _isFalling;
+
+  bool get _isFalling => widget.fallingBlocks.isNotEmpty;
+
+  /// 지금 빠지는 블록 중에 플레이어가 있는가.
+  ///
+  /// 플레이어의 흡입은 훨씬 길어서(2초) 구멍도 그만큼 오래 남아야 한다. 한 수에
+  /// 플레이어와 동료가 각자 다른 구멍에 빠지면 긴 쪽에 맞춘다 — 짧은 쪽에 맞추면
+  /// 플레이어가 아직 도는데 그 구멍이 먼저 없어진다.
+  bool get _playerIsFalling =>
+      widget.fallingBlocks.any((block) => block.type == BlockType.player);
+
+  Duration get _fallSpan => _playerIsFalling
+      ? AppConstants.moveWithPlayerFallDuration
+      : AppConstants.moveWithFallDuration;
+
+  Curve get _currentFallCurve =>
+      _playerIsFalling ? _playerFallCurve : _fallCurve;
 
   @override
   void didChangeDependencies() {
@@ -216,15 +244,33 @@ class _BoardViewState extends State<BoardView> with TickerProviderStateMixin {
                     if (_hasBlackHole)
                       Positioned.fill(
                         child: RepaintBoundary(
-                          child: AnimatedBuilder(
-                            animation: _swirl,
-                            builder: (context, _) => CustomPaint(
-                              painter: BlackHolePainter(
-                                board: board,
-                                colors: colors,
-                                cell: metrics.cell,
-                                origin: metrics.origin,
-                                turns: _swirl.value,
+                          // 삼켜진 구멍은 블록과 **같은 시간·같은 커브**로 사라진다.
+                          // 블록 쪽은 `AnimatedScale`·`AnimatedOpacity` 라 여기서도
+                          // 암시적으로 굴린다 — 컨트롤러를 하나 더 두지 않는다.
+                          child: TweenAnimationBuilder<double>(
+                            tween: Tween<double>(
+                              begin: 0,
+                              end: _isFalling ? 1 : 0,
+                            ),
+                            // 빠지는 중이 아니면 **즉시** 0 으로 돌린다. 되돌아가는
+                            // 도중에 다음 낙하가 시작되면 구멍이 이미 반쯤 줄어든
+                            // 채로 나타난다.
+                            duration: _isFalling && animates
+                                ? _fallSpan
+                                : Duration.zero,
+                            curve: _currentFallCurve,
+                            builder: (context, vanish, _) => AnimatedBuilder(
+                              animation: _swirl,
+                              builder: (context, _) => CustomPaint(
+                                painter: BlackHolePainter(
+                                  board: board,
+                                  colors: colors,
+                                  cell: metrics.cell,
+                                  origin: metrics.origin,
+                                  turns: _swirl.value,
+                                  vanishing: _vanishingHoles,
+                                  vanishProgress: vanish,
+                                ),
                               ),
                             ),
                           ),

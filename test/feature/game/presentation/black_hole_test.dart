@@ -4,6 +4,7 @@ import 'package:blockrunner/feature/game/domain/entity/board_state.dart';
 import 'package:blockrunner/feature/game/domain/entity/cell.dart';
 import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/black_hole_painter.dart';
+import 'package:blockrunner/feature/game/presentation/game_play/widget/block_tile.dart';
 import 'package:blockrunner/feature/game/presentation/game_play/widget/board_view.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -153,6 +154,83 @@ void main() {
       await tester.pump(AppConstants.blackHoleRotationDuration ~/ 4);
 
       expect(rotationOf(tester).value, 0, reason: '멀쩡한 플레이어가 돌면 안 된다');
+    });
+  });
+
+  group('삼켜진 구멍 (기획서 §3.3)', () {
+    /// 블랙홀은 블록을 삼키는 순간 **판에서** 사라지지만, 그때 화면에서는 아직
+    /// 블록이 빨려 드는 중이다 — 플레이어는 2초에 걸쳐 돈다.
+    testWidgets('판에서 사라진 구멍도 낙하가 끝날 때까지 그려진다', (tester) async {
+      // 바닥에는 구멍이 없다. 엔진이 이미 지운 뒤의 판이다.
+      await pumpBoard(
+        tester,
+        boardWith(holes: const []),
+        falling: const [
+          Block(id: 0, type: BlockType.player, position: Position(0, 2)),
+        ],
+        animating: true,
+      );
+
+      final painter = painterOf(tester);
+      expect(painter, isNotNull, reason: '구멍이 지워졌다고 회전 레이어까지 없애면 빈 바닥 위에서 돈다');
+      expect(painter!.vanishing, {const Position(0, 2)});
+    });
+
+    testWidgets('낙하가 끝나면 구멍도 함께 사라진다', (tester) async {
+      // 화면이 fallingBlocks 를 비우는 순간이 곧 구멍이 사라지는 순간이다.
+      await pumpBoard(tester, boardWith(holes: const []));
+
+      expect(painterOf(tester), isNull);
+    });
+
+    /// 빠지는 블록 자신에게 걸린 페이드. 구멍과 같은 값이어야 한다.
+    double blockOpacity(WidgetTester tester) => tester
+        .widget<FadeTransition>(
+          find
+              .ancestor(
+                of: find.byType(BlockTile),
+                matching: find.byType(FadeTransition),
+              )
+              .first,
+        )
+        .opacity
+        .value;
+
+    testWidgets('구멍은 블록과 정확히 같은 속도로 사라진다', (tester) async {
+      // **판 위에 있던 상태에서 시작한다.** 처음부터 빠지는 채로 만들면 암시적
+      // 애니메이션이 목표값부터 그려져(위 `_noRotation` 주석과 같은 이유) 아무것도
+      // 재생되지 않는다 — 실제로도 블록은 먼저 판 위에 있다가 빠진다.
+      final block = const Block(
+        id: 0,
+        type: BlockType.normal,
+        position: Position(0, 2),
+      );
+      await pumpBoard(tester, boardWith(holes: const [2], blocks: [block]));
+
+      // 엔진이 구멍을 지우고 블록을 낙하 목록으로 옮긴 뒤의 판.
+      await pumpBoard(
+        tester,
+        boardWith(holes: const []),
+        falling: [block],
+        animating: true,
+      );
+
+      // 슬라이드 구간에는 아직 아무것도 사라지지 않는다 (기획서 §7).
+      expect(painterOf(tester)!.vanishProgress, 0);
+      expect(blockOpacity(tester), 1);
+
+      await tester.pump(AppConstants.moveAnimationDuration);
+      await tester.pump(AppConstants.fallAnimationDuration ~/ 2);
+
+      final half = painterOf(tester)!.vanishProgress;
+      expect(half, greaterThan(0));
+      expect(half, lessThan(1));
+      // 블록이 절반 흐려졌으면 구멍도 절반 사라져 있어야 한다.
+      expect(half, closeTo(1 - blockOpacity(tester), 0.001));
+
+      await tester.pump(AppConstants.fallAnimationDuration);
+      expect(painterOf(tester)!.vanishProgress, 1);
+      expect(blockOpacity(tester), 0);
     });
   });
 }

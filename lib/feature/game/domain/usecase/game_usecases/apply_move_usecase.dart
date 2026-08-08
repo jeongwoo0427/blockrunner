@@ -28,6 +28,9 @@ class ApplyMoveUsecase {
     final from = <int, Position>{};
     final to = <int, Position>{};
     final fellIntoBlackHole = <int>[];
+    // 이 수에서 이미 블록을 삼킨 블랙홀. 구멍은 블록 하나를 삼키면 **그 자리에서
+    // 곧바로** 사라지므로(기획서 §3.3), 뒤따르는 블록에게는 빈 칸으로 보인다.
+    final consumedBlackHoles = <Position>{};
     var moved = false;
 
     for (final block in ordered) {
@@ -46,7 +49,8 @@ class ApplyMoveUsecase {
         current = next;
         // 블랙홀은 정지 지점이 아니라 통과 경로에서 판정한다. 들어서는 순간
         // 사라지며 블랙홀 너머로 나아가지 않는다(기획서 §3.3).
-        if (board.floorAt(current) == FloorType.blackHole) {
+        if (board.floorAt(current) == FloorType.blackHole &&
+            !consumedBlackHoles.contains(current)) {
           fell = true;
           break;
         }
@@ -58,6 +62,7 @@ class ApplyMoveUsecase {
 
       if (fell) {
         fellIntoBlackHole.add(block.id);
+        consumedBlackHoles.add(current);
       } else {
         settled.add(block.moveTo(current));
         occupied.add(current);
@@ -67,7 +72,12 @@ class ApplyMoveUsecase {
     return MoveResult(
       // 무효 입력이면 입력 보드를 그대로 돌려준다. 되돌리기 스택에 같은 판이
       // 쌓이지 않게 하려면 호출부가 moved 를 보고 판단하면 된다.
-      board: moved ? board.withBlocks(settled) : board,
+      //
+      // 무효 입력에서는 삼켜진 구멍도 있을 수 없다 — 블록이 한 칸도 못 갔다면
+      // 블랙홀에 들어설 일도 없기 때문이다.
+      board: moved
+          ? board.withBlocks(settled, consumedBlackHoles: consumedBlackHoles)
+          : board,
       moved: moved,
       from: from,
       to: to,

@@ -6,6 +6,8 @@ import 'package:blockrunner/feature/game/domain/entity/position.dart';
 import 'package:blockrunner/feature/game/domain/entity/wall_edge.dart';
 import 'package:blockrunner/feature/game/domain/usecase/game_usecases/apply_move_usecase.dart';
 
+import 'min_moves_solver.dart';
+
 /// 레벨 하나를 완전 탐색해 **설계상 성립하는가**를 본다. 테스트 전용이다.
 ///
 /// `minMoves` 만 맞아서는 부족하다. 되돌리기가 없으므로(기획서 §5.1) **한 번
@@ -169,12 +171,12 @@ String render(BoardState board) {
   return grid.map((row) => row.join(' ')).join('\n');
 }
 
-String _key(BoardState board) {
-  final blocks = [...board.blocks]..sort((a, b) => a.id.compareTo(b.id));
-  return blocks
-      .map((block) => '${block.id}:${block.position.row},${block.position.col}')
-      .join(';');
-}
+/// 상태는 **블록 배치 + 남아 있는 블랙홀**이다 (`min_moves_solver.dart` 와 같은 이유).
+///
+/// 블랙홀이 소모되므로(기획서 §3.3) 바닥이 더는 고정이 아니다. 구멍이 하나 덜
+/// 남은 판을 같은 판으로 세면 막다른 판 분석까지 함께 틀린다 — 실제로는 못 깨는
+/// 판이 "깰 수 있다" 로 읽힌다.
+String _key(BoardState board) => '${blockKey(board)}|${holeKey(board)}';
 
 /// 요소를 하나씩 빼 봤을 때 **최소 수가 달라지는가**.
 ///
