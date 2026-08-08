@@ -17,7 +17,7 @@ void main() {
   }
 
   /// 저장 형식을 테스트가 알아야 손상 케이스를 만들 수 있다.
-  String key(int levelNumber) => 'progress_v1_level_$levelNumber';
+  String key(int levelNumber) => 'progress_v2_level_$levelNumber';
   String record({int moves = 2, int stars = 3}) =>
       jsonEncode({'bestMoveCount': moves, 'stars': stars});
 
@@ -97,7 +97,7 @@ void main() {
 
   test('진행도가 아닌 키는 건드리지 않는다', () async {
     // 튜토리얼 플래그가 같은 저장소에 있다 (기획서 §6.1).
-    await boot({'tutorial_seen_1': true, key(1): record()});
+    await boot({'tutorial_seen_v2_1': true, key(1): record()});
 
     expect(repository.getAllProgress().keys, [1]);
 
@@ -106,14 +106,14 @@ void main() {
 
     expect(repository.getAllProgress(), isEmpty);
     expect(
-      preferences.getBool('tutorial_seen_1'),
+      preferences.getBool('tutorial_seen_v2_1'),
       isTrue,
       reason: '진행도 초기화가 튜토리얼 기록까지 지우면 안 된다',
     );
   });
 
   test('접두사가 같아도 번호가 아니면 무시한다', () async {
-    await boot({'${key(1)}_extra': record(), 'progress_v1_level_abc': record()});
+    await boot({'${key(1)}_extra': record(), 'progress_v2_level_abc': record()});
 
     expect(repository.getAllProgress(), isEmpty);
   });

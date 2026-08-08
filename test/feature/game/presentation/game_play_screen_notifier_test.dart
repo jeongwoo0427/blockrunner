@@ -22,7 +22,7 @@ void main() {
   // 기본은 **전부 본 상태**다. 튜토리얼이 떠 있으면 입력이 막히는데(기획서 §6.1),
   // 이동을 검사하는 테스트들이 매번 그것부터 닫아야 하면 본론이 흐려진다.
   final tutorialsSeen = {
-    for (final level in kLevels) 'tutorial_seen_${level.number}': true,
+    for (final level in kLevels) 'tutorial_seen_v2_${level.number}': true,
   };
   Future<void> boot({Map<String, Object>? preferences}) async {
     SharedPreferences.setMockInitialValues(preferences ?? tutorialsSeen);
@@ -40,7 +40,7 @@ void main() {
   /// "클리어하지 않으면 저장하지 않는다" 를 보는 검사가 자기 기록과 남의
   /// 것을 구분할 수 없다. 999수는 실제 클리어가 언제나 진다.
   final allUnlocked = {
-    'progress_v1_level_${kLevels[kLevels.length - 2].number}':
+    'progress_v2_level_${kLevels[kLevels.length - 2].number}':
         '{"bestMoveCount":999,"stars":1}',
   };
 
@@ -454,7 +454,7 @@ void main() {
     });
 
     test('이미 본 레벨은 다시 뜨지 않는다', () async {
-      await boot(preferences: {'tutorial_seen_1': true});
+      await boot(preferences: {'tutorial_seen_v2_1': true});
 
       expect(read(1).showsTutorial, isFalse);
     });

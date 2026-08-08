@@ -68,10 +68,12 @@ void main() {
     /// 목표가 통로 한가운데라 플레이어 혼자서는 지나칠 수밖에 없다. 동료가
     /// 브레이크로 쓰이기만 하는 것과 다르다 — 없으면 최소 수가 늘어나는 게
     /// 아니라 해법 자체가 사라진다.
-    const footing = [10, 13, 16];
+    ///
+    /// 셋이었다가 둘이 됐다 — 나머지 하나(옛 16번)를 사용자가 재미없다고 들어냈다.
+    const footing = [8, 10];
 
     /// 버리기형 — 최단 해법이 동료를 블랙홀에 버리는 레벨들.
-    const dumping = [19, 23];
+    const dumping = [14, 18];
 
     for (final number in footing) {
       test('$number 번은 동료 없이는 풀 수 없다', () {
@@ -129,8 +131,13 @@ void main() {
       final wide = boards.where((b) => b.colCount > b.rowCount).length;
       final tall = boards.where((b) => b.rowCount > b.colCount).length;
 
-      expect(wide, greaterThanOrEqualTo(5), reason: '가로로 긴 판이 모자라다');
-      expect(tall, greaterThanOrEqualTo(5), reason: '세로로 긴 판이 모자라다');
+      // **개수가 아니라 비율이다.** 처음에는 "각각 다섯 개" 였는데 레벨 다섯을
+      // 들어내자(25 → 20개) 세로 판이 넷이 되어 깨졌다 — 지키려던 것은 다섯이
+      // 아니라 판이 늘 같은 그림으로 보이지 않는 것이고, 그것은 레벨 수를 따른다.
+      final least = boards.length ~/ 5;
+
+      expect(wide, greaterThanOrEqualTo(least), reason: '가로로 긴 판이 모자라다');
+      expect(tall, greaterThanOrEqualTo(least), reason: '세로로 긴 판이 모자라다');
     });
 
     test('블랙홀은 뒤쪽 절반에서 시작해 끝까지 이어진다', () {

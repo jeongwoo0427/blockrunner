@@ -8,7 +8,9 @@ class TutorialRepositoryImpl implements TutorialRepository {
   /// (docs/architecture.md §3).
   final SharedPreferences _preferences;
 
-  static const String _prefix = 'tutorial_seen_';
+  /// **진행도와 같이 버전을 올린다.** 레벨 번호가 밀리면(25 → 20개) "봤음" 표시도
+  /// 엉뚱한 레벨에 붙어, 새 4번의 경계 벽 안내가 뜨지 않는 채로 시작된다.
+  static const String _prefix = 'tutorial_seen_v2_';
 
   static String _key(int levelNumber) => '$_prefix$levelNumber';
 

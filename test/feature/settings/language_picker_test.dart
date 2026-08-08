@@ -22,7 +22,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'settings_v1_locale': 'ko',
       // 튜토리얼은 이 테스트와 무관하다.
-      for (var level = 1; level <= 7; level++) 'tutorial_seen_$level': true,
+      for (var level = 1; level <= 7; level++) 'tutorial_seen_v2_$level': true,
     });
     final prefs = await SharedPreferences.getInstance();
 

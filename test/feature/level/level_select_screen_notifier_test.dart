@@ -15,7 +15,7 @@ void main() {
   Future<void> boot([Map<String, Object> preferences = const {}]) async {
     SharedPreferences.setMockInitialValues({
       // 튜토리얼이 떠 있으면 이동이 막힌다 (기획서 §6.1).
-      for (final level in kLevels) 'tutorial_seen_${level.number}': true,
+      for (final level in kLevels) 'tutorial_seen_v2_${level.number}': true,
       ...preferences,
     });
     final prefs = await SharedPreferences.getInstance();
@@ -49,8 +49,8 @@ void main() {
 
   test('저장된 진행도가 해금과 별점에 반영된다', () async {
     await boot({
-      'progress_v1_level_1': '{"bestMoveCount": 1, "stars": 3}',
-      'progress_v1_level_2': '{"bestMoveCount": 5, "stars": 1}',
+      'progress_v2_level_1': '{"bestMoveCount": 1, "stars": 3}',
+      'progress_v2_level_2': '{"bestMoveCount": 5, "stars": 1}',
     });
     final state = read();
 

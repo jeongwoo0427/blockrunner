@@ -138,7 +138,7 @@ void main() {
     Future<void> bootToLevelSelect(WidgetTester tester) async {
       SharedPreferences.setMockInitialValues({
         'settings_v1_locale': 'ko',
-        for (final level in kLevels) 'tutorial_seen_${level.number}': true,
+        for (final level in kLevels) 'tutorial_seen_v2_${level.number}': true,
       });
       final prefs = await SharedPreferences.getInstance();
       addTearDown(() => router.go(RoutePaths.splash));

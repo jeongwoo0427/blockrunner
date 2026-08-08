@@ -102,28 +102,23 @@ class StringsEn extends AppStrings {
     1: 'Sliding',
     2: 'Two Turns',
     3: 'Block Brake',
-    4: 'The Wall',
-    5: 'Hidden Ledge',
-    6: 'Wall and Block',
-    7: 'Double Walls',
-    8: 'Narrow Gate',
-    9: 'The Fork',
-    10: 'Footing',
-    11: 'Walls Only',
-    12: 'Interlock',
-    13: 'Deep Shaft',
-    14: 'All Three',
-    15: 'Tight Path',
-    16: 'Two Footings',
-    17: 'Rehearsal',
-    18: 'Black Hole',
-    19: 'One by One',
-    20: 'Severed',
-    21: 'Clear the Way',
-    22: 'Twin Abyss',
-    23: 'Make Room',
-    24: 'The Long Way',
-    25: 'Last Gate',
+    4: 'Hidden Ledge',
+    5: 'Double Walls',
+    6: 'Narrow Gate',
+    7: 'The Fork',
+    8: 'Footing',
+    9: 'Walls Only',
+    10: 'Deep Shaft',
+    11: 'Tight Path',
+    12: 'Rehearsal',
+    13: 'Black Hole',
+    14: 'One by One',
+    15: 'Severed',
+    16: 'Clear the Way',
+    17: 'Twin Abyss',
+    18: 'Make Room',
+    19: 'The Long Way',
+    20: 'Last Gate',
   };
 
   @override
@@ -134,10 +129,10 @@ class StringsEn extends AppStrings {
     3:
         'One input slides every block at once.\n'
         'Other blocks can bring the player to a stop too.',
-    5:
+    4:
         'The thick line between two tiles is a partition.\n'
         'It blocks passage only — both tiles are still usable.',
-    18:
+    13:
         'A black hole swallows any block that merely passes over it.\n'
         'Watch the path, not just the landing tile.',
   };

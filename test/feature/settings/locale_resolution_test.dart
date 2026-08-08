@@ -126,7 +126,7 @@ void main() {
     test('진행도 키를 건드리지 않는다', () async {
       // 진행도와 설정은 지워지는 시점이 다르다. 접두사가 갈려 있어야 한다.
       SharedPreferences.setMockInitialValues({
-        'progress_v1_level_1': '{"bestMoveCount": 1, "stars": 3}',
+        'progress_v2_level_1': '{"bestMoveCount": 1, "stars": 3}',
       });
       final preferences = await SharedPreferences.getInstance();
       final usecases = SettingsUsecases.fromRepositories(
@@ -139,7 +139,7 @@ void main() {
       await usecases.saveLocale(AppLocale.ja);
 
       expect(
-        preferences.getString('progress_v1_level_1'),
+        preferences.getString('progress_v2_level_1'),
         '{"bestMoveCount": 1, "stars": 3}',
       );
     });

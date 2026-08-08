@@ -75,23 +75,6 @@ const List<MapBlueprint> kMapBlueprints = [
   MapBlueprint(
     levelNumber: 4,
     rows: [
-      '+-+-+-+-+',
-      '|. . . @|',
-      '+ + + + +',
-      '|. . . .|',
-      '+ + + + +',
-      '|# . . .|',
-      '+ + + + +',
-      '|G . . .|',
-      '+ + + + +',
-      '|O . . .|',
-      '+-+-+-+-+',
-    ],
-  ),
-
-  MapBlueprint(
-    levelNumber: 5,
-    rows: [
       '+-+-+-+-+-+',
       '|. . . . G|',
       '+ +-+-+-+-+',
@@ -103,20 +86,7 @@ const List<MapBlueprint> kMapBlueprints = [
   ),
 
   MapBlueprint(
-    levelNumber: 6,
-    rows: [
-      '+-+-+-+-+-+',
-      '|. . . . O|',
-      '+ + + + + +',
-      '|G . . # .|',
-      '+ + + + + +',
-      '|. @ . . .|',
-      '+-+-+-+-+-+',
-    ],
-  ),
-
-  MapBlueprint(
-    levelNumber: 7,
+    levelNumber: 5,
     rows: [
       '+-+-+-+-+',
       '|@ # . O|',
@@ -131,7 +101,7 @@ const List<MapBlueprint> kMapBlueprints = [
   ),
 
   MapBlueprint(
-    levelNumber: 8,
+    levelNumber: 6,
     rows: [
       '+-+-+-+-+',
       '|@|. . .|',
@@ -144,7 +114,7 @@ const List<MapBlueprint> kMapBlueprints = [
   ),
 
   MapBlueprint(
-    levelNumber: 9,
+    levelNumber: 7,
     rows: [
       '+-+-+-+-+',
       '|@ . # G|',
@@ -159,7 +129,7 @@ const List<MapBlueprint> kMapBlueprints = [
   ),
 
   MapBlueprint(
-    levelNumber: 10,
+    levelNumber: 8,
     rows: [
       '+-+-+-+-+-+-+-+',
       '|O|. G . . . .|',
@@ -172,7 +142,7 @@ const List<MapBlueprint> kMapBlueprints = [
   ),
 
   MapBlueprint(
-    levelNumber: 11,
+    levelNumber: 9,
     rows: [
       '+-+-+-+-+-+',
       '|. . . . .|',
@@ -188,27 +158,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 12 — 6×7 (가로로 김) · 최소 6수. 블록 둘. 서로가 서로의 브레이크가 된다.
+  // 10 — 7×6 (세로로 김) · 최소 8수. 통로가 한 칸 더 깊다. 동료를 입구까지 몰고 가는 길이 길어진다.
   MapBlueprint(
-    levelNumber: 12,
-    rows: [
-      '+-+-+-+-+-+-+',
-      '|. O G @ . .|',
-      '+ + + + + + +',
-      '|. . . . . .|',
-      '+ + + + + + +',
-      '|. . . # # O|',
-      '+ + + + + + +',
-      '|. . . . # .|',
-      '+ + + + + + +',
-      '|. . . . . .|',
-      '+-+-+-+-+-+-+',
-    ],
-  ),
-
-  // 13 — 7×6 (세로로 김) · 최소 8수. 통로가 한 칸 더 깊다. 동료를 입구까지 몰고 가는 길이 길어진다.
-  MapBlueprint(
-    levelNumber: 13,
+    levelNumber: 10,
     rows: [
       '+-+-+-+-+-+',
       '|. . . . .|',
@@ -224,31 +176,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 14 — 7×7 (정사각) · 최소 6수. 정사각으로 돌아와 세 가지 요소가 한 판에 모인다.
+  // 11 — 9×6 (세로로 김) · 최소 7수. 가장 길쭉한 세로 판. 위아래로 크게 돌아야 한다.
   MapBlueprint(
-    levelNumber: 14,
-    rows: [
-      '+-+-+-+-+-+-+-+',
-      '|. . . . . . #|',
-      '+ + + + + + + +',
-      '|. . . . # . .|',
-      '+ + + + + +-+ +',
-      '|G . # . O . .|',
-      '+-+ + + + + + +',
-      '|. . . . . @ .|',
-      '+ + + + + + + +',
-      '|. . . . . . .|',
-      '+ + + + + + + +',
-      '|. . . . . . .|',
-      '+ + + + + + + +',
-      '|. . . . # . .|',
-      '+-+-+-+-+-+-+-+',
-    ],
-  ),
-
-  // 15 — 9×6 (세로로 김) · 최소 7수. 가장 길쭉한 세로 판. 위아래로 크게 돌아야 한다.
-  MapBlueprint(
-    levelNumber: 15,
+    levelNumber: 11,
     rows: [
       '+-+-+-+-+-+-+',
       '|# @|. . . .|',
@@ -272,31 +202,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 16 — 7×8 (가로로 김) · 최소 9수. 동료가 둘. 어느 쪽을 발판으로 쓸지가 갈린다.
+  // 12 — 6×10 (가로로 김) · 최소 7수. 폭이 10 까지 벌어진다. 한 수의 이동 거리가 길어 잘못 밀면 멀리 간다.
   MapBlueprint(
-    levelNumber: 16,
-    rows: [
-      '+-+-+-+-+-+-+-+-+',
-      '|.|. . . . . . .|',
-      '+ + + + + + + + +',
-      '|. . . . . . . .|',
-      '+ + + + + + + + +',
-      '|. # . . . . . O|',
-      '+ + + + + + + + +',
-      '|. . . . . . # .|',
-      '+ + + + + + + + +',
-      '|. . . . . . .|.|',
-      '+ + + + + + + + +',
-      '|# . . . . . O|G|',
-      '+ + + + + + + + +',
-      '|. . . . . . .|@|',
-      '+-+-+-+-+-+-+-+-+',
-    ],
-  ),
-
-  // 17 — 6×10 (가로로 김) · 최소 7수. 폭이 10 까지 벌어진다. 한 수의 이동 거리가 길어 잘못 밀면 멀리 간다.
-  MapBlueprint(
-    levelNumber: 17,
+    levelNumber: 12,
     rows: [
       '+-+-+-+-+-+-+-+-+-+-+',
       '|O . . # . G . . . #|',
@@ -314,9 +222,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 18 — 8×8 (정사각) · 최소 5수. 블랙홀 도입. **지나가기만 해도** 빨려 들어가므로 멈추는 자리가 아니라 지나는 길을 봐야 한다.
+  // 13 — 8×8 (정사각) · 최소 5수. 블랙홀 도입. **지나가기만 해도** 빨려 들어가므로 멈추는 자리가 아니라 지나는 길을 봐야 한다.
   MapBlueprint(
-    levelNumber: 18,
+    levelNumber: 13,
     rows: [
       '+-+-+-+-+-+-+-+-+',
       '|G . . . . . . .|',
@@ -338,9 +246,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 19 — 8×8 (정사각) · 최소 9수. **버리기 도입** (§4.4-1). 길을 막은 동료를 블랙홀로 흘려보내 치운다. 최단 해법이 동료 둘을 모두 버린다 — 구멍을 메우는 것이 아니라 블록을 치우는 것이다(기획서 §3.3).
+  // 14 — 8×8 (정사각) · 최소 9수. **버리기 도입** (§4.4-1). 길을 막은 동료를 블랙홀로 흘려보내 치운다. 최단 해법이 동료 둘을 모두 버린다 — 구멍을 메우는 것이 아니라 블록을 치우는 것이다(기획서 §3.3).
   MapBlueprint(
-    levelNumber: 19,
+    levelNumber: 14,
     rows: [
       '+-+-+-+-+-+-+-+-+',
       '|# . . . . . . .|',
@@ -362,9 +270,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 20 — 10×7 (세로로 김) · 최소 7수. 세로로 긴 판을 블랙홀이 가로지른다. 안전한 줄이 좁다.
+  // 15 — 10×7 (세로로 김) · 최소 7수. 세로로 긴 판을 블랙홀이 가로지른다. 안전한 줄이 좁다.
   MapBlueprint(
-    levelNumber: 20,
+    levelNumber: 15,
     rows: [
       '+-+-+-+-+-+-+-+',
       '|. . . . . . #|',
@@ -390,9 +298,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 21 — 7×10 (가로로 김) · 최소 7수. 같은 요소를 눕혀 놓았다. 16번과 나란히 두면 방향이 바뀐 것만으로 다른 판이 된다.
+  // 16 — 7×10 (가로로 김) · 최소 7수. 앞의 세로 판을 그대로 눕혔다. 긴 축이 가로로 바뀌면 같은 요소도 다르게 읽힌다.
   MapBlueprint(
-    levelNumber: 21,
+    levelNumber: 16,
     rows: [
       '+-+-+-+-+-+-+-+-+-+-+',
       '|. O . . . . . . . G|',
@@ -412,9 +320,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 22 — 9×8 (세로로 김) · 최소 8수. 블랙홀 둘에 두 종류의 벽. 돌아가는 길이 길어진다.
+  // 17 — 9×8 (세로로 김) · 최소 8수. 블랙홀 둘에 두 종류의 벽. 돌아가는 길이 길어진다.
   MapBlueprint(
-    levelNumber: 22,
+    levelNumber: 17,
     rows: [
       '+-+-+-+-+-+-+-+-+',
       '|. . . . . . # .|',
@@ -438,9 +346,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 23 — 9×8 (세로로 김) · 최소 8수. 버리기와 발판이 한 판에서 만난다.
+  // 18 — 9×8 (세로로 김) · 최소 8수. 버리기와 발판이 한 판에서 만난다.
   MapBlueprint(
-    levelNumber: 23,
+    levelNumber: 18,
     rows: [
       '+-+-+-+-+-+-+-+-+',
       '|. . # . . . . .|',
@@ -464,10 +372,10 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 24 — 8×10 (가로로 김) · 최소 9수. 가장 긴 판에 블랙홀 둘. 한 수의 이동
+  // 19 — 8×10 (가로로 김) · 최소 9수. 가장 긴 판에 블랙홀 둘. 한 수의 이동
   // 거리가 길어 잘못 밀면 판 반대편까지 끌려간다.
   MapBlueprint(
-    levelNumber: 24,
+    levelNumber: 19,
     rows: [
       '+-+-+-+-+-+-+-+-+-+-+',
       '|. . . # . . . . G .|',
@@ -489,9 +397,9 @@ const List<MapBlueprint> kMapBlueprints = [
     ],
   ),
 
-  // 25 — 9×9 (정사각) · 최소 9수. 마지막. 블록 둘 · 블랙홀 둘 · 두 종류의 벽을 전부 담았다.
+  // 20 — 9×9 (정사각) · 최소 9수. 마지막. 블록 둘 · 블랙홀 둘 · 두 종류의 벽을 전부 담았다.
   MapBlueprint(
-    levelNumber: 25,
+    levelNumber: 20,
     rows: [
       '+-+-+-+-+-+-+-+-+-+',
       '|. . . . . . .|. .|',

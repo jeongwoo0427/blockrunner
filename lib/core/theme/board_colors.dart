@@ -64,7 +64,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     blackHole: Color(0xFF1E2430),
     // 순수 검정이 아니라 판·벽과 같은 남색 계열이다. 회색 그림자는 화면에서
     // 때가 탄 것처럼 보인다.
-    shadow: Color(0x261E2430),
+    shadow: Color(0x331E2430),
   );
 
   static const dark = BoardColors(
@@ -76,7 +76,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
     goal: Color(0xFF35538F),
     blackHole: Color(0xFF0B0E14),
     // 다크에서는 더 짙다. 옅게 두면 어두운 바탕에 묻혀 그림자가 없는 것과 같다.
-    shadow: Color(0x66000000),
+    shadow: Color(0x73000000),
   );
 
   @override

@@ -37,7 +37,7 @@ void main() {
     SharedPreferences.setMockInitialValues({
       'settings_v1_locale': 'ko',
       for (var level = 1; level <= clearedUpTo; level++)
-        'progress_v1_level_$level': '{"bestMoveCount": 1, "stars": 3}',
+        'progress_v2_level_$level': '{"bestMoveCount": 1, "stars": 3}',
     });
     final prefs = await SharedPreferences.getInstance();
 

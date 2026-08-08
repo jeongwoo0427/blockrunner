@@ -14,9 +14,14 @@ class ProgressRepositoryImpl implements ProgressRepository {
   /// **레벨 하나당 키 하나.** 전체를 한 키에 몰아넣으면 한 레벨의 값이 깨질 때
   /// 진행도 전체가 날아간다.
   ///
-  /// `v1` 은 저장 형식 버전이다. 형식이 바뀌면 접두사를 올려 옛 키를 무시하면
+  /// `v2` 는 저장 형식 버전이다. 형식이 바뀌면 접두사를 올려 옛 키를 무시하면
   /// 되므로, 지금 붙여두는 비용이 0인 반면 나중에 없으면 마이그레이션이 지저분해진다.
-  static const String _prefix = 'progress_v1_level_';
+  ///
+  /// **v1 → v2 는 형식이 아니라 레벨 번호가 바뀌어서다.** 재미없는 다섯 레벨을
+  /// 들어내며 뒤 번호를 앞으로 당겼으므로(25 → 20개), 옛 기록을 그대로 읽으면
+  /// 옛 5번의 별점이 새 4번에 붙는다. 값은 멀쩡한데 **엉뚱한 판의 기록**이 된다.
+  /// 옛 키는 지우지 않고 무시한다 — 지우려면 새 버전이 옛 접두사를 알아야 한다.
+  static const String _prefix = 'progress_v2_level_';
 
   static String _key(int levelNumber) => '$_prefix$levelNumber';
 

@@ -22,10 +22,10 @@ void main() {
   Future<Widget> boot() async {
     SharedPreferences.setMockInitialValues({
       'settings_v1_locale': 'ja',
-      'progress_v1_level_1': '{"bestMoveCount": 1, "stars": 3}',
-      'progress_v1_level_2': '{"bestMoveCount": 2, "stars": 3}',
-      'tutorial_seen_1': true,
-      'tutorial_seen_3': true,
+      'progress_v2_level_1': '{"bestMoveCount": 1, "stars": 3}',
+      'progress_v2_level_2': '{"bestMoveCount": 2, "stars": 3}',
+      'tutorial_seen_v2_1': true,
+      'tutorial_seen_v2_3': true,
     });
     final prefs = await SharedPreferences.getInstance();
 
@@ -64,7 +64,7 @@ void main() {
     );
 
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('progress_v1_level_1'), isNotNull);
+    expect(prefs.getString('progress_v2_level_1'), isNotNull);
   });
 
   testWidgets('취소하면 아무것도 지워지지 않는다', (tester) async {
@@ -75,8 +75,8 @@ void main() {
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('progress_v1_level_1'), isNotNull);
-    expect(prefs.getBool('tutorial_seen_1'), isTrue);
+    expect(prefs.getString('progress_v2_level_1'), isNotNull);
+    expect(prefs.getBool('tutorial_seen_v2_1'), isTrue);
   });
 
   testWidgets('확인하면 진행도와 튜토리얼이 함께 지워진다', (tester) async {
@@ -93,11 +93,11 @@ void main() {
     await tester.pumpAndSettle();
 
     final prefs = await SharedPreferences.getInstance();
-    expect(prefs.getString('progress_v1_level_1'), isNull);
-    expect(prefs.getString('progress_v1_level_2'), isNull);
+    expect(prefs.getString('progress_v2_level_1'), isNull);
+    expect(prefs.getString('progress_v2_level_2'), isNull);
     // 진행도만 지우면 레벨 1을 다시 깨도 안내가 안 뜬다 — "처음부터" 가 아니다.
-    expect(prefs.getBool('tutorial_seen_1'), isNull);
-    expect(prefs.getBool('tutorial_seen_3'), isNull);
+    expect(prefs.getBool('tutorial_seen_v2_1'), isNull);
+    expect(prefs.getBool('tutorial_seen_v2_3'), isNull);
   });
 
   testWidgets('언어 설정은 살아남는다', (tester) async {

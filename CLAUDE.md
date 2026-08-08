@@ -145,21 +145,29 @@ is not a task from the list; ask what it should be. **The game is playable end t
 three platforms and the web build is live** (see **Deployment** below): level select → play →
 clear → next level, with progress saved. The
 rules engine is locked down by unit tests including all three hand-verified traces from
-`docs/game-design.md` §4, **twenty-five levels** are ASCII constants whose `minMoves` a BFS solver
+`docs/game-design.md` §4, **twenty levels** are ASCII constants whose `minMoves` a BFS solver
 in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
-**In progress, and the reason the suite is red: levels 1–13 are mid-redesign.** The user began
-redrawing those maps by hand (#97) and stopped partway; the state is committed as-is. Measured in
-#108: **`+533 -48` — 48 failures out of 581** — declared `minMoves` disagreeing with the real
-shortest solution, decorative elements, padding rows, and a board-size curve that dips (`10 → 16 →
-9 → 20 → 15 → 15 → 16 → 12 → 16 → 21 → 25 → 30 → 25`). **Levels 14–25 all pass.** The breakdown is
-`level_design_test` 23, `map_and_level_data_test` 11, `game_play_screen_notifier_test` 10,
-`level_select_screen_notifier_test` 2, `bump_test` 1, `level_transition_test` 1. Those last 14 are
+**There were twenty-five until #119**, when the user played through and cut five as unfun (old
+4 · 6 · 12 · 14 · 16), pulling every later number forward. **Nothing was renumbered by hand** — the
+`levelNumber:` fields and the i18n `levelNames` / `levelTutorials` maps were remapped together, and
+the storage prefixes were bumped (`progress_v2_level_`, `tutorial_seen_v2_`) so an existing player's
+stars don't land on a different board than the one they earned them on. If you cut a level again,
+that key bump is part of the job.
+
+**In progress, and the reason the suite is red: levels 1–10 are mid-redesign** (they were 1–11 and
+13 before the renumbering). The user began redrawing those maps by hand (#97) and stopped partway;
+the state is committed as-is. Measured in #119: **`+517 -43` — 43 failures out of 560** — declared
+`minMoves` disagreeing with the real shortest solution, decorative elements, padding rows, and a
+board-size curve that dips (`10 → 16 → 9 → 15 → 16 → 12 → 16 → 21 → 25 → 25`). **Levels 11–20 all
+pass.** The breakdown is `level_design_test` 19, `map_and_level_data_test` 10,
+`game_play_screen_notifier_test` 10, `level_select_screen_notifier_test` 2, `bump_test` 1,
+`level_transition_test` 1. Those last 14 are
 widget tests that know levels 1 and 2 by shape, so they move when the maps settle — they are
 not a regression.
 
 **`flutter test` prints `+passed -failed`, not a total.** #98 read `+528` as "528 tests" and the
-figure was repeated for three sessions; the suite is 581. Add the two numbers. Do not assume a red suite is something you broke, and **do not report a change as
+figure was repeated for three sessions; the suite is 560. Add the two numbers. Do not assume a red suite is something you broke, and **do not report a change as
 verified against a green run until these land**; check whether the failures are the known set.
 `level_design_test` stops at the first violation per level, so fixing one reveals the next — this
 is a loop, not a single pass. **README leans on the test suite as a selling point and the project
@@ -188,8 +196,10 @@ consumed), so both ideas have to be expressed as "cannot stop where you need to"
 **Rule (1) caps how many companions a dumping level can have.** With three, 90% of otherwise-valid
 boards contain a dump order that strands you, and a 150k-candidate search found none; two is the
 practical ceiling unless the no-dead-end rule changes. **Boards are deliberately not all
-square** — at least five are wider than tall and five taller than wide, because a long axis slides
-far and a short one hits the wall at once. **Maps are not hand-drawn**; a random search keeps only
+square** — at least a fifth of them are wider than tall and a fifth taller than wide, because a long
+axis slides far and a short one hits the wall at once. **That rule is a ratio, not a count, and it
+became one the hard way**: it said "at least five each" until #119 cut five levels and left four
+tall boards, which is the same mistake as naming a level number. **Maps are not hand-drawn**; a random search keeps only
 what passes those checks, and the test then pins it.
 
 **There is no on-screen d-pad on any platform** (`docs/game-design.md` §6) — a test asserts its

@@ -99,28 +99,23 @@ class StringsFr extends AppStrings {
     1: 'Glisser',
     2: 'Deux virages',
     3: 'Bloc-frein',
-    4: 'Mur de case',
-    5: 'Cloison',
-    6: 'Mur et bloc',
-    7: 'Deux murs',
-    8: 'Porte étroite',
-    9: 'Bifurcation',
-    10: 'Marchepied',
-    11: 'Murs seuls',
-    12: 'Engrenage',
-    13: 'Le puits',
-    14: 'Les trois',
-    15: 'Voie étroite',
-    16: 'Deux appuis',
-    17: 'Dernier essai',
-    18: 'Trou noir',
-    19: 'Un par un',
-    20: 'Voie coupée',
-    21: 'Dégager la voie',
-    22: 'Double abîme',
-    23: 'Faire place',
-    24: 'Long chemin',
-    25: 'Dernière porte',
+    4: 'Cloison',
+    5: 'Deux murs',
+    6: 'Porte étroite',
+    7: 'Bifurcation',
+    8: 'Marchepied',
+    9: 'Murs seuls',
+    10: 'Le puits',
+    11: 'Voie étroite',
+    12: 'Dernier essai',
+    13: 'Trou noir',
+    14: 'Un par un',
+    15: 'Voie coupée',
+    16: 'Dégager la voie',
+    17: 'Double abîme',
+    18: 'Faire place',
+    19: 'Long chemin',
+    20: 'Dernière porte',
   };
 
   @override
@@ -131,10 +126,10 @@ class StringsFr extends AppStrings {
     3:
         'Une seule commande fait glisser tous les blocs à la fois.\n'
         'Les autres blocs peuvent aussi arrêter le joueur.',
-    5:
+    4:
         'Le trait épais entre deux cases est une cloison.\n'
         'Il bloque le passage, mais les deux cases restent utilisables.',
-    18:
+    13:
         'Un trou noir avale tout bloc qui ne fait que le traverser.\n'
         "Surveillez le trajet, pas seulement la case d'arrivée.",
   };
