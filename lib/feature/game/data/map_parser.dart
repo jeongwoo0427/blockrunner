@@ -79,24 +79,27 @@ class MapParser {
       throw _invalid(blueprint, '목표 지점이 없다');
     }
 
-    final board = BoardState(
-      rowCount: rowCount,
-      colCount: colCount,
-      floors: floors,
-      blocks: blocks,
-      walls: _readWalls(grid, rowCount, colCount),
+    // **파서는 이 판이 풀리는지 판단하지 않는다** (기획서 §9.2). 표기가 판으로
+    // 읽히는지만 본다.
+    //
+    // 한때 목표 네 방향에 정지 요소(칸 벽 · 맵 경계 · 경계 벽)가 있는지도 검사해
+    // 없으면 거절했는데, **의도한 배치를 막았다.** 일반 블록은 고정된 정지 요소가
+    // 아니지만 브레이크로는 쓰이므로, 동료를 먼저 흘려 넣어 그 앞에 서는 판은
+    // 고정 요소가 하나도 없어도 멀쩡하다 (기획서 §4.3 · §4.4-1 발판).
+    //
+    // 풀이 가능성은 `level_design_test` 의 완전 탐색이 본다. 인접 칸만 보는 검사는
+    // 그보다 약해서, 통과시켜도 풀린다는 보장이 없고 거절한 것 중에 멀쩡한 판이
+    // 섞인다. 약한 검사를 앞에 두면 강한 검사에 닿기도 전에 막힌다.
+    return GameMap(
+      levelNumber: blueprint.levelNumber,
+      initialBoard: BoardState(
+        rowCount: rowCount,
+        colCount: colCount,
+        floors: floors,
+        blocks: blocks,
+        walls: _readWalls(grid, rowCount, colCount),
+      ),
     );
-
-    for (final goal in goals) {
-      if (!_hasStopper(board, goal)) {
-        throw _invalid(
-          blueprint,
-          '목표 $goal 의 네 방향 어디에도 정지 요소(칸 벽 · 맵 경계 · 경계 벽)가 없어 멈출 수 없다',
-        );
-      }
-    }
-
-    return GameMap(levelNumber: blueprint.levelNumber, initialBoard: board);
   }
 
   // ---------------------------------------------------------------------------
@@ -204,17 +207,6 @@ class MapParser {
 
     return walls;
   }
-
-  /// 목표 칸에 멈추려면 그 뒤에 정지 요소가 있어야 한다(기획서 §4.3 레벨 디자인 원칙).
-  ///
-  /// 일반 블록은 함께 미끄러지므로 정지 요소로 세지 않는다. 블록을 브레이크로 쓰는
-  /// 맵도 이 검사는 통과해야 하며, 실제 풀이 가능 여부는 `test/` 의 완전 탐색이 본다.
-  bool _hasStopper(BoardState board, Position goal) => Direction.values.any(
-    (direction) =>
-        // 칸 벽이거나 맵 밖(floorAt 이 벽으로 돌려준다)
-        board.floorAt(goal.translate(direction)) == FloorType.wall ||
-        board.hasWallBetween(goal, direction),
-  );
 
   ClientFailure _invalid(MapBlueprint blueprint, String reason) => ClientFailure(
     code: FailureCode.invalidMapData,
