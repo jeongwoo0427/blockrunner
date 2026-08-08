@@ -144,7 +144,7 @@ void main() {
 
       expect(board.player, isNull);
       expect(board.hasPlayer, isFalse);
-      expect(board.isCleared, isFalse, reason: '목표 칸에 있는 것은 일반 블록이다');
+      expect(board.isCleared, isFalse, reason: '목표 칸에 있는 것은 동료 블록이다');
     });
 
     test('플레이어가 목표 칸에 있으면 클리어다', () {

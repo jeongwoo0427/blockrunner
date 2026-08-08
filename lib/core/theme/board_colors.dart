@@ -16,7 +16,7 @@ class BoardColors extends ThemeExtension<BoardColors> {
   /// 벽 (고정, 통과 불가)
   final Color wall;
 
-  /// 일반 블록 (플레이어와 함께 이동)
+  /// 동료 블록 (플레이어와 함께 이동)
   final Color normalBlock;
 
   /// 플레이어 블록

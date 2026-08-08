@@ -12,7 +12,7 @@ import 'package:flutter_test/flutter_test.dart';
 /// 연출은 "끝난 뒤" 를 봐서는 검증되지 않는다. 어차피 도착 좌표는 같다.
 /// **중간 프레임을 직접 재는 것**만이 미끄러졌는지, 순간이동했는지를 가른다.
 void main() {
-  /// 첫 블록이 플레이어, 나머지는 일반 블록인 6×6 빈 판.
+  /// 첫 블록이 플레이어, 나머지는 동료 블록인 6×6 빈 판.
   BoardState boardWith(List<Position> positions) => BoardState(
     rowCount: 6,
     colCount: 6,
@@ -79,7 +79,7 @@ void main() {
   });
 
   testWidgets('이동 거리가 달라도 같은 비율로 움직여 동시에 도착한다', (tester) async {
-    // 플레이어는 5칸, 일반 블록은 2칸 — 거리 비례라면 도착 시점이 어긋난다.
+    // 플레이어는 5칸, 동료 블록은 2칸 — 거리 비례라면 도착 시점이 어긋난다.
     final before = boardWith(const [Position(0, 0), Position(5, 0)]);
     final after = boardWith(const [Position(0, 5), Position(5, 2)]);
 
@@ -114,7 +114,7 @@ void main() {
     final before = boardWith(const [Position(0, 0)]);
     // 빠진 블록은 판에서 지워지고 fallingBlocks 로 넘어간다.
     final after = boardWith(const []);
-    // **일반 블록으로 본다.** 플레이어는 2초짜리 흡입 연출을 받으므로
+    // **동료 블록으로 본다.** 플레이어는 2초짜리 흡입 연출을 받으므로
     // (12-ui-polish §5.3) 여기서 재는 짧은 타이밍과 맞지 않는다.
     final falling = [
       const Block(id: 0, type: BlockType.normal, position: Position(0, 3)),

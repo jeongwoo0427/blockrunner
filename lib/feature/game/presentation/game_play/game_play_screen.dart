@@ -250,7 +250,7 @@ class _GamePlayScreenState extends State<GamePlayScreen>
   /// 이번 연출이 끝나는 데 걸리는 시간.
   ///
   /// **플레이어가 빨려 들어가면 훨씬 길다** (12-ui-polish §5.3). 판이 끝나는
-  /// 순간이라 연출을 다 보여준 뒤에 결과를 띄운다. 일반 블록만 빠졌다면
+  /// 순간이라 연출을 다 보여준 뒤에 결과를 띄운다. 동료 블록만 빠졌다면
   /// 게임이 계속되므로 짧게 끝낸다 — 한 수마다 2초를 기다리면 답답해진다.
   Duration _animationSpan() {
     final falling = widget.state.fallingBlocks;

@@ -180,7 +180,7 @@ void main() {
         after: ['....@O'],
       );
 
-      // 플레이어는 목표 바로 앞에 멈췄고 목표 칸은 일반 블록이 점유했다.
+      // 플레이어는 목표 바로 앞에 멈췄고 목표 칸은 동료 블록이 점유했다.
       expect(result.board.isCleared, isFalse);
     });
 
@@ -238,7 +238,7 @@ void main() {
       expect(result.board.isCleared, isTrue);
     });
 
-    test('일반 블록이 목표 칸에 멈춘 것은 클리어가 아니다', () {
+    test('동료 블록이 목표 칸에 멈춘 것은 클리어가 아니다', () {
       final result = expectMove(
         before: ['@#OG#.'],
         direction: Direction.right,
@@ -266,7 +266,7 @@ void main() {
       expect(result.to[result.fellIntoBlackHole.single], const Position(0, 3));
     });
 
-    test('일반 블록만 빠지고 플레이어는 남는다', () {
+    test('동료 블록만 빠지고 플레이어는 남는다', () {
       final result = expectMove(
         before: ['@#O.X.'],
         direction: Direction.right,

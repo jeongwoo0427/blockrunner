@@ -101,7 +101,7 @@ class StringsEn extends AppStrings {
   Map<int, String> get levelNames => const {
     1: 'Sliding',
     2: 'Two Turns',
-    3: 'Block Brake',
+    3: 'Companion',
     4: 'Hidden Ledge',
     5: 'Double Walls',
     6: 'Narrow Gate',
@@ -127,8 +127,8 @@ class StringsEn extends AppStrings {
         'Blocks slide until they hit a wall or the edge of the board.\n'
         'Stop the player exactly on the goal tile to clear the level.',
     3:
-        'One input slides every block at once.\n'
-        'Other blocks can bring the player to a stop too.',
+        'One input slides your companion blocks too.\n'
+        'They act as a footing that brings the player to a stop.',
     4:
         'The thick line between two tiles is a partition.\n'
         'It blocks passage only — both tiles are still usable.',

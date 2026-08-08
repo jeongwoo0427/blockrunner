@@ -27,7 +27,7 @@ class BlockTile extends StatelessWidget {
           color: isPlayer ? colors.playerBlock : colors.normalBlock,
           borderRadius: BorderRadius.circular(size * Spacing.blockRadiusRatio),
         ),
-        // 플레이어를 색만으로 구분하면 색각 이상에서 일반 블록과 뒤섞인다.
+        // 플레이어를 색만으로 구분하면 색각 이상에서 동료 블록과 뒤섞인다.
         // 안쪽 링을 넣어 형태로도 구분되게 한다.
         child: isPlayer
             ? Center(

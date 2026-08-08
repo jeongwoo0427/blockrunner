@@ -34,9 +34,9 @@ void main() {
         );
       });
 
-      test('플레이어·목표가 일반 블록보다 훨씬 진하다', () {
+      test('플레이어·목표가 동료 블록보다 훨씬 진하다', () {
         // 색상만으로는 셋이 전부 파란 계열이라 갈리지 않는다. 실제 구분자는
-        // **채도**다 — 일반 블록은 흐린 회청색으로 뒤로 물러나 있어야 한다.
+        // **채도**다 — 동료 블록은 흐린 회청색으로 뒤로 물러나 있어야 한다.
         expect(
           saturation(colors.playerBlock),
           greaterThan(saturation(colors.normalBlock) + 0.3),
@@ -62,7 +62,7 @@ void main() {
     expect(BoardColors.light.background, const Color(0xFFFFFFFF));
   });
 
-  test('일반 블록 색은 그대로 둔다', () {
+  test('동료 블록 색은 그대로 둔다', () {
     // 사용자 요청 — 파랑으로 바꾸는 것은 플레이어와 목표뿐이다.
     expect(BoardColors.light.normalBlock, const Color(0xFF8598B8));
     expect(BoardColors.dark.normalBlock, const Color(0xFF4E5D78));

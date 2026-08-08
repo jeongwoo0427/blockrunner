@@ -125,7 +125,7 @@ void main() {
       expect(rotationOf(tester).value, greaterThan(0));
     });
 
-    testWidgets('일반 블록은 돌지 않는다', (tester) async {
+    testWidgets('동료 블록은 돌지 않는다', (tester) async {
       await pumpBoard(
         tester,
         boardWith(holes: const [3]),

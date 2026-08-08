@@ -98,7 +98,7 @@ class StringsFr extends AppStrings {
   Map<int, String> get levelNames => const {
     1: 'Glisser',
     2: 'Deux virages',
-    3: 'Bloc-frein',
+    3: 'Compagnon',
     4: 'Cloison',
     5: 'Deux murs',
     6: 'Porte étroite',
@@ -124,8 +124,8 @@ class StringsFr extends AppStrings {
         "Les blocs glissent jusqu'à un mur ou au bord du plateau.\n"
         'Arrêtez le joueur exactement sur la case objectif pour réussir.',
     3:
-        'Une seule commande fait glisser tous les blocs à la fois.\n'
-        'Les autres blocs peuvent aussi arrêter le joueur.',
+        'Une seule commande fait aussi glisser vos blocs compagnons.\n'
+        "Ils servent d'appui pour arrêter le joueur.",
     4:
         'Le trait épais entre deux cases est une cloison.\n'
         'Il bloque le passage, mais les deux cases restent utilisables.',

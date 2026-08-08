@@ -52,7 +52,7 @@ void main() {
       });
     }
 
-    testWidgets('블록 브레이크는 블록이 둘이다', (tester) async {
+    testWidgets('동료 블록 데모는 블록이 둘이다', (tester) async {
       // 하나만 나오면 "다른 블록이 막는다" 가 보이지 않는다.
       await pumpDemo(tester, TutorialDemo.blockBrake);
 
