@@ -148,6 +148,18 @@ rules engine is locked down by unit tests including all three hand-verified trac
 `docs/game-design.md` §4, **twenty-five levels** are ASCII constants whose `minMoves` a BFS solver
 in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
+**In progress, and the reason the suite is red: levels 1–13 are mid-redesign.** The user began
+redrawing those maps by hand (#97) and stopped partway; the state is committed as-is. As of #98 the
+run was **48 failures out of 528** — declared `minMoves` disagreeing with the real shortest
+solution, decorative elements, padding rows, and a board-size curve that dips (`10 → 16 → 9 → 20 →
+15 → 15 → 16 → 12 → 16 → 21 → 25 → 30 → 25`). **Levels 14–25 all pass.** Fourteen of the failures
+are widget tests that know levels 1 and 2 by shape, so they move when the maps settle — they are
+not a regression. Do not assume a red suite is something you broke, and **do not report a change as
+verified against a green run until these land**; check whether the failures are the known set.
+`level_design_test` stops at the first violation per level, so fixing one reveals the next — this
+is a loop, not a single pass. **README leans on the test suite as a selling point and the project
+is a contest submission, so this is the thing to finish first.**
+
 **Level design is a checked property, not taste** (`docs/game-design.md` §4.4). `test/feature/game/
 level_design.dart` exhaustively searches every level and `level_design_test.dart` asserts five
 things: no board reachable from the start may be unclearable (there is no undo, so a silent dead
@@ -177,8 +189,8 @@ what passes those checks, and the test then pins it.
 
 **There is no on-screen d-pad on any platform** (`docs/game-design.md` §6) — a test asserts its
 absence, so don't reintroduce one for discoverability. Discoverability is handled by **per-level
-tutorial text** (`Level.tutorial`, §6.1): levels that introduce a new rule carry a Korean blurb, and
-it is shown once as an overlay on first arrival. "Seen" is persisted by `TutorialRepository` in the
+tutorial text** (`Level.demo`, §6.1): levels that introduce a new rule carry a blurb in all five
+languages, and it is shown once as an overlay on first arrival. "Seen" is persisted by `TutorialRepository` in the
 `level` feature — that feature therefore owns a little `SharedPreferences` state, not just constants.
 Clear/star/best-move storage is separate and lives in `progress`; don't merge the two.
 
@@ -224,7 +236,7 @@ replaying a rewind. Falling blocks are removed from `board` but kept in `state.f
 they can slide into the hole before shrinking — the shrink is delayed by an `Interval`, not a
 second timer.
 
-**The app is multilingual** (`docs/architecture.md` §13, `docs/tasks/completed/11-i18n.md`):
+**The app is multilingual** (`docs/architecture.md` §14, `docs/tasks/completed/11-i18n.md`):
 Korean, English, Japanese, Simplified Chinese, French. **No i18n package** — `intl`,
 `flutter_localizations` and friends are all absent on purpose, the same way Flame is. Strings are
 an abstract `AppStrings` with one hand-written implementation per language, so a missing key breaks
@@ -232,9 +244,10 @@ the build instead of surfacing as an empty string to whoever reads that language
 value in it is a **function**, which is what lets English do `1 move` / `2 moves` inside its own
 file. Screens read `context.strings` from an `InheritedWidget`, never Riverpod.
 
-**Level names and tutorial text are not in `Level` anymore** — `Level` keeps `hasTutorial`, a bool,
-because "which level teaches something" is level design, not translation; if the two travelled
-together a missing translation would silently delete a tutorial. The text is in `AppStrings`, keyed
+**Level names and tutorial text are not in `Level` anymore** — `Level` keeps `demo`, a
+`TutorialDemo?` (with a `hasTutorial` getter for `demo != null`), because "which level teaches
+what" is level design, not translation; if the two travelled together a missing translation would
+silently delete a tutorial. The text is in `AppStrings`, keyed
 by level number, and those maps are the one place with no compile-time check — a parity test pins
 their keys to `kLevels`.
 

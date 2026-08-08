@@ -29,20 +29,24 @@ presentation  →  domain  ←  data
 lib/
 ├── main.dart
 ├── core/
-│   ├── config/      app_constants.dart, app_enums.dart
+│   ├── config/      app_constants.dart
 │   ├── di/          core_providers.dart          ← 전역 provider만
 │   ├── error/       failure.dart, failure_code.dart
-│   ├── extension/   build_context_extension.dart, notifier_mixin.dart
+│   ├── extension/   notifier_mixin.dart
+│   ├── i18n/        app_locale.dart, app_strings.dart, strings_{ko,en,ja,zh,fr}.dart,
+│   │                strings_catalog.dart, app_strings_scope.dart        ← §14
 │   ├── router/      router.dart, route_paths.dart
-│   ├── theme/       base_theme.dart, data/{light,dark}_theme.dart,
-│   │                data/spacing.dart, data/text_styles.dart
+│   ├── theme/       base_theme.dart, board_colors.dart,
+│   │                data/{light,dark}_theme.dart, data/spacing.dart, data/text_styles.dart
 │   ├── usecase/     base_stream_usecase.dart
-│   ├── util/
-│   └── widget/      여러 feature가 공유하는 위젯
+│   └── widget/      여러 feature가 공유하는 위젯 (game_button.dart 등)
 └── feature/
     ├── game/        판 모델 · 맵 데이터 · 이동 규칙 엔진 · 보드 렌더링 · 플레이 화면
-    ├── level/       레벨 메타데이터(번호 · 이름 · 최소 이동 횟수) · 레벨 선택 화면
-    └── progress/    클리어 여부 · 별점 · 최소 이동 기록 저장
+    ├── level/       레벨 메타데이터(번호 · 최소 이동 횟수 · 튜토리얼 데모) · 레벨 선택 화면
+    │                · 안내를 봤는지 여부
+    ├── progress/    클리어 여부 · 별점 · 최소 이동 기록 저장
+    ├── settings/    언어 선택과 저장
+    └── splash/      첫 화면. 판도 레벨도 모른다
 ```
 
 ### feature 의존 방향 — **순환 금지**
@@ -108,7 +112,7 @@ lib/feature/<name>/
 | Dio / 네트워크 | 있음 | 없음 | — |
 | Failure 매퍼 체인 | Dio → 소셜 → 클라이언트 | 클라이언트 전용으로 축소 | 네트워크 에러가 존재하지 않는다 |
 | 페이지네이션 | `PaginationResponse<T>` | 없음 | 레벨 목록은 전량 메모리 상수 |
-| 다국어 | ARB 코드젠 | v1 한국어 하드코딩 | 텍스트 양이 적다 |
+| 다국어 | ARB 코드젠 | **손으로 쓴 `AppStrings` 5개 언어** (§14) | 텍스트 양이 적어 코드젠도 패키지도 값을 못 한다. 추상 멤버라 키를 빠뜨리면 컴파일이 깨진다 |
 | Firebase / Sentry | 있음 | 없음 | — |
 
 `RepositoryImpl`이 데이터를 직접 갖는 형태는 이렇게 생긴다:
@@ -140,7 +144,7 @@ class MapRepositoryImpl implements MapRepository {
 - 부팅 시점에만 알 수 있는 값(`SharedPreferences` 등)은 `throw UnimplementedError()`로 선언해두고 `main.dart`의 `ProviderScope(overrides: [...])`에서 주입한다.
 - **항상 `Provider<추상타입>(...)`** 으로 등록한다. 구현체 타입이 주입 타입이 되면 안 된다.
 - provider 본문에서는 **항상 `ref.read`**, `ref.watch`를 쓰지 않는다.
-  - **예외는 파생 상태 provider 하나뿐이다** — `appStringsProvider`(§13). 배선이 아니라 값이 값을 낳는 자리라, `ref.read` 로 두면 처음 언어에 영영 고정된다. 예외를 늘리기 전에 "이것이 DI 배선인가 파생 상태인가" 를 먼저 답한다.
+  - **예외는 파생 상태 provider 하나뿐이다** — `appStringsProvider`(§14). 배선이 아니라 값이 값을 낳는 자리라, `ref.read` 로 두면 처음 언어에 영영 고정된다. 예외를 늘리기 전에 "이것이 DI 배선인가 파생 상태인가" 를 먼저 답한다.
 - 파일 안은 `Data → Domain → Presentation` 순서로 배너 주석을 달아 구분한다.
 
 ```dart
@@ -452,7 +456,7 @@ top-level `final`, camelCase, `<대상>Provider` 접미사. `...RepositoryProvid
 | `go_router` | `^14.6.1` | 라우팅 |
 | `shared_preferences` | `^2.5.3` | 진행도 · 설정 저장 |
 
-**다국어 패키지를 추가하지 않는다.** `intl` · `flutter_localizations` · `easy_localization` · `slang` 모두 쓰지 않는다 (§13).
+**다국어 패키지를 추가하지 않는다.** `intl` · `flutter_localizations` · `easy_localization` · `slang` 모두 쓰지 않는다 (§14).
 
 **게임 엔진(Flame 등)을 추가하지 않는다.** 렌더링은 `CustomPainter`, 게임 루프/연출은 `AnimationController`, 입력은 `GestureDetector` / `Focus` + `KeyboardListener`로 해결한다.
 
