@@ -149,12 +149,17 @@ rules engine is locked down by unit tests including all three hand-verified trac
 in `test/` verifies, and the play screen takes swipe, arrow keys, WASD, mouse drag, and `R`.
 
 **In progress, and the reason the suite is red: levels 1–13 are mid-redesign.** The user began
-redrawing those maps by hand (#97) and stopped partway; the state is committed as-is. As of #98 the
-run was **48 failures out of 528** — declared `minMoves` disagreeing with the real shortest
-solution, decorative elements, padding rows, and a board-size curve that dips (`10 → 16 → 9 → 20 →
-15 → 15 → 16 → 12 → 16 → 21 → 25 → 30 → 25`). **Levels 14–25 all pass.** Fourteen of the failures
-are widget tests that know levels 1 and 2 by shape, so they move when the maps settle — they are
-not a regression. Do not assume a red suite is something you broke, and **do not report a change as
+redrawing those maps by hand (#97) and stopped partway; the state is committed as-is. Measured in
+#108: **`+533 -48` — 48 failures out of 581** — declared `minMoves` disagreeing with the real
+shortest solution, decorative elements, padding rows, and a board-size curve that dips (`10 → 16 →
+9 → 20 → 15 → 15 → 16 → 12 → 16 → 21 → 25 → 30 → 25`). **Levels 14–25 all pass.** The breakdown is
+`level_design_test` 23, `map_and_level_data_test` 11, `game_play_screen_notifier_test` 10,
+`level_select_screen_notifier_test` 2, `bump_test` 1, `level_transition_test` 1. Those last 14 are
+widget tests that know levels 1 and 2 by shape, so they move when the maps settle — they are
+not a regression.
+
+**`flutter test` prints `+passed -failed`, not a total.** #98 read `+528` as "528 tests" and the
+figure was repeated for three sessions; the suite is 581. Add the two numbers. Do not assume a red suite is something you broke, and **do not report a change as
 verified against a green run until these land**; check whether the failures are the known set.
 `level_design_test` stops at the first violation per level, so fixing one reveals the next — this
 is a loop, not a single pass. **README leans on the test suite as a selling point and the project
