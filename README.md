@@ -5,6 +5,11 @@
 
 25개 레벨 · 5개 언어 · 게임 엔진 없이 순수 Flutter · **전 과정 AI 페어 프로그래밍**
 
+### ▶ [blockrunner.izvillain.com](https://blockrunner.izvillain.com) 에서 바로 해보실 수 있습니다
+
+설치도 빌드도 없이 브라우저에서 곧바로 실행됩니다. 아래 [실행하기](#실행하기)는 직접 빌드해
+보시려는 경우입니다.
+
 ---
 
 ## 어떤 게임인가요
@@ -41,7 +46,9 @@
 
 ## 실행하기
 
-**Flutter 를 몰라도, 설치하지 않아도 실행할 수 있습니다.** 아래 두 방법 중 하나를 고르시면 됩니다.
+**그냥 해보시려면 [blockrunner.izvillain.com](https://blockrunner.izvillain.com) 이 가장 빠릅니다.**
+직접 빌드해 보시려면 아래 두 방법 중 하나를 고르시면 됩니다 — **Flutter 를 몰라도, 설치하지
+않아도 됩니다.**
 
 ### 방법 1. Docker — 준비물이 Docker 하나뿐 (권장)
 
